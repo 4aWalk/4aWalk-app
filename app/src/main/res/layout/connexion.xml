@@ -16,7 +16,7 @@
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_marginBottom="32dp"
-        android:src="@drawable/Logo4aWalk"
+        android:src="@drawable/logo4awalk"
         android:contentDescription="@string/logo_description" />
 
     <!-- Titre Connexion -->
@@ -80,8 +80,8 @@
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="Se connecter"
-        android:textColor="#FFFFFF"
+        android:text="@string/btnConnecter"
+        android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"
         android:backgroundTint="@color/lightvert"
@@ -92,8 +92,8 @@
         android:id="@+id/registerButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="S'inscrire"
-        android:textColor="#FFFFFF"
+        android:text="@string/btnInscrire"
+        android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"
         android:backgroundTint="@color/grey"/>

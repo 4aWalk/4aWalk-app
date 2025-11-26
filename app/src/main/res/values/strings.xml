@@ -1,4 +1,20 @@
 <resources>
     <string name="app_name">4aWalk</string>
     <string name="logo_description">Logo de l application 4awaklk</string>
+    <string-array name="niveau_array">
+        <item>Débutant</item>
+        <item>Intermédiaire</item>
+        <item>Avancé</item>
+    </string-array>
+
+    <string-array name="morphologie_array">
+        <item>Mince</item>
+        <item>Moyenne</item>
+        <item>Sportive</item>
+        <item>Ronde</item>
+    </string-array>
+    <string name="retour">Retour</string>
+    <string name="TitreInscription">Créer un compte</string>
+    <string name="btnConnecter">Se connecter</string>
+    <string name="btnInscrire">S inscire</string>
 </resources>
