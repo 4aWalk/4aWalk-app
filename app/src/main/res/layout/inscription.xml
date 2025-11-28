@@ -12,7 +12,7 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/registerButton"
+            android:id="@+id/btn_retour"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_gravity="start|top"
@@ -25,6 +25,7 @@
 
         <!-- Titre -->
         <TextView
+            android:id="@+id/tv_titre_inscription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/TitreInscription"
@@ -35,12 +36,14 @@
 
         <!-- Nom -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_nom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Nom"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_nom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
@@ -49,12 +52,14 @@
 
         <!-- Prénom -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_prenom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Prénom"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_prenom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
@@ -63,12 +68,14 @@
 
         <!-- Age -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_age"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Age"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_age"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
@@ -77,12 +84,14 @@
 
         <!-- Adresse personnelle -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_adresse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Adresse personnelle"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_adresse"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPostalAddress"
@@ -91,12 +100,14 @@
 
         <!-- Email -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
@@ -105,12 +116,14 @@
 
         <!-- Mot de passe -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_mot_de_passe"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Mot de passe"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_mot_de_passe"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
@@ -119,12 +132,14 @@
 
         <!-- Confirmer le mot de passe -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_confirmer_mot_de_passe"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Confirmer le mot de passe"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_confirmer_mot_de_passe"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
@@ -133,6 +148,7 @@
 
         <!-- Niveau (Spinner) -->
         <Spinner
+            android:id="@+id/spinner_niveau"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:entries="@array/niveau_array"
@@ -141,6 +157,7 @@
 
         <!-- Morphologie (Spinner) -->
         <Spinner
+            android:id="@+id/spinner_morphologie"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:entries="@array/morphologie_array"
