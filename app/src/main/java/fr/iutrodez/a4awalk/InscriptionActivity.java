@@ -62,58 +62,35 @@ public class InscriptionActivity extends AppCompatActivity {
         String motDePasse = etMotDePasse.getText().toString().trim();
         String confirmerMotDePasse = etConfirmerMotDePasse.getText().toString().trim();
 
-        // Vérifications
-        if (nom.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir le champ Nom", Toast.LENGTH_SHORT).show();
-            etNom.requestFocus();
+        StringBuilder champsManquants = new StringBuilder();
+
+        if (nom.isEmpty()) champsManquants.append("Nom, ");
+        if (prenom.isEmpty()) champsManquants.append("Prénom, ");
+        if (age.isEmpty()) champsManquants.append("Âge, ");
+        if (adresse.isEmpty()) champsManquants.append("Adresse, ");
+        if (email.isEmpty()) champsManquants.append("Email, ");
+        if (motDePasse.isEmpty()) champsManquants.append("Mot de passe, ");
+        if (confirmerMotDePasse.isEmpty()) champsManquants.append("Confirmation mot de passe, ");
+
+        // Si certains champs sont manquants
+        if (champsManquants.length() > 0) {
+            // Supprime la dernière virgule et espace
+            champsManquants.setLength(champsManquants.length() - 2);
+            Toast.makeText(this, "Veuillez remplir les champs suivants : " + champsManquants.toString(), Toast.LENGTH_LONG).show();
             return false;
         }
 
-        if (prenom.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir le champ Prénom", Toast.LENGTH_SHORT).show();
-            etPrenom.requestFocus();
-            return false;
-        }
-
-        if (age.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir le champ Âge", Toast.LENGTH_SHORT).show();
-            etAge.requestFocus();
-            return false;
-        }
-
-        if (adresse.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir le champ Adresse", Toast.LENGTH_SHORT).show();
-            etAdresse.requestFocus();
-            return false;
-        }
-
-        if (email.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir le champ Email", Toast.LENGTH_SHORT).show();
-            etEmail.requestFocus();
-            return false;
-        }
-
+        // Vérification email valide
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Veuillez entrer un email valide", Toast.LENGTH_SHORT).show();
             etEmail.requestFocus();
             return false;
         }
 
-        if (motDePasse.isEmpty()) {
-            Toast.makeText(this, "Veuillez remplir le champ Mot de passe", Toast.LENGTH_SHORT).show();
-            etMotDePasse.requestFocus();
-            return false;
-        }
-
+        // Vérification mot de passe
         if (motDePasse.length() < 6) {
             Toast.makeText(this, "Le mot de passe doit contenir au moins 6 caractères", Toast.LENGTH_SHORT).show();
             etMotDePasse.requestFocus();
-            return false;
-        }
-
-        if (confirmerMotDePasse.isEmpty()) {
-            Toast.makeText(this, "Veuillez confirmer le mot de passe", Toast.LENGTH_SHORT).show();
-            etConfirmerMotDePasse.requestFocus();
             return false;
         }
 
@@ -125,4 +102,5 @@ public class InscriptionActivity extends AppCompatActivity {
 
         return true;
     }
+
 }
