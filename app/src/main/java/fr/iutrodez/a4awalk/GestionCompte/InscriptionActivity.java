@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk;
+package fr.iutrodez.a4awalk.GestionCompte;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -8,6 +8,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
+
+import fr.iutrodez.a4awalk.R;
 
 public class InscriptionActivity extends AppCompatActivity {
 
@@ -45,10 +47,13 @@ public class InscriptionActivity extends AppCompatActivity {
         btnCreateAccount.setOnClickListener(v -> {
             if (validateForm()) {
                 Toast.makeText(this, "Compte créé avec succès !", Toast.LENGTH_SHORT).show();
+
+                // Retour à la connexion
+                finish();
             }
         });
 
-        // Listener bouton retour
+        // Bouton Retour
         btnRetour.setOnClickListener(v -> finish());
     }
 
@@ -64,6 +69,7 @@ public class InscriptionActivity extends AppCompatActivity {
 
         StringBuilder champsManquants = new StringBuilder();
 
+        // Vérification des champs vides
         if (nom.isEmpty()) champsManquants.append("Nom, ");
         if (prenom.isEmpty()) champsManquants.append("Prénom, ");
         if (age.isEmpty()) champsManquants.append("Âge, ");
@@ -72,15 +78,32 @@ public class InscriptionActivity extends AppCompatActivity {
         if (motDePasse.isEmpty()) champsManquants.append("Mot de passe, ");
         if (confirmerMotDePasse.isEmpty()) champsManquants.append("Confirmation mot de passe, ");
 
-        // Si certains champs sont manquants
         if (champsManquants.length() > 0) {
-            // Supprime la dernière virgule et espace
             champsManquants.setLength(champsManquants.length() - 2);
-            Toast.makeText(this, "Veuillez remplir les champs suivants : " + champsManquants.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Veuillez remplir : " + champsManquants, Toast.LENGTH_LONG).show();
             return false;
         }
 
-        // Vérification email valide
+        // Vérification si l'email existe déjà
+        if (email.equalsIgnoreCase("neo.becogne@iut-rodez.fr")) {
+            Toast.makeText(this, "Un compte avec cet email existe déjà", Toast.LENGTH_SHORT).show();
+            etEmail.requestFocus();
+            return false;
+        }
+
+        // Vérification age
+        try {
+            int ageNum = Integer.parseInt(age);
+            if (ageNum < 1 || ageNum > 120) {
+                Toast.makeText(this, "Âge invalide", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "L'âge doit être un nombre", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Vérification email
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Veuillez entrer un email valide", Toast.LENGTH_SHORT).show();
             etEmail.requestFocus();
@@ -90,13 +113,22 @@ public class InscriptionActivity extends AppCompatActivity {
         // Vérification mot de passe
         if (motDePasse.length() < 6) {
             Toast.makeText(this, "Le mot de passe doit contenir au moins 6 caractères", Toast.LENGTH_SHORT).show();
-            etMotDePasse.requestFocus();
             return false;
         }
 
         if (!motDePasse.equals(confirmerMotDePasse)) {
             Toast.makeText(this, "Les mots de passe ne correspondent pas", Toast.LENGTH_SHORT).show();
-            etConfirmerMotDePasse.requestFocus();
+            return false;
+        }
+
+        // Vérification spinners
+        if (spinnerNiveau.getSelectedItemPosition() == 0) {
+            Toast.makeText(this, "Veuillez choisir un niveau", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (spinnerMorphologie.getSelectedItemPosition() == 0) {
+            Toast.makeText(this, "Veuillez choisir une morphologie", Toast.LENGTH_SHORT).show();
             return false;
         }
 

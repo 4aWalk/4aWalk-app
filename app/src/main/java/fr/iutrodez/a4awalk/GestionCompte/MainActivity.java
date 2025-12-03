@@ -1,11 +1,14 @@
-package fr.iutrodez.a4awalk;
+package fr.iutrodez.a4awalk.GestionCompte;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import fr.iutrodez.a4awalk.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.connexion); // Assure-toi que le layout est correct
+        setContentView(R.layout.connexion);
 
         // Initialisation des vues
         emailInput = findViewById(R.id.emailInput);
@@ -25,25 +28,29 @@ public class MainActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.registerButton);
 
-        // Listener bouton Se connecter
+        // Bouton SE CONNECTER
         loginButton.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
 
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(MainActivity.this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show();
-            } else if (!email.equals("neo.becogne@iut-rodez.fr") || !password.equals("12345")) {
+                return;
+            }
+
+            // Exemple : connexion simple avec identifiants codés en dur
+            if (!email.equals("neo.becogne@iut-rodez.fr") || !password.equals("12345")) {
                 Toast.makeText(MainActivity.this, "Email ou mot de passe incorrect", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(MainActivity.this, "Connexion réussie !", Toast.LENGTH_SHORT).show();
-                // Ici tu peux ajouter la logique après connexion réussie
+                // TODO : rediriger vers une autre activité
             }
         });
 
-        // Listener bouton S'inscrire
+        // Bouton S'INSCRIRE → ouvre InscriptionActivity
         registerButton.setOnClickListener(v -> {
-            // Rediriger vers l'activité d'inscription
-            Toast.makeText(MainActivity.this, "Bouton S'inscrire cliqué", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, InscriptionActivity.class);
+            startActivity(intent);
         });
     }
 }

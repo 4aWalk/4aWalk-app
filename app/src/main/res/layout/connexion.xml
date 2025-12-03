@@ -8,7 +8,7 @@
     android:background="#F5E6D3"
     android:gravity="center"
     android:padding="24dp"
-    tools:context=".MainActivity">>
+    tools:context=".GestionCompte.MainActivity">>
 
     <!-- Logo -->
     <ImageView
