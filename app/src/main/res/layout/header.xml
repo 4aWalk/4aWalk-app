@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="#B3B3B3"
+    android:padding="8dp">
+
+    <!-- LOGO -->
+    <ImageView
+        android:id="@+id/headerLogo"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/logo_for_a_walk"
+        android:layout_alignParentStart="true"
+        android:background="@drawable/radius_logo"
+        android:contentDescription="Logo" />
+
+    <!-- MENU ICON (3 DOTS) -->
+    <ImageButton
+        android:id="@+id/menuButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/menu_icon"
+        android:contentDescription="Menu" />
+
+</RelativeLayout>

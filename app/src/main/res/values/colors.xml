@@ -7,5 +7,8 @@
     <color name="red">#f24822</color>
     <color name="marron">#c7a980</color>
     <color name="vert">#4CAF50</color>
-
+    <color name="primary">#4A7C59</color>
+    <color name="primary_dark">#2F4E37</color>
+    <color name="green">#4CAF50</color>
+    <color name="background">#E9DDBE</color>
 </resources>
