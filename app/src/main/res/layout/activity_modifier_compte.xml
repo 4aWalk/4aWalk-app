@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/beige_clair"
+    tools:context=".GestionCompte.ModifierCompteActivity">
+
+    <include
+        android:id="@+id/toolbar_main_include"
+        layout="@layout/header"
+
+        android:layout_width="412dp"
+        android:layout_height="90dp"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_main_include"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_person" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="32dp"
+                android:text="@string/modifier_compte_titre"
+                android:textColor="@color/noir"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nom"
+                android:textColor="@color/noir" />
+            <EditText
+                style="@style/SimpleEditTextStyle"
+                android:hint="@string/hint_nom"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Prénom"
+                android:textColor="@color/noir" />
+            <EditText
+                style="@style/SimpleEditTextStyle"
+                android:hint="@string/hint_prenom"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Age"
+                android:textColor="@color/noir" />
+            <EditText
+                style="@style/SimpleEditTextStyle"
+                android:hint="@string/hint_age"
+                android:inputType="number" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_niveau"
+                android:textColor="@color/noir" />
+            <Spinner
+                style="@style/SimpleSpinnerStyle"
+                android:entries="@array/niveaux_array" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/label_morphologie"
+                android:textColor="@color/noir" />
+            <Spinner
+                style="@style/SimpleSpinnerStyle"
+                android:entries="@array/morphologies_array" />
+
+            <Button
+                android:id="@+id/button_valider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/shape_button_valider"
+                android:text="@string/bouton_valider"
+                android:textColor="@color/blanc"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

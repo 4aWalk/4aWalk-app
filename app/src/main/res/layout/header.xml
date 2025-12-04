@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_toolbar"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
-    android:background="#B3B3B3"
-    android:padding="8dp">
+    android:layout_height="?attr/actionBarSize"
+    android:background="@color/vert_fonce"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-    <!-- LOGO -->
-    <ImageView
-        android:id="@+id/headerLogo"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/logo_for_a_walk"
-        android:layout_alignParentStart="true"
-        android:background="@drawable/radius_logo"
-        android:contentDescription="Logo" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <!-- MENU ICON (3 DOTS) -->
-    <ImageButton
-        android:id="@+id/menuButton"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/menu_icon"
-        android:contentDescription="Menu" />
-
-</RelativeLayout>
+        <ImageView
+            android:id="@+id/toolbar_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Logo de l'application"
+            android:src="@drawable/ic_logo_app"
+            android:paddingEnd="16dp" />
+    </RelativeLayout>
+</androidx.appcompat.widget.Toolbar>

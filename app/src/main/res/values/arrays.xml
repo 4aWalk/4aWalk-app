@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="niveaux_array">
+        <item>Débutant</item>
+        <item>Intermédiaire</item>
+        <item>Entraîné</item>
+    </string-array>
+
+    <string-array name="morphologies_array">
+        <item>Fin</item>
+        <item>Moyen</item>
+        <item>Large</item>
+    </string-array>
+
+</resources>

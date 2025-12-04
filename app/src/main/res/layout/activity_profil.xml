@@ -1,91 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="@color/background">
+    android:background="@color/beige_clair"
+    tools:context=".GestionCompte.ProfilActivity">
 
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_height="56dp"
+        android:background="@color/vert_fonce"
+        app:layout_constraintTop_toTopOf="parent">
+    </RelativeLayout>
 
-        <ImageView
-            android:id="@+id/imgProfil"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_person"
-            android:tint="@color/primary"
-            android:layout_marginTop="20dp" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <TextView
-                android:id="@+id/txtNomComplet"
+            <ImageView
+                android:id="@+id/profil_icon"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_person" />
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:layout_marginEnd="6dp"
-                android:textColor="@color/primary_dark" />
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/btnEdit"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_edit"
-                android:tint="@color/primary_dark" />
+                <TextView
+                    android:id="@+id/profil_nom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profil_titre"
+                    android:textColor="@color/noir"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/edit_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Modifier le profil"
+                    android:src="@drawable/ic_edit" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profil_adresse_label"
+                    android:textColor="@color/gris_texte"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/profil_adresse_valeur"
+                    android:textColor="@color/noir"
+                    android:textSize="16sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/vert_fonce"
+                    android:layout_marginBottom="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profil_age_label"
+                    android:textColor="@color/gris_texte"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/profil_age_valeur"
+                    android:textColor="@color/noir"
+                    android:textSize="16sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/vert_fonce"
+                    android:layout_marginBottom="16dp"/>
+
+            </LinearLayout>
+
         </LinearLayout>
-
-        <!-- Section infos -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/adresse_personnelle"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            android:textColor="@color/primary_dark" />
-
-        <TextView
-            android:id="@+id/txtAdresse"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="18 avenue durant de gros"
-            android:layout_marginTop="4dp" />
-
-        <TextView
-            android:id="@+id/txtAge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Age : 21 ans"
-            android:layout_marginTop="12dp" />
-
-        <TextView
-            android:id="@+id/txtEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Email : neo.become@edu-todaz.fr"
-            android:layout_marginTop="12dp" />
-
-        <TextView
-            android:id="@+id/txtNiveau"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Niveau : Entraîné"
-            android:layout_marginTop="12dp" />
-
-        <TextView
-            android:id="@+id/txtMorphologie"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Morphologie : Moyen"
-            android:layout_marginTop="12dp" />
-
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="beige">#ece1c1</color>
-    <color name="orange">#f57c00</color>
-    <color name="red">#f24822</color>
-    <color name="marron">#c7a980</color>
-    <color name="vert">#4CAF50</color>
-    <color name="primary">#4A7C59</color>
-    <color name="primary_dark">#2F4E37</color>
-    <color name="green">#4CAF50</color>
-    <color name="background">#E9DDBE</color>
-</resources>
+    <color name="vert_fonce">#385830</color> <color name="beige_clair">#E8E4C7</color> <color name="noir">#000000</color>
+    <color name="blanc">#FFFFFF</color>
+    <color name="gris_texte">#555555</color>
+    <color name="vert_bouton_valider">#5cb85c</color> </resources>

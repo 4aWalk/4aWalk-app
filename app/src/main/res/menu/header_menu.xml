@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
-        android:id="@+id/menuAccount"
-        android:title="Gestion du compte" />
+        android:id="@+id/action_gestion_compte"
+        android:title="Gestion du compte"
+        app:showAsAction="never" />
+
     <item
-        android:id="@+id/menuLogout"
+        android:id="@+id/action_deconnexion"
         android:title="Déconnexion"
-        android:icon="@drawable/logout_icon"/>
+        android:icon="@drawable/ic_logout"
+        app:showAsAction="never" />
 </menu>

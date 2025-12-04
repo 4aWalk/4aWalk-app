@@ -1,23 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">4aWalk</string>
-    <string name="d_connexion">Déconnexion</string>
-    <string name="gestion_du_compte">Gestion du compte</string>
+    <string name="app_name">My App</string>
+    <string name="profil_titre">Bécogné Néo</string>
+    <string name="profil_adresse_label">Adresse personnelle :</string>
+    <string name="profil_adresse_valeur">18 avenue durand de gros</string>
+    <string name="profil_age_label">Age :</string>
+    <string name="profil_age_valeur">21 ans</string>
+    <string name="profil_email_label">Email :</string>
+    <string name="profil_email_valeur">neo.becogne@iut-rodez.fr</string>
+    <string name="profil_niveau_label">Niveau :</string>
+    <string name="profil_niveau_valeur">Entraîné</string>
+    <string name="profil_morphologie_label">Morphologie :</string>
+    <string name="profil_morphologie_valeur">Moyen</string>
 
-    <string name="modifier_compte">Modifier votre Compte</string>
-    <string name="adresse_personnelle">Adresse personnelle :</string>
-    <string name="valider">Valider</string>
-
-    <!-- Spinners -->
-    <string-array name="niveau_array">
-        <item>Débutant</item>
-        <item>Intermédiaire</item>
-        <item>Entraîné</item>
-        <item>Expert</item>
-    </string-array>
-
-    <string-array name="morpho_array">
-        <item>Fin</item>
-        <item>Moyen</item>
-        <item>Large</item>
-    </string-array>
+    <string name="modifier_compte_titre">Modifier votre Compte</string>
+    <string name="hint_nom">Mon Nom</string>
+    <string name="hint_prenom">Mon Prénom</string>
+    <string name="hint_age">18</string>
+    <string name="hint_adresse">Mon adresse</string>
+    <string name="hint_email">monadresse@gmail.com</string>
+    <string name="hint_mot_de_passe">Mot de passe</string>
+    <string name="hint_confirmer_mot_de_passe">Confirmer le mot de passe</string>
+    <string name="label_niveau">Niveau</string>
+    <string name="label_morphologie">Morphologie</string>
+    <string name="bouton_valider">Valider</string>
 </resources>
