@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vue du 1er fragment : génération d'un nombre aléatoire -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    tools:context=".FragmentListeRandonnees">
+    <!-- nom du fragment, message bienvenue -->
+    <TextView/>
+    <!-- fonctionnalité du fragment -->
+    <TextView/>
+    <!-- zone pour afficher le résultat (le nombre aléatoire) -->
+    <TextView
+        android:id="@+id/texte_resultat"/>
+    <!-- bouton générer -->
+    <Button
+        android:id="@+id/btn_alea"/>
+
+    <!-- bouton vider -->
+    <Button
+        android:id="@+id/btn_vider"/>
+</LinearLayout>
