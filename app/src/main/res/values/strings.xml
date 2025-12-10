@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">4aWalk</string>
+
+    <string-array name="niveaux">
+        <item>Choisir le niveau</item>
+        <item>Débutant</item>
+        <item>Intermédiaire</item>
+        <item>Avancé</item>
+    </string-array>
+
+    <string-array name="morphologies">
+        <item>Choisir la morphologie</item>
+        <item>Ectomorphe</item>
+        <item>Mésomorphe</item>
+        <item>Endomorphe</item>
+    </string-array>
+
 </resources>
