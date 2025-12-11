@@ -58,7 +58,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:entries="@array/niveaux"
-        android:background="@drawable/spinner"/>
+        android:background="@drawable/spinner"
+        android:popupBackground="@android:color/white"/>
 
     <!-- Spinner pour Morphologie -->
     <Spinner
@@ -67,7 +68,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:entries="@array/morphologies"
-        android:background="@drawable/spinner" />
+        android:background="@drawable/spinner"
+        android:popupBackground="@android:color/white"/>
 
     <EditText
         android:id="@+id/etBesoinKcal"
