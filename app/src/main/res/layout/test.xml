@@ -8,7 +8,14 @@
 
     <Button
         android:id="@+id/btnOpenPopup"
-        android:text="Test"
+        android:text="TestAjoutParticipant"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnOpenPopup2"
+        android:text="TestSuppParticipant"
         android:layout_marginTop="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

@@ -15,4 +15,14 @@
         <item>Endomorphe</item>
     </string-array>
 
+    <string name="titrePopup">Participant 1</string>
+    <string name="age">Âge</string>
+    <string name="besoinKCAL">Besoin kcal/jour</string>
+    <string name="besoinEAU">Besoin en eau (L)</string>
+    <string name="sac">Possède un sac à dos</string>
+    <string name="capacite">Capacité (kg) du sac</string>
+    <string name="ajouterP">Ajouter le participant</string>
+    <string name="btnSac">Voir le sac à dos</string>
+
+
 </resources>

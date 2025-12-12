@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Participant 1"
+            android:text="@string/titrePopup"
             android:textStyle="bold"
             android:textSize="18sp"
             android:textColor="@android:color/black"/>
@@ -44,7 +44,7 @@
         android:id="@+id/etAge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Âge"
+        android:hint="@string/age"
         android:textColor="@android:color/black"
         android:textColorHint="@android:color/darker_gray"
         android:backgroundTint="@android:color/black"
@@ -75,7 +75,7 @@
         android:id="@+id/etBesoinKcal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Besoin kcal/jour"
+        android:hint="@string/besoinKCAL"
         android:textColor="@android:color/black"
         android:textColorHint="@android:color/darker_gray"
         android:backgroundTint="@android:color/black"
@@ -86,7 +86,7 @@
         android:id="@+id/etBesoinEau"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Besoin en eau (L)"
+        android:hint="@string/besoinEAU"
         android:textColor="@android:color/black"
         android:textColorHint="@android:color/darker_gray"
         android:backgroundTint="@android:color/black"
@@ -98,7 +98,7 @@
         android:id="@+id/cbSacADos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Possède un sac à dos"
+        android:text="@string/sac"
         android:textColor="@android:color/black"
         android:buttonTint="@android:color/black"
         android:layout_marginTop="8dp"
@@ -108,7 +108,7 @@
         android:id="@+id/etCapacite"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Capacité (kg) du sac"
+        android:hint="@string/capacite"
         android:textColor="@android:color/black"
         android:textColorHint="@android:color/darker_gray"
         android:backgroundTint="@android:color/black"
@@ -118,8 +118,8 @@
 
     <!-- Boutons -->
     <Button
-        android:id="@+id/btnValider"
-        android:text="Ajouter le participant"
+        android:id="@+id/btnAjouter"
+        android:text="@string/ajouterP"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -127,7 +127,7 @@
 
     <Button
         android:id="@+id/btnVoirSac"
-        android:text="Voir le sac à dos"
+        android:text="@string/btnSac"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"

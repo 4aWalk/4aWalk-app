@@ -15,7 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class PopUpActivity extends AppCompatActivity {
+public class PopUpParticipantActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +35,7 @@ public class PopUpActivity extends AppCompatActivity {
             // --- Boutons du popup ---
             ImageButton btnClose = dialog.findViewById(R.id.btnClose);
             Button btnVoirSac = dialog.findViewById(R.id.btnVoirSac);
-            Button btnValider = dialog.findViewById(R.id.btnValider);
+            Button btnAjouter = dialog.findViewById(R.id.btnAjouter);
 
             // --- Spinners du popup ---
             Spinner spinner1 = dialog.findViewById(R.id.spinnerNiveau);
@@ -107,7 +107,7 @@ public class PopUpActivity extends AppCompatActivity {
             );
 
             // --- Bouton valider avec vérifications ---
-            btnValider.setOnClickListener(view -> {
+            btnAjouter.setOnClickListener(view -> {
 
                 String age = etAge.getText().toString().trim();
                 String kcal = etBesoinKcal.getText().toString().trim();
