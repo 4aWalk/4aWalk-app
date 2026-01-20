@@ -11,7 +11,7 @@
         android:id="@+id/messagePrevention"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Êtes vous sûr de supprimer la randonnée :"
+        android:text=""
         android:textSize="16sp"
         android:textColor="@android:color/black"
         android:layout_marginBottom="8dp" />
@@ -21,7 +21,7 @@
         android:id="@+id/tv_randonnee"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="randonnée 6 ?"
+        android:text=""
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
@@ -39,7 +39,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Annuler"
+            android:text="@string/btnAnnuler"
             android:backgroundTint="@android:color/holo_blue_light"
             android:textColor="@android:color/white"
             android:layout_marginEnd="8dp" />
@@ -49,7 +49,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Supprimer"
+            android:text="@string/btnValider"
             android:backgroundTint="@android:color/darker_gray"
             android:textColor="@android:color/white" />
 

@@ -15,9 +15,24 @@
 
     <Button
         android:id="@+id/btnOpenPopup2"
+        android:text="TestSuppRandonnée"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnOpenPopup3"
         android:text="TestSuppParticipant"
         android:layout_marginTop="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btnOpenPopup4"
+        android:text="TestSuppParcour"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 
 </LinearLayout>

@@ -24,5 +24,8 @@
     <string name="ajouterP">Ajouter le participant</string>
     <string name="btnSac">Voir le sac à dos</string>
 
+    <string name="btnAnnuler">Annuler</string>
+    <string name="btnValider">Valider</string>
+
 
 </resources>

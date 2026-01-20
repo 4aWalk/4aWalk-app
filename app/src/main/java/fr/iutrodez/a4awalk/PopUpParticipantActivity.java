@@ -23,6 +23,48 @@ public class PopUpParticipantActivity extends AppCompatActivity {
         setContentView(R.layout.test); // ton layout principal
 
         Button btnOpen = findViewById(R.id.btnOpenPopup);
+        Button btnSuppParticipant = findViewById(R.id.btnOpenPopup3);
+        Button btnSuppRandonnee = findViewById(R.id.btnOpenPopup2);
+        Button btnSuppParcour = findViewById(R.id.btnOpenPopup4);
+
+        btnSuppParticipant.setOnClickListener(v -> {
+            PopupUtil.showDeletePopup(
+                    PopUpParticipantActivity.this,
+                    "Êtes-vous sûr de supprimer le participant :",
+                    "Participant 1",
+                    null
+            );
+        });
+
+        // ✅ Popup randonnée -> ouvre popup parcours
+        btnSuppRandonnee.setOnClickListener(v -> {
+            PopupUtil.showDeletePopup(
+                    PopUpParticipantActivity.this,
+                    "Êtes-vous sûr de vouloir supprimer cette randonnée ?",
+                    "Randonnée 3",
+                    new PopupUtil.PopupCallback() {
+                        @Override
+                        public void onValidate() {
+                            PopupUtil.showDeletePopup(
+                                    PopUpParticipantActivity.this,
+                                    "Êtes-vous sûr de vouloir supprimer ce parcours ?",
+                                    "Parcours A",
+                                    null
+                            );
+                        }
+                    }
+            );
+        });
+
+        btnSuppParcour.setOnClickListener(v -> {
+            PopupUtil.showDeletePopup(
+                    PopUpParticipantActivity.this,
+                    "Êtes-vous sûr de vouloir supprimer ce parcour",
+                    "Parcour A",
+                    null
+            );
+        });
+
 
         btnOpen.setOnClickListener(v -> {
 
@@ -168,4 +210,5 @@ public class PopUpParticipantActivity extends AppCompatActivity {
             dialog.show();
         });
     }
+
 }
