@@ -30,24 +30,45 @@ public class MainActivity extends AppCompatActivity {
 
         // Bouton SE CONNECTER
         loginButton.setOnClickListener(v -> {
+
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
 
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(MainActivity.this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show();
+            //Vérification email
+            if (email.isEmpty()) {
+                emailInput.setError("Veuillez entrer votre email");
+                emailInput.requestFocus();
                 return;
             }
 
-            // Exemple : connexion simple avec identifiants codés en dur
-            if (!email.equals("neo.becogne@iut-rodez.fr") || !password.equals("12345")) {
-                Toast.makeText(MainActivity.this, "Email ou mot de passe incorrect", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(MainActivity.this, "Connexion réussie !", Toast.LENGTH_SHORT).show();
-                // TODO : rediriger vers une autre activité
+            //Vérification mot de passe
+            if (password.isEmpty()) {
+                passwordInput.setError("Veuillez entrer votre mot de passe");
+                passwordInput.requestFocus();
+                return;
             }
+
+            //Identifiants incorrects
+            if (!email.equals("neo.becogne@iut-rodez.fr") || !password.equals("12345")) {
+                Toast.makeText(
+                        MainActivity.this,
+                        "Email ou mot de passe incorrect",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            // ✅ Connexion réussie
+            Toast.makeText(
+                    MainActivity.this,
+                    "Connexion réussie !",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            // TODO : redirection vers une autre activité
         });
 
-        // Bouton S'INSCRIRE → ouvre InscriptionActivity
+        // Bouton S'INSCRIRE
         registerButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, InscriptionActivity.class);
             startActivity(intent);

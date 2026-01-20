@@ -67,66 +67,104 @@ public class InscriptionActivity extends AppCompatActivity {
         String motDePasse = etMotDePasse.getText().toString().trim();
         String confirmerMotDePasse = etConfirmerMotDePasse.getText().toString().trim();
 
-        StringBuilder champsManquants = new StringBuilder();
-
-        // Vérification des champs vides
-        if (nom.isEmpty()) champsManquants.append("Nom, ");
-        if (prenom.isEmpty()) champsManquants.append("Prénom, ");
-        if (age.isEmpty()) champsManquants.append("Âge, ");
-        if (adresse.isEmpty()) champsManquants.append("Adresse, ");
-        if (email.isEmpty()) champsManquants.append("Email, ");
-        if (motDePasse.isEmpty()) champsManquants.append("Mot de passe, ");
-        if (confirmerMotDePasse.isEmpty()) champsManquants.append("Confirmation mot de passe, ");
-
-        if (champsManquants.length() > 0) {
-            champsManquants.setLength(champsManquants.length() - 2);
-            Toast.makeText(this, "Veuillez remplir : " + champsManquants, Toast.LENGTH_LONG).show();
+        //Nom
+        if (nom.isEmpty()) {
+            etNom.setError("Veuillez entrer votre nom");
+            etNom.requestFocus();
             return false;
         }
 
-        // Vérification si l'email existe déjà
-        if (email.equalsIgnoreCase("neo.becogne@iut-rodez.fr")) {
-            Toast.makeText(this, "Un compte avec cet email existe déjà", Toast.LENGTH_SHORT).show();
+        //Prénom
+        if (prenom.isEmpty()) {
+            etPrenom.setError("Veuillez entrer votre prénom");
+            etPrenom.requestFocus();
+            return false;
+        }
+
+        //Âge
+        if (age.isEmpty()) {
+            etAge.setError("Veuillez entrer votre âge");
+            etAge.requestFocus();
+            return false;
+        }
+
+        //Adresse
+        if (adresse.isEmpty()) {
+            etAdresse.setError("Veuillez entrer votre adresse");
+            etAdresse.requestFocus();
+            return false;
+        }
+
+        // Email
+        if (email.isEmpty()) {
+            etEmail.setError("Veuillez entrer votre email");
             etEmail.requestFocus();
             return false;
         }
 
-        // Vérification age
+        //Mot de passe
+        if (motDePasse.isEmpty()) {
+            etMotDePasse.setError("Veuillez entrer un mot de passe");
+            etMotDePasse.requestFocus();
+            return false;
+        }
+
+        //Confirmation mot de passe
+        if (confirmerMotDePasse.isEmpty()) {
+            etConfirmerMotDePasse.setError("Veuillez confirmer le mot de passe");
+            etConfirmerMotDePasse.requestFocus();
+            return false;
+        }
+
+        //Email déjà existant
+        if (email.equalsIgnoreCase("neo.becogne@iut-rodez.fr")) {
+            etEmail.setError("Un compte avec cet email existe déjà");
+            etEmail.requestFocus();
+            return false;
+        }
+
+        // Vérification âge numérique
         try {
             int ageNum = Integer.parseInt(age);
             if (ageNum < 1 || ageNum > 120) {
-                Toast.makeText(this, "Âge invalide", Toast.LENGTH_SHORT).show();
+                etAge.setError("Âge invalide");
+                etAge.requestFocus();
                 return false;
             }
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "L'âge doit être un nombre", Toast.LENGTH_SHORT).show();
+            etAge.setError("L'âge doit être un nombre");
+            etAge.requestFocus();
             return false;
         }
 
-        // Vérification email
+        //Email invalide
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Veuillez entrer un email valide", Toast.LENGTH_SHORT).show();
+            etEmail.setError("Veuillez entrer un email valide");
             etEmail.requestFocus();
             return false;
         }
 
-        // Vérification mot de passe
+        // Mot de passe trop court
         if (motDePasse.length() < 6) {
-            Toast.makeText(this, "Le mot de passe doit contenir au moins 6 caractères", Toast.LENGTH_SHORT).show();
+            etMotDePasse.setError("Au moins 6 caractères requis");
+            etMotDePasse.requestFocus();
             return false;
         }
 
+        // Mots de passe différents
         if (!motDePasse.equals(confirmerMotDePasse)) {
-            Toast.makeText(this, "Les mots de passe ne correspondent pas", Toast.LENGTH_SHORT).show();
+            etConfirmerMotDePasse.setError("Les mots de passe ne correspondent pas");
+            etConfirmerMotDePasse.requestFocus();
             return false;
         }
 
-        // Vérification spinners
+        // Spinner niveau
         if (spinnerNiveau.getSelectedItemPosition() == 0) {
             Toast.makeText(this, "Veuillez choisir un niveau", Toast.LENGTH_SHORT).show();
             return false;
         }
 
+        //Spinner morphologie
         if (spinnerMorphologie.getSelectedItemPosition() == 0) {
             Toast.makeText(this, "Veuillez choisir une morphologie", Toast.LENGTH_SHORT).show();
             return false;
@@ -134,5 +172,6 @@ public class InscriptionActivity extends AppCompatActivity {
 
         return true;
     }
+
 
 }
