@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E8D7C3">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+
+
+        <!-- Card principale - Votre Sac à dos -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#C4A574">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <ImageButton
+                        android:id="@+id/btnRetour"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@android:drawable/ic_menu_revert"
+                        android:contentDescription="Retour"
+                        android:tint="@android:color/black" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Votre Sac à dos"
+                        android:textSize="28sp"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+
+                    <View
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Votre sac pèse : 30kg"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Il comporte : 5000kcal"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="24dp" />
+
+                <!-- Card Équipement ajouté avec tableau scrollable -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="4dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@android:color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Équipement du sac"
+                            android:textSize="18sp"
+                            android:textColor="@android:color/black"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <!-- Zone scrollable pour le tableau -->
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="300dp"
+                            android:background="#EEEEEE">
+
+                            <HorizontalScrollView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scrollbars="horizontal"
+                                android:scrollbarStyle="outsideOverlay"
+                                android:fillViewport="false">
+
+                                <ScrollView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:scrollbars="vertical"
+                                    android:scrollbarStyle="outsideOverlay"
+                                    android:scrollbarSize="8dp"
+                                    android:scrollbarThumbVertical="@android:color/darker_gray"
+                                    android:fillViewport="false">
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <!-- En-tête du tableau -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:paddingVertical="8dp"
+                                            android:background="#8B7355">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Catégorie"
+                                                android:gravity="center"
+                                                android:textStyle="bold"
+                                                android:textSize="14sp"
+                                                android:textColor="#FFFFFF"
+                                                android:padding="8dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Description"
+                                                android:gravity="center"
+                                                android:textStyle="bold"
+                                                android:textSize="14sp"
+                                                android:textColor="#FFFFFF"
+                                                android:padding="8dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Poids"
+                                                android:gravity="center"
+                                                android:textStyle="bold"
+                                                android:textSize="14sp"
+                                                android:textColor="#FFFFFF"
+                                                android:padding="8dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="#CCCCCC" />
+
+                                        <!-- Ligne 1 - Sac de couchage -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#FFFFFF">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Sac de couchage"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Sac de couchage 180cm"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="5000g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 2 - Tente -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#F5F5F5">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Tente"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Sachet soupe de légume 150g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="200g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 3 - Réchaud -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#FFFFFF">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Réchaud"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Nouille instantanée"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="600g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 4 - Exemple supplémentaire -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#F5F5F5">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Gourde"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Gourde en aluminium 1L"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="300g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 5 - Exemple supplémentaire -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#FFFFFF">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Lampe"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Lampe frontale LED"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="150g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                    </LinearLayout>
+                                </ScrollView>
+                            </HorizontalScrollView>
+
+                        </FrameLayout>
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card Équipement existants avec tableau scrollable -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="4dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@android:color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nourriture du sac"
+                            android:textSize="18sp"
+                            android:textColor="@android:color/black"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <!-- Zone scrollable pour le tableau -->
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="300dp"
+                            android:background="#EEEEEE">
+
+                            <HorizontalScrollView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scrollbars="horizontal"
+                                android:scrollbarStyle="outsideOverlay"
+                                android:fillViewport="false">
+
+                                <ScrollView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:scrollbars="vertical"
+                                    android:scrollbarStyle="outsideOverlay"
+                                    android:scrollbarSize="8dp"
+                                    android:scrollbarThumbVertical="@android:color/darker_gray"
+                                    android:fillViewport="false">
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <!-- En-tête du tableau -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:paddingVertical="8dp"
+                                            android:background="#8B7355">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Catégorie"
+                                                android:gravity="center"
+                                                android:textStyle="bold"
+                                                android:textSize="14sp"
+                                                android:textColor="#FFFFFF"
+                                                android:padding="8dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Description"
+                                                android:gravity="center"
+                                                android:textStyle="bold"
+                                                android:textSize="14sp"
+                                                android:textColor="#FFFFFF"
+                                                android:padding="8dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Poids"
+                                                android:gravity="center"
+                                                android:textStyle="bold"
+                                                android:textSize="14sp"
+                                                android:textColor="#FFFFFF"
+                                                android:padding="8dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="#CCCCCC" />
+
+                                        <!-- Ligne 1 - Barres énergétiques -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#FFFFFF">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Barres"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Barres énergétiques x10"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="500g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 2 - Fruits secs -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#F5F5F5">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Fruits secs"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Mélange abricots et amandes"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="400g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 3 - Nouilles -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#FFFFFF">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Nouilles"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Nouilles instantanées x3"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="300g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 4 - Chocolat -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#F5F5F5">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Chocolat"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Tablettes de chocolat noir x3"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="300g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="1dp"
+                                            android:background="#E0E0E0" />
+
+                                        <!-- Ligne 5 - Repas lyophilisé -->
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:background="#FFFFFF">
+
+                                            <TextView
+                                                android:layout_width="120dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Repas"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="250dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="Plats lyophilisés x4"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+
+                                            <TextView
+                                                android:layout_width="100dp"
+                                                android:layout_height="wrap_content"
+                                                android:text="600g"
+                                                android:gravity="center"
+                                                android:textSize="14sp"
+                                                android:textColor="#000000"
+                                                android:padding="12dp" />
+                                        </LinearLayout>
+
+                                    </LinearLayout>
+                                </ScrollView>
+                            </HorizontalScrollView>
+
+                        </FrameLayout>
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>

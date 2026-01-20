@@ -3,6 +3,7 @@ package fr.iutrodez.a4awalk;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -144,9 +145,11 @@ public class PopUpParticipantActivity extends AppCompatActivity {
             // --- Événements ---
             btnClose.setOnClickListener(view -> dialog.dismiss());
 
-            btnVoirSac.setOnClickListener(view ->
-                    Toast.makeText(this, "Ouverture du sac...", Toast.LENGTH_SHORT).show()
-            );
+            btnVoirSac.setOnClickListener(view -> {
+                Intent intent = new Intent(PopUpParticipantActivity.this, SacActivity.class);
+                startActivity(intent);
+            });
+
 
             // --- Bouton valider avec vérifications ---
             btnAjouter.setOnClickListener(view -> {
