@@ -4,12 +4,16 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.textfield.TextInputEditText;
-
 import fr.iutrodez.a4awalk.R;
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.android.volley.RequestQueue;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class InscriptionActivity extends AppCompatActivity {
 
@@ -46,10 +50,7 @@ public class InscriptionActivity extends AppCompatActivity {
         // Listener bouton créer compte
         btnCreateAccount.setOnClickListener(v -> {
             if (validateForm()) {
-                Toast.makeText(this, "Compte créé avec succès !", Toast.LENGTH_SHORT).show();
-
-                // Retour à la connexion
-                finish();
+                registerUser();
             }
         });
 
@@ -172,6 +173,71 @@ public class InscriptionActivity extends AppCompatActivity {
 
         return true;
     }
+
+    private void registerUser() {
+
+        String url = "http://98.94.8.220:8080/api/v1/users/register";
+
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("mail", etEmail.getText().toString().trim());
+            jsonBody.put("password", etMotDePasse.getText().toString().trim());
+            jsonBody.put("nom", etNom.getText().toString().trim());
+            jsonBody.put("prenom", etPrenom.getText().toString().trim());
+            jsonBody.put("adresse", etAdresse.getText().toString().trim());
+            jsonBody.put("age", Integer.parseInt(etAge.getText().toString().trim()));
+            jsonBody.put("niveau", spinnerNiveau.getSelectedItem().toString());
+            jsonBody.put("morphologie", spinnerMorphologie.getSelectedItem().toString());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur création JSON", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                url,
+                jsonBody,
+                response -> {
+                    // Succès API
+                    Toast.makeText(this, "Compte créé avec succès !", Toast.LENGTH_SHORT).show();
+                    finish();
+                },
+                error -> {
+
+                    String message;
+
+                    if (error.networkResponse == null) {
+                        // Problème de connexion (pas d'internet, timeout, DNS…)
+                        message = "Impossible de se connecter au serveur. Vérifiez votre connexion.";
+                    } else {
+                        int statusCode = error.networkResponse.statusCode;
+
+                        switch (statusCode) {
+                            case 400:
+                                message = "Données invalides. Vérifiez les champs.";
+                                break;
+                            case 409:
+                                message = "Un compte avec cet email existe déjà.";
+                                break;
+                            case 500:
+                                message = "Erreur serveur. Réessayez plus tard.";
+                                break;
+                            default:
+                                message = "Erreur inconnue (" + statusCode + ")";
+                                break;
+                        }
+                    }
+
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
+        );
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
+    }
+
 
 
 }

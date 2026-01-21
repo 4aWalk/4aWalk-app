@@ -3,17 +3,16 @@
     <string name="logo_description">Logo de l application 4awaklk</string>
     <string-array name="niveau_array">
         <item>Choisir votre niveau</item>
-        <item>Débutant</item>
-        <item>Intermédiaire</item>
-        <item>Avancé</item>
+        <item>DEBUTANT</item>
+        <item>ENTRAINE</item>
+        <item>SPORTIF</item>
     </string-array>
 
     <string-array name="morphologie_array">
         <item>Choisir votre morphologie</item>
-        <item>Mince</item>
-        <item>Moyenne</item>
-        <item>Sportive</item>
-        <item>Ronde</item>
+        <item>LEGERE</item>
+        <item>MOYENNE</item>
+        <item>FORTE</item>
     </string-array>
     <string name="retour">Retour</string>
     <string name="TitreInscription">Créer un compte</string>
