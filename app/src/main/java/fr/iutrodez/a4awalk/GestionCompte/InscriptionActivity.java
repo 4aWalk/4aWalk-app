@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import fr.iutrodez.a4awalk.GestionCompte.Service.RegisterService;
+import fr.iutrodez.a4awalk.GestionCompte.Validator.Validator;
 import fr.iutrodez.a4awalk.R;
 
 public class InscriptionActivity extends AppCompatActivity {
@@ -96,7 +98,7 @@ public class InscriptionActivity extends AppCompatActivity {
                     morphologie
             );
 
-            ApiService.registerUser(this, user,
+            RegisterService.registerUser(this, user,
                     () -> finish(),
                     msg -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
             );

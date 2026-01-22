@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte;
+package fr.iutrodez.a4awalk.GestionCompte.Validator;
 
 public class ValidationResult {
     public final boolean valid;

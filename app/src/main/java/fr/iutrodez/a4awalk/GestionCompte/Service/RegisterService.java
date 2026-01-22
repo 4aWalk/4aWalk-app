@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte;
+package fr.iutrodez.a4awalk.GestionCompte.Service;
 
 import android.content.Context;
 import com.android.volley.Request;
@@ -6,8 +6,10 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import fr.iutrodez.a4awalk.GestionCompte.User;
-public class ApiService {
+
+public class RegisterService {
 
     private static final String REGISTER_URL =
             "http://98.94.8.220:8080/api/v1/users/register";

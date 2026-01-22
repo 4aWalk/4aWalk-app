@@ -8,6 +8,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import fr.iutrodez.a4awalk.GestionCompte.Service.LoginService;
+import fr.iutrodez.a4awalk.GestionCompte.Validator.LoginValidator;
+import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
 import fr.iutrodez.a4awalk.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,56 +25,51 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.connexion);
 
-        // Initialisation des vues
         emailInput = findViewById(R.id.emailInput);
         passwordInput = findViewById(R.id.passwordInput);
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.registerButton);
 
-        // Bouton SE CONNECTER
         loginButton.setOnClickListener(v -> {
 
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
 
-            //Vérification email
-            if (email.isEmpty()) {
-                emailInput.setError("Veuillez entrer votre email");
-                emailInput.requestFocus();
+            ValidationResult result = LoginValidator.validate(email, password);
+
+            if (!result.valid) {
+                switch (result.field) {
+                    case "email":
+                        emailInput.setError(result.message);
+                        emailInput.requestFocus();
+                        break;
+
+                    case "password":
+                        passwordInput.setError(result.message);
+                        passwordInput.requestFocus();
+                        break;
+                }
                 return;
             }
 
-            //Vérification mot de passe
-            if (password.isEmpty()) {
-                passwordInput.setError("Veuillez entrer votre mot de passe");
-                passwordInput.requestFocus();
-                return;
-            }
+            LoginRequest loginRequest = new LoginRequest(email, password);
 
-            //Identifiants incorrects
-            if (!email.equals("neo.becogne@iut-rodez.fr") || !password.equals("12345")) {
-                Toast.makeText(
-                        MainActivity.this,
-                        "Email ou mot de passe incorrect",
-                        Toast.LENGTH_SHORT
-                ).show();
-                return;
-            }
+            LoginService.loginUser(
+                    this,
+                    loginRequest,
+                    () -> {
+                        Toast.makeText(this, "Connexion réussie !", Toast.LENGTH_SHORT).show();
 
-            // ✅ Connexion réussie
-            Toast.makeText(
-                    MainActivity.this,
-                    "Connexion réussie !",
-                    Toast.LENGTH_SHORT
-            ).show();
-
-            // TODO : redirection vers une autre activité
+                        // 🔁 Redirection après connexion
+                        // startActivity(new Intent(this, HomeActivity.class));
+                        // finish();
+                    },
+                    errorMsg -> Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+            );
         });
 
-        // Bouton S'INSCRIRE
         registerButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, InscriptionActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, InscriptionActivity.class));
         });
     }
 }
