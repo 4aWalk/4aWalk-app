@@ -4,37 +4,108 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.material.textfield.TextInputEditText;
-import fr.iutrodez.a4awalk.R;
-import com.android.volley.Request;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.android.volley.RequestQueue;
-import org.json.JSONException;
-import org.json.JSONObject;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.textfield.TextInputEditText;
+
+import fr.iutrodez.a4awalk.R;
 
 public class InscriptionActivity extends AppCompatActivity {
 
-    private TextInputEditText etNom;
-    private TextInputEditText etPrenom;
-    private TextInputEditText etAge;
-    private TextInputEditText etAdresse;
-    private TextInputEditText etEmail;
-    private TextInputEditText etMotDePasse;
-    private TextInputEditText etConfirmerMotDePasse;
-    private Spinner spinnerNiveau;
-    private Spinner spinnerMorphologie;
-    private Button btnCreateAccount;
-    private Button btnRetour;
+    private TextInputEditText etNom, etPrenom, etAge, etAdresse, etEmail, etMotDePasse, etConfirmerMotDePasse;
+    private Spinner spinnerNiveau, spinnerMorphologie;
+    private Button btnCreateAccount, btnRetour;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.inscription);
 
-        // Initialisation des vues
+        initViews();
+
+        btnCreateAccount.setOnClickListener(v -> {
+
+            String nom = etNom.getText().toString().trim();
+            String prenom = etPrenom.getText().toString().trim();
+            String ageStr = etAge.getText().toString().trim();
+            String adresse = etAdresse.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
+            String password = etMotDePasse.getText().toString().trim();
+            String confirmPassword = etConfirmerMotDePasse.getText().toString().trim();
+            String niveau = spinnerNiveau.getSelectedItem().toString();
+            String morphologie = spinnerMorphologie.getSelectedItem().toString();
+
+            ValidationResult result = Validator.validate(
+                    nom, prenom, ageStr, adresse, email, password, confirmPassword, niveau, morphologie
+            );
+
+            if (!result.valid) {
+                switch (result.field) {
+                    case "nom":
+                        etNom.setError(result.message);
+                        etNom.requestFocus();
+                        break;
+
+                    case "prenom":
+                        etPrenom.setError(result.message);
+                        etPrenom.requestFocus();
+                        break;
+
+                    case "age":
+                        etAge.setError(result.message);
+                        etAge.requestFocus();
+                        break;
+
+                    case "adresse":
+                        etAdresse.setError(result.message);
+                        etAdresse.requestFocus();
+                        break;
+
+                    case "email":
+                        etEmail.setError(result.message);
+                        etEmail.requestFocus();
+                        break;
+
+                    case "password":
+                        etMotDePasse.setError(result.message);
+                        etMotDePasse.requestFocus();
+                        break;
+
+                    case "confirmPassword":
+                        etConfirmerMotDePasse.setError(result.message);
+                        etConfirmerMotDePasse.requestFocus();
+                        break;
+
+                    case "niveau":
+                    case "morphologie":
+                        Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return;
+            }
+
+            User user = new User(
+                    nom,
+                    prenom,
+                    result.age,
+                    adresse,
+                    email,
+                    password,
+                    niveau,
+                    morphologie
+            );
+
+            ApiService.registerUser(this, user,
+                    () -> finish(),
+                    msg -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            );
+        });
+
+        btnRetour.setOnClickListener(v -> finish());
+    }
+
+    private void initViews() {
         etNom = findViewById(R.id.et_nom);
         etPrenom = findViewById(R.id.et_prenom);
         etAge = findViewById(R.id.et_age);
@@ -46,198 +117,5 @@ public class InscriptionActivity extends AppCompatActivity {
         spinnerMorphologie = findViewById(R.id.spinner_morphologie);
         btnCreateAccount = findViewById(R.id.btn_create_account);
         btnRetour = findViewById(R.id.btn_retour);
-
-        // Listener bouton créer compte
-        btnCreateAccount.setOnClickListener(v -> {
-            if (validateForm()) {
-                registerUser();
-            }
-        });
-
-        // Bouton Retour
-        btnRetour.setOnClickListener(v -> finish());
     }
-
-    private boolean validateForm() {
-
-        String nom = etNom.getText().toString().trim();
-        String prenom = etPrenom.getText().toString().trim();
-        String age = etAge.getText().toString().trim();
-        String adresse = etAdresse.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
-        String motDePasse = etMotDePasse.getText().toString().trim();
-        String confirmerMotDePasse = etConfirmerMotDePasse.getText().toString().trim();
-
-        //Nom
-        if (nom.isEmpty()) {
-            etNom.setError("Veuillez entrer votre nom");
-            etNom.requestFocus();
-            return false;
-        }
-
-        //Prénom
-        if (prenom.isEmpty()) {
-            etPrenom.setError("Veuillez entrer votre prénom");
-            etPrenom.requestFocus();
-            return false;
-        }
-
-        //Âge
-        if (age.isEmpty()) {
-            etAge.setError("Veuillez entrer votre âge");
-            etAge.requestFocus();
-            return false;
-        }
-
-        //Adresse
-        if (adresse.isEmpty()) {
-            etAdresse.setError("Veuillez entrer votre adresse");
-            etAdresse.requestFocus();
-            return false;
-        }
-
-        // Email
-        if (email.isEmpty()) {
-            etEmail.setError("Veuillez entrer votre email");
-            etEmail.requestFocus();
-            return false;
-        }
-
-        //Mot de passe
-        if (motDePasse.isEmpty()) {
-            etMotDePasse.setError("Veuillez entrer un mot de passe");
-            etMotDePasse.requestFocus();
-            return false;
-        }
-
-        //Confirmation mot de passe
-        if (confirmerMotDePasse.isEmpty()) {
-            etConfirmerMotDePasse.setError("Veuillez confirmer le mot de passe");
-            etConfirmerMotDePasse.requestFocus();
-            return false;
-        }
-
-        //Email déjà existant
-        if (email.equalsIgnoreCase("neo.becogne@iut-rodez.fr")) {
-            etEmail.setError("Un compte avec cet email existe déjà");
-            etEmail.requestFocus();
-            return false;
-        }
-
-        // Vérification âge numérique
-        try {
-            int ageNum = Integer.parseInt(age);
-            if (ageNum < 1 || ageNum > 120) {
-                etAge.setError("Âge invalide");
-                etAge.requestFocus();
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            etAge.setError("L'âge doit être un nombre");
-            etAge.requestFocus();
-            return false;
-        }
-
-        //Email invalide
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Veuillez entrer un email valide");
-            etEmail.requestFocus();
-            return false;
-        }
-
-        // Mot de passe trop court
-        if (motDePasse.length() < 6) {
-            etMotDePasse.setError("Au moins 6 caractères requis");
-            etMotDePasse.requestFocus();
-            return false;
-        }
-
-        // Mots de passe différents
-        if (!motDePasse.equals(confirmerMotDePasse)) {
-            etConfirmerMotDePasse.setError("Les mots de passe ne correspondent pas");
-            etConfirmerMotDePasse.requestFocus();
-            return false;
-        }
-
-        // Spinner niveau
-        if (spinnerNiveau.getSelectedItemPosition() == 0) {
-            Toast.makeText(this, "Veuillez choisir un niveau", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        //Spinner morphologie
-        if (spinnerMorphologie.getSelectedItemPosition() == 0) {
-            Toast.makeText(this, "Veuillez choisir une morphologie", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        return true;
-    }
-
-    private void registerUser() {
-
-        String url = "http://98.94.8.220:8080/api/v1/users/register";
-
-        JSONObject jsonBody = new JSONObject();
-        try {
-            jsonBody.put("mail", etEmail.getText().toString().trim());
-            jsonBody.put("password", etMotDePasse.getText().toString().trim());
-            jsonBody.put("nom", etNom.getText().toString().trim());
-            jsonBody.put("prenom", etPrenom.getText().toString().trim());
-            jsonBody.put("adresse", etAdresse.getText().toString().trim());
-            jsonBody.put("age", Integer.parseInt(etAge.getText().toString().trim()));
-            jsonBody.put("niveau", spinnerNiveau.getSelectedItem().toString());
-            jsonBody.put("morphologie", spinnerMorphologie.getSelectedItem().toString());
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Erreur création JSON", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.POST,
-                url,
-                jsonBody,
-                response -> {
-                    // Succès API
-                    Toast.makeText(this, "Compte créé avec succès !", Toast.LENGTH_SHORT).show();
-                    finish();
-                },
-                error -> {
-
-                    String message;
-
-                    if (error.networkResponse == null) {
-                        // Problème de connexion (pas d'internet, timeout, DNS…)
-                        message = "Impossible de se connecter au serveur. Vérifiez votre connexion.";
-                    } else {
-                        int statusCode = error.networkResponse.statusCode;
-
-                        switch (statusCode) {
-                            case 400:
-                                message = "Données invalides. Vérifiez les champs.";
-                                break;
-                            case 409:
-                                message = "Un compte avec cet email existe déjà.";
-                                break;
-                            case 500:
-                                message = "Erreur serveur. Réessayez plus tard.";
-                                break;
-                            default:
-                                message = "Erreur inconnue (" + statusCode + ")";
-                                break;
-                        }
-                    }
-
-                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-                }
-        );
-
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(request);
-    }
-
-
-
 }
