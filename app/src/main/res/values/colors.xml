@@ -11,4 +11,8 @@
     <color name="primary_dark">#2F4E37</color>
     <color name="green">#4CAF50</color>
     <color name="background">#E9DDBE</color>
+    <color name="lightvert">#1c6223</color>
+    <color name="grey">#B0B0B0</color>
+
+
 </resources>
