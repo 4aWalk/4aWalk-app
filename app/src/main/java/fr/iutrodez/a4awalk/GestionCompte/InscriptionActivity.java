@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 
 import fr.iutrodez.a4awalk.GestionCompte.Service.RegisterService;
+import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
 import fr.iutrodez.a4awalk.GestionCompte.Validator.Validator;
 import fr.iutrodez.a4awalk.R;
 
