@@ -29,6 +29,9 @@
         <activity
             android:name=".GestionCompte.InscriptionActivity"
             android:exported="false" />
+        <activity
+        android:name=".GestionCompte.HeaderActivity"
+        android:exported="true" />
     </application>
 
 </manifest>
