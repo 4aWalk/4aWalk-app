@@ -16,7 +16,7 @@ import fr.iutrodez.a4awalk.error.HikeException;
  * Représente une randonnée planifiée.
  * Gère l'itinéraire, les participants et les points d'intérêt (UC004).
  */
-public class Hike implements Parcelable {
+public class Hike {
 
     private Long id;
 
@@ -45,41 +45,6 @@ public class Hike implements Parcelable {
         this.arrivee = arrivee;
         setDureeJours(dureeJours); // Utilise le setter pour valider la règle
         this.creator = creator;
-    }
-
-    protected Hike(Parcel in) {
-        id = in.readLong();
-        libelle = in.readString();
-        depart = in.readString();
-        arrivee = in.readString();
-        dureeJours = in.readInt();
-        //TODO
-    }
-
-    public static final Creator<Hike> CREATOR = new Creator<Hike>() {
-        @Override
-        public Hike createFromParcel(Parcel in) {
-            return new Hike(in);
-        }
-
-        @Override
-        public Hike[] newArray(int size) {
-            return new Hike[size];
-        }
-    };
-
-    @Override
-    public void writeToParcel(@NonNull Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(depart);
-        dest.writeString(arrivee);
-        dest.writeInt(dureeJours);
-        //TODO
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
     // --- Logique métier de bas niveau (Entity Logic) ---
