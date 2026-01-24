@@ -92,7 +92,7 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                 // B. Passage des informations à l'autre page (facultatif mais utile)
                 // Supposons que ItemDetailsRando a des getters
                 intent.putExtra("ID_PAGE",1);
-                intent.putExtra("HIKE_OBJECT", hike);
+                //intent.putExtra("HIKE_OBJECT", hike);
 
                 // C. Lancement de l'activité
                 startActivity(intent);
