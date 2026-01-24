@@ -5,7 +5,8 @@
     <color name="beige">#ece1c1</color>
     <color name="orange">#f57c00</color>
     <color name="red">#f24822</color>
-    <color name="marron">#c7a980</color>
+    <color name="marron">#ece1c1</color>
+    <color name="marron_fonce">#c7a980</color>
     <color name="vert">#4CAF50</color>
     <color name="primary">#4A7C59</color>
     <color name="primary_dark">#2F4E37</color>

@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- vue du 1er fragment : génération d'un nombre aléatoire -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/white"
-    tools:context=".FragmentListeRandonnees">
-    <!-- nom du fragment, message bienvenue -->
-    <TextView/>
-    <!-- fonctionnalité du fragment -->
-    <TextView/>
-    <!-- zone pour afficher le résultat (le nombre aléatoire) -->
-    <TextView
-        android:id="@+id/texte_resultat"/>
-    <!-- bouton générer -->
-    <Button
-        android:id="@+id/btn_alea"/>
+    android:background="@color/marron"
+    android:padding="16dp"
+    android:orientation="vertical">
 
-    <!-- bouton vider -->
-    <Button
-        android:id="@+id/btn_vider"/>
-</LinearLayout>
+    <EditText
+        android:id="@+id/recherche_rando"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/recherche_rando"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"/>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/liste_rando"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    </LinearLayout>

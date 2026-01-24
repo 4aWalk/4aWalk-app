@@ -24,8 +24,8 @@ public class AdaptateurDesFragments extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         /*
          * Le ViewPager auquel on associera cet adaptateur devra afficher
-         * successivement un fragment de type : FragmentUn, puis FragmentDeux, et
-         * enfin FragmentTrois. C'est dans cette méthode que l'on décide dans quel
+         * successivement un fragment de type : FragmentListeRandonnees et FragmentListeParcours.
+         * C'est dans cette méthode que l'on décide dans quel
          * ordre sont affichés les fragments, et quel fragment (nom de la classe)
          * doit précisément être affiché
          */

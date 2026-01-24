@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">4aWalk</string>
+    <string name="recherche_rando">Rechercher une randonnée</string>
+    <string name="onglet_parcours">Parcours</string>
+    <string name="onglet_randonnees">Randonnées</string>
+    <string name="hike_name">Nom:</string>
+    <string name="hike_start">Départ:</string>
+    <string name="hike_finish">Arrivée:</string>
+    <string name="hike_duration">Durée (en jours):</string>
+    <string name="participants">Participants:</string>
+    <string name="points_of_interest">Point(s) d\'intérêt(s): </string>
+    <string name="product">Produits: </string>
+    <string name="equipment">Equipement: </string>
+    <string name="data_error_message">Récupération des données impossibles. Veuillez réessayer</string>
 </resources>
