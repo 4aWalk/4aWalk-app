@@ -32,6 +32,9 @@
         <activity
         android:name=".GestionCompte.HeaderActivity"
         android:exported="true" />
+        <activity
+            android:name=".GestionCompte.ProfilActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

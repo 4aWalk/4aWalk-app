@@ -1,9 +1,9 @@
 package fr.iutrodez.a4awalk.GestionCompte;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,24 +11,31 @@ import androidx.appcompat.widget.Toolbar;
 
 import fr.iutrodez.a4awalk.R;
 
-public class HeaderActivity extends AppCompatActivity {
+public class ProfilActivity extends AppCompatActivity {
 
     protected Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.info_compte);
 
         // Initialiser le toolbar
         toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
 
-            // Supprime le titre par défaut
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
             }
+        }
+
+        // Gérer le clic sur le bouton éditer
+        ImageButton editButton = findViewById(R.id.edit_button);
+        if (editButton != null) {
+            editButton.setOnClickListener(v -> {
+                Toast.makeText(this, "Édition du profil", Toast.LENGTH_SHORT).show();
+            });
         }
     }
 
@@ -43,15 +50,13 @@ public class HeaderActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_account) {
-            // 🔥 Ouvrir la page de profil
-            startActivity(new Intent(this, ProfilActivity.class));
+            Toast.makeText(this, "Vous êtes déjà sur votre profil", Toast.LENGTH_SHORT).show();
             return true;
         }
 
         if (id == R.id.action_logout) {
-            // Déconnexion
             Toast.makeText(this, "Déconnexion", Toast.LENGTH_SHORT).show();
-            // logout();
+            finish();
             return true;
         }
 
