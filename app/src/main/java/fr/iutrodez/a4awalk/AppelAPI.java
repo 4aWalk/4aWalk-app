@@ -3,51 +3,78 @@ package fr.iutrodez.a4awalk;
 import android.content.Context;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AppelAPI {
 
+    public final static String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MywiaWF0IjoxNzY5Mzc2NDI3LCJleHAiOjE3Njk0NjI4Mjd9.4Myn9_3J3ppCcgeGsEOmINj-o1OUmSykiEKSme7L-Zg"; // Ton token
+
     private static RequestQueue fileRequete;
 
-    // Interface pour gérer le retour asynchrone
+    // Callback existant pour les listes (GET)
     public interface VolleyCallback {
+        void onSuccess(JSONArray result);
+        void onError(String message);
+    }
+
+    // NOUVEAU : Callback pour un objet unique (POST / Création)
+    public interface VolleyObjectCallback {
         void onSuccess(JSONObject result);
         void onError(String message);
     }
 
     /**
-     * La méthode est maintenant void car on ne peut pas retourner la valeur directement.
-     * On passe un "callback" qui sera appelé quand la réponse arrivera.
+     * Méthode existante pour récupérer la liste (GET)
      */
     public static void appelAPI(String url, Context contexte, final VolleyCallback callback) {
+        JsonArrayRequest requeteVolley = new JsonArrayRequest(Request.Method.GET, url, null,
+                callback::onSuccess,
+                erreur -> {
+                    Toast.makeText(contexte, R.string.data_error_message, Toast.LENGTH_LONG).show();
+                    callback.onError(erreur.toString());
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + TOKEN);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+        getFileRequete(contexte).add(requeteVolley);
+    }
 
-        JsonObjectRequest requeteVolley = new JsonObjectRequest(Request.Method.GET, url, null,
-                // Écouteur de succès : renvoie un JSONArray
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject reponse) {
-                        // On transmet la réponse via le callback
-                        callback.onSuccess(reponse);
-                    }
-                },
-                // Écouteur d'erreur
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError erreur) {
-                        Toast.makeText(contexte, R.string.data_error_message, Toast.LENGTH_LONG).show();
-                        // On signale l'erreur via le callback (optionnel)
-                        callback.onError(erreur.toString());
-                    }
-                });
-
-        // Ajout à la file d'attente
+    /**
+     * NOUVELLE MÉTHODE : Pour envoyer des données (POST)
+     */
+    public static void postAPI(String url, JSONObject body, Context contexte, final VolleyObjectCallback callback) {
+        JsonObjectRequest requeteVolley = new JsonObjectRequest(Request.Method.POST, url, body,
+                callback::onSuccess,
+                erreur -> {
+                    Toast.makeText(contexte, "Erreur lors de la création", Toast.LENGTH_LONG).show();
+                    callback.onError(erreur.toString());
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + TOKEN);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
         getFileRequete(contexte).add(requeteVolley);
     }
 

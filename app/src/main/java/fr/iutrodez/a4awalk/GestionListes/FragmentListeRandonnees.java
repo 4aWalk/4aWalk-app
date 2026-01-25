@@ -6,11 +6,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,7 +31,7 @@ import fr.iutrodez.a4awalk.model.enums.Morphology;
 
 public class FragmentListeRandonnees extends Fragment implements View.OnClickListener{
 
-    private static final String URL_RANDOS = "https://prescriptiontrails.org/api/trail/?id=2";
+    private static final String URL_RANDOS = "http://98.94.8.220:8080/hikes/my";
 
     public final static String HIKE_ID_KEY = "HIKE_ID";
 
@@ -43,12 +45,17 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     private ArrayList<Hike> listeRandos;
 
     private Set<PointOfInterest> pointsInterets;
+
     private ItemRandoAdapter adaptateur;
 
     /**
      * Element permettant d'afficher la liste des randonnées
      */
     private RecyclerView randoRecyclerView;
+
+    private View fab;
+
+    private TextView messageView;
 
     private User user;
 
@@ -76,10 +83,73 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
         listeRandos = new ArrayList<>();
 
         randoRecyclerView = vueDuFragment.findViewById(R.id.liste_rando);
-        initialiseListeRandos();
-
+        messageView = vueDuFragment.findViewById(R.id.empty_message);
         LinearLayoutManager gestionnaireLineaire = new LinearLayoutManager(vueDuFragment.getContext());
         randoRecyclerView.setLayoutManager(gestionnaireLineaire);
+        initialiseListeRandos();
+        fab = vueDuFragment.findViewById(R.id.fab_add_hike);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Logique pour ajouter une randonnée
+                Log.d("ACTION", "Clic sur le bouton ajouter !");
+                Intent intent = new Intent(getActivity(), DetailsRando.class);
+                intent.putExtra("ID_PAGE",2);
+                startActivity(intent);
+            }
+        });
+        return vueDuFragment;
+    }
+
+    public void initialiseListeRandos() {
+        AppelAPI.appelAPI(URL_RANDOS, requireContext(), new AppelAPI.VolleyCallback() {
+            @Override
+            public void onSuccess(JSONArray result) {
+                if (result == null || result.length() == 0) {
+                    randoRecyclerView.setVisibility(View.GONE);
+                    messageView.setVisibility(View.VISIBLE);
+                    messageView.setText(R.string.no_hikes_message);
+                    Log.i("pas de randonnee", "aucune randonnée dispo");
+                } else {
+                    recupInfosRandos(result);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                Log.i("erreur", message);
+            }
+        });
+    }
+
+    private void recupInfosRandos(JSONArray reponse) {
+//        try {
+//            for (int i = 0; i < reponse.length(); i++) {
+//                // On extrait les variables du JSON
+//                Long idRando = reponse.getLong("id");
+//                String name = reponse.getString("name");
+//                String departRando = reponse.getString("depart");
+//                String arriveeRando = reponse.getString("arrivee");
+//                int nbParticipants = reponse.getInt("nbParticipants");
+//                int dureeJours = reponse.getInt("nbJours");
+//                JSONObject tableauPoints = reponse.getJSONObject("pointsInterets");
+//                Hike hike = new Hike(idRando, name, departRando, arriveeRando, dureeJours ,user);
+//                listeRandos.add(hike);
+//                for (int y = 0; y < tableauPoints.length(); y++) {
+//                    listeRandos.get(i).addPointOfInterest(new PointOfInterest(tableauPoints.getString("name"), tableauPoints.getDouble("lat"), tableauPoints.getDouble("lon"), tableauPoints.getString("description"), hike));
+//                }
+//
+//            }
+//            // 4. On crée notre objet Java
+//            //detailsRando = new ItemDetailsRando(idRando, libelleRando, departRando, arriveeRando, pointsInterets, nbParticipants, nbJours);
+              affichageInfosRando();
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//            // Erreur si le JSON est mal formé ou si une clé est fausse
+//        }
+    }
+
+    private void affichageInfosRando() {
         // 4. Initialisation de l'Adapter avec l'interface (Callback)
         adaptateur = new ItemRandoAdapter(listeRandos, new ItemRandoAdapter.OnRandoClickListener() {
             @Override
@@ -96,64 +166,11 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
 
                 // C. Lancement de l'activité
                 startActivity(intent);
-
             }
         });
         randoRecyclerView.setAdapter(adaptateur);
-
-        /*
-         * on associe un écouteur à chacun des 2 boutons de la vue : le fragment
-         * courant sera son propre écouteur de clic sur les boutons
-         */
-        //vueDuFragment.findViewById(R.id.btn_alea).setOnClickListener(this);
-        //// on récupère un accès au widget qui affichera le nombre aléatoire
-        //zoneResultat = vueDuFragment.findViewById(R.id.texte_resultat);
-        return vueDuFragment;
     }
 
-    public void initialiseListeRandos() {
-        //AppelAPI.appelAPI(URL_RANDOS, requireContext(), new AppelAPI.VolleyCallback() {
-        //    @Override
-        //    public void onSuccess(JSONObject result) {
-        //        recupInfosRandos(result);
-        //    }
-//
-        //    @Override
-        //    public void onError(String message) {
-        //        Log.i("erreur", message);
-        //    }
-        //});
-        listeRandos.add(new Hike(1L, "Randonnée1", "depart", "arrivee", 3, user));
-        listeRandos.add(new Hike(2L, "Randonnée2", "depart", "arrivee", 1, user));
-        listeRandos.add(new Hike(3L, "Randonnée3", "depart", "arrivee", 2, user));
-    }
-
-    private void recupInfosRandos(JSONObject reponse) {
-        try {
-            for (int i = 0; i < reponse.length(); i++) {
-                // On extrait les variables du JSON
-                Long idRando = reponse.getLong("id");
-                String name = reponse.getString("name");
-                String departRando = reponse.getString("depart");
-                String arriveeRando = reponse.getString("arrivee");
-                int nbParticipants = reponse.getInt("nbParticipants");
-                int dureeJours = reponse.getInt("nbJours");
-                JSONObject tableauPoints = reponse.getJSONObject("pointsInterets");
-                Hike hike = new Hike(idRando, name, departRando, arriveeRando, dureeJours ,user);
-                listeRandos.add(hike);
-                for (int y = 0; y < tableauPoints.length(); y++) {
-                    listeRandos.get(i).addPointOfInterest(new PointOfInterest(tableauPoints.getString("name"), tableauPoints.getDouble("lat"), tableauPoints.getDouble("lon"), tableauPoints.getString("description"), hike));
-                }
-
-            }
-            // 4. On crée notre objet Java
-            //detailsRando = new ItemDetailsRando(idRando, libelleRando, departRando, arriveeRando, pointsInterets, nbParticipants, nbJours);
-            //affichageInfosRando()
-        } catch (JSONException e) {
-            e.printStackTrace();
-            // Erreur si le JSON est mal formé ou si une clé est fausse
-        }
-    }
     @Override
     public void onClick(View v) {
 

@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/marron"
     android:orientation="vertical">
     <LinearLayout
@@ -27,7 +28,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="3"
-                android:textColor="@color/black"/>
+                android:textColor="@color/black"
+                android:clickable="false"/>
 
             <TextView
                 android:layout_width="0dp"
@@ -39,7 +41,9 @@
                 android:id="@+id/depart_rando"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_columnWeight="3"/>
+                android:layout_columnWeight="3"
+                android:textColor="@color/black"
+                android:clickable="false"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -50,18 +54,11 @@
                 android:id="@+id/arrivee_rando"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_columnWeight="3"/>
+                android:layout_columnWeight="3"
+                android:textColor="@color/black"
+                android:clickable="false"/>
 
         </GridLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/points_of_interest"
-            android:textColor="@color/black"/>
-        <ListView
-            android:id="@+id/points_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -73,36 +70,77 @@
             <Spinner
                 android:id="@+id/spinner_jours"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:clickable="false"/>
         </LinearLayout>
+        <TextView
+            android:id="@+id/points_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/points_of_interest"
+            android:textColor="@color/black"/>
+        <ListView
+            android:id="@+id/points_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <ImageButton
+            android:id="@+id/btn_add_poi"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_add"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ajouter un point"
+            android:padding="8dp"
+            app:tint="@color/black" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
+                android:id="@+id/participants_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/participants"
                 android:textColor="@color/black"/>
         </LinearLayout>
+
         <ListView
-            android:id="@+id/liste_participants"
+            android:id="@+id/participants_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/btn_add_participant"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_add"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ajouter un participant"
+            android:padding="8dp"
+            app:tint="@color/black" />
         <TextView
+            android:id="@+id/product_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/product"
-            android:textColor="@color/black"/>
-        <GridLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        </GridLayout>
+            android:textColor="@color/black"
+            android:visibility="gone"/>
         <TextView
+            android:id="@+id/equipment_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/equipment"
-            android:textColor="@color/black"/>
+            android:textColor="@color/black"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/validate_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_button_text"
+            android:layout_gravity="center"
+            android:backgroundTint="@color/green"
+            android:visibility="gone"/>
     </LinearLayout>
 
 

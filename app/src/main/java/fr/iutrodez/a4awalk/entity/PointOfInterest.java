@@ -44,4 +44,10 @@ public class PointOfInterest {
 
     public Hike getHike() { return hike; }
     public void setHike(Hike hike) { this.hike = hike; }
+
+    @Override
+    public String toString() {
+        // L'adaptateur n'affichera que ce qui est retourné ici
+        return this.name; // Assure-toi que c'est le nom de ta variable pour le libellé
+    }
 }
