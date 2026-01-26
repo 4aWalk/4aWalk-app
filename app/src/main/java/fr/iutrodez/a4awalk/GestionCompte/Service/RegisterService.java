@@ -12,7 +12,7 @@ import fr.iutrodez.a4awalk.GestionCompte.User;
 public class RegisterService {
 
     private static final String REGISTER_URL =
-            "http://98.94.8.220:8080/api/v1/users/register";
+            "http://98.94.8.220:8080/users/register";
 
     public static void registerUser(
             Context context,

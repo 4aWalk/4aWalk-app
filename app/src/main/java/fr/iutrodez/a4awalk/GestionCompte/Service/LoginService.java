@@ -20,7 +20,7 @@ public class LoginService {
             java.util.function.Consumer<String> onError
     ) {
 
-        String url = "http://98.94.8.220:8080/api/v1/users/login";
+        String url = "http://98.94.8.220:8080/users/login";
 
         JSONObject body = new JSONObject();
         try {
