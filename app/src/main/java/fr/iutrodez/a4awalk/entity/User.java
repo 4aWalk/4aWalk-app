@@ -1,5 +1,8 @@
 package fr.iutrodez.a4awalk.entity;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -12,34 +15,25 @@ import fr.iutrodez.a4awalk.model.enums.Morphology;
  * Utilisateur principal du système.
  * Gère le compte, l'authentification et les randonnées créées (UC001, UC002).
  */
-public class User implements Person {
+public class User implements Person, Parcelable {
 
     private Long id;
-
     private String nom;
-
     private String prenom;
-
     private String mail;
-
-    private String password; // Stocké sous forme de hash (BCrypt par exemple)
-
+    private String password;
     private String adresse;
-
     private int age;
-
     private Level niveau;
-
     private Morphology morphologie;
 
-    /** Liste des randonnées dont cet utilisateur est l'organisateur */
+    // Note : On ne transfère généralement pas la liste createdHikes via Parcel
+    // pour éviter les boucles infinies (Hike contient un User qui contient des Hikes...)
     private Set<Hike> createdHikes = new HashSet<>();
 
     // --- Constructeurs ---
-
     public User() {}
 
-    /** Constructeur complet (sans ID car géré par la BDD) */
     public User(String nom, String prenom, String mail, String password, String adresse,
                 int age, Level niveau, Morphology morphologie) {
         this.nom = nom;
@@ -51,6 +45,66 @@ public class User implements Person {
         this.niveau = niveau;
         this.morphologie = morphologie;
     }
+
+    // --- Implémentation Parcelable ---
+
+    protected User(Parcel in) {
+        if (in.readByte() == 0) {
+            id = null;
+        } else {
+            id = in.readLong();
+        }
+        nom = in.readString();
+        prenom = in.readString();
+        mail = in.readString();
+        password = in.readString();
+        adresse = in.readString();
+        age = in.readInt();
+
+        // Lecture des enums via leur nom (String)
+        String niveauStr = in.readString();
+        niveau = niveauStr != null ? Level.valueOf(niveauStr) : null;
+
+        String morphoStr = in.readString();
+        morphologie = morphoStr != null ? Morphology.valueOf(morphoStr) : null;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (id == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeLong(id);
+        }
+        dest.writeString(nom);
+        dest.writeString(prenom);
+        dest.writeString(mail);
+        dest.writeString(password);
+        dest.writeString(adresse);
+        dest.writeInt(age);
+
+        // Écriture des enums
+        dest.writeString(niveau != null ? niveau.name() : null);
+        dest.writeString(morphologie != null ? morphologie.name() : null);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
     // --- Logique métier de bas niveau ---
 

@@ -1,15 +1,14 @@
 package fr.iutrodez.a4awalk.entity;
 
-public class PointOfInterest {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class PointOfInterest implements Parcelable {
 
     private Long id;
-
     private String name;
-
     private double latitude;
-
     private double longitude;
-
     private String description;
 
     /** La randonnée associée à ce point d'intérêt */
@@ -19,13 +18,60 @@ public class PointOfInterest {
 
     public PointOfInterest() {}
 
-    public PointOfInterest(String name, double latitude, double longitude, String description, Hike hike) {
+    /** Constructeur rapide pour les points de départ/arrivée */
+    public PointOfInterest(Long id, String name, double latitude, double longitude) {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.description = description;
-        this.hike = hike;
     }
+
+    // --- Implémentation Parcelable ---
+
+    protected PointOfInterest(Parcel in) {
+        if (in.readByte() == 0) {
+            id = null;
+        } else {
+            id = in.readLong();
+        }
+        name = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+
+        // Note : On ne lit pas 'hike' ici pour éviter les boucles infinies de Parcelable
+        // (La Hike contient déjà le POI, lire la Hike depuis le POI créerait une récursion)
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (id == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeLong(id);
+        }
+        dest.writeString(name);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+    }
+
+    public static final Creator<PointOfInterest> CREATOR = new Creator<PointOfInterest>() {
+        @Override
+        public PointOfInterest createFromParcel(Parcel in) {
+            return new PointOfInterest(in);
+        }
+
+        @Override
+        public PointOfInterest[] newArray(int size) {
+            return new PointOfInterest[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    // --- Getters et Setters ---
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -39,15 +85,8 @@ public class PointOfInterest {
     public double getLongitude() { return longitude; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public Hike getHike() { return hike; }
-    public void setHike(Hike hike) { this.hike = hike; }
-
     @Override
     public String toString() {
-        // L'adaptateur n'affichera que ce qui est retourné ici
-        return this.name; // Assure-toi que c'est le nom de ta variable pour le libellé
+        return this.name != null ? this.name : "Point sans nom";
     }
 }

@@ -11,6 +11,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 public class AppelAPI {
 
-    public final static String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MywiaWF0IjoxNzY5Mzc2NDI3LCJleHAiOjE3Njk0NjI4Mjd9.4Myn9_3J3ppCcgeGsEOmINj-o1OUmSykiEKSme7L-Zg"; // Ton token
+    public final static String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MywiaWF0IjoxNzY5NDM2NDkxLCJleHAiOjE3Njk1MjI4OTF9.qWf-k1WPrIPlqqHnjnZOp7MLq01-AEaeXK3z0bRaoyo";
 
     private static RequestQueue fileRequete;
 
@@ -30,7 +31,7 @@ public class AppelAPI {
 
     // NOUVEAU : Callback pour un objet unique (POST / Création)
     public interface VolleyObjectCallback {
-        void onSuccess(JSONObject result);
+        void onSuccess(JSONObject result) throws JSONException;
         void onError(String message);
     }
 
@@ -61,9 +62,20 @@ public class AppelAPI {
      */
     public static void postAPI(String url, JSONObject body, Context contexte, final VolleyObjectCallback callback) {
         JsonObjectRequest requeteVolley = new JsonObjectRequest(Request.Method.POST, url, body,
-                callback::onSuccess,
+                response -> {
+                    // On appelle le callback normalement
+                    try {
+                        callback.onSuccess(response);
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
                 erreur -> {
-                    Toast.makeText(contexte, "Erreur lors de la création", Toast.LENGTH_LONG).show();
+                    String message = "Erreur lors de la création";
+                    if (erreur.networkResponse != null) {
+                        message += " (Code: " + erreur.networkResponse.statusCode + ")";
+                    }
+                    Toast.makeText(contexte, message, Toast.LENGTH_LONG).show();
                     callback.onError(erreur.toString());
                 }
         ) {

@@ -22,10 +22,5 @@
         android:hint="Longitude"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
-    <EditText
-        android:id="@+id/edit_poi_desc"
-        android:hint="Description (facultatif)"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
 
 </LinearLayout>

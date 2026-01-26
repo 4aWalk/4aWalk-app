@@ -3,50 +3,92 @@ package fr.iutrodez.a4awalk.entity;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import androidx.annotation.NonNull;
-
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 import fr.iutrodez.a4awalk.error.HikeException;
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Représente une randonnée planifiée.
- * Gère l'itinéraire, les participants et les points d'intérêt (UC004).
+ * Implémente Parcelable pour le transfert entre Activités.
  */
-public class Hike {
+public class Hike implements Parcelable {
 
     private Long id;
-
     private String libelle;
-
-    private String depart;
-    private String arrivee;
-
-    /** Durée en jours (Contrainte : entre 1 et 3 jours) */
+    private PointOfInterest depart;
+    private PointOfInterest arrivee;
     private int dureeJours;
-
     private User creator;
-
     private Set<Participant> participants = new HashSet<>();
-
     private Set<PointOfInterest> optionalPoints = new HashSet<>();
 
     // --- Constructeurs ---
-
     public Hike() {}
 
-    public Hike(Long id, String libelle, String depart, String arrivee, int dureeJours, User creator) {
+    public Hike(Long id, String libelle, PointOfInterest depart, PointOfInterest arrivee, int dureeJours, User creator) {
         this.id = id;
         this.libelle = libelle;
         this.depart = depart;
         this.arrivee = arrivee;
-        setDureeJours(dureeJours); // Utilise le setter pour valider la règle
+        setDureeJours(dureeJours);
         this.creator = creator;
     }
 
+    // --- Implémentation Parcelable ---
+
+    protected Hike(Parcel in) {
+        if (in.readByte() == 0) id = null; else id = in.readLong();
+        libelle = in.readString();
+        // Correction de la lecture Parcelable
+        depart = in.readParcelable(PointOfInterest.class.getClassLoader());
+        arrivee = in.readParcelable(PointOfInterest.class.getClassLoader());
+        dureeJours = in.readInt();
+        creator = in.readParcelable(User.class.getClassLoader());
+
+        List<Participant> partList = new ArrayList<>();
+        in.readList(partList, Participant.class.getClassLoader());
+        participants = new HashSet<>(partList);
+
+        List<PointOfInterest> poiList = new ArrayList<>();
+        in.readList(poiList, PointOfInterest.class.getClassLoader());
+        optionalPoints = new HashSet<>(poiList);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (id == null) dest.writeByte((byte) 0);
+        else { dest.writeByte((byte) 1); dest.writeLong(id); }
+        dest.writeString(libelle);
+        dest.writeParcelable(depart, flags); // Écriture objet
+        dest.writeParcelable(arrivee, flags); // Écriture objet
+        dest.writeInt(dureeJours);
+        dest.writeParcelable(creator, flags);
+        dest.writeList(new ArrayList<>(participants));
+        dest.writeList(new ArrayList<>(optionalPoints));
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Hike> CREATOR = new Creator<Hike>() {
+        @Override
+        public Hike createFromParcel(Parcel in) {
+            return new Hike(in);
+        }
+
+        @Override
+        public Hike[] newArray(int size) {
+            return new Hike[size];
+        }
+    };
     // --- Logique métier de bas niveau (Entity Logic) ---
 
     /**
@@ -77,7 +119,6 @@ public class Hike {
      */
     public void addPointOfInterest(PointOfInterest poi) {
         this.optionalPoints.add(poi);
-        poi.setHike(this);
     }
 
     // --- Overrides Standards ---
@@ -109,11 +150,11 @@ public class Hike {
     public String getLibelle() { return libelle; }
     public void setLibelle(String libelle) { this.libelle = libelle; }
 
-    public String getDepart() { return depart; }
-    public void setDepart(String depart) { this.depart = depart; }
+    public PointOfInterest getDepart() { return depart; }
+    public void setDepart(PointOfInterest depart) { this.depart = depart; }
 
-    public String getArrivee() { return arrivee; }
-    public void setArrivee(String arrivee) { this.arrivee = arrivee; }
+    public PointOfInterest getArrivee() { return arrivee; }
+    public void setArrivee(PointOfInterest arrivee) { this.arrivee = arrivee; }
 
     public int getDureeJours() { return dureeJours; }
 

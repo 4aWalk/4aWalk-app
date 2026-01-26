@@ -14,4 +14,6 @@
     <string name="data_error_message">Récupération des données impossibles. Veuillez réessayer</string>
     <string name="no_hikes_message">Vous ne possédez aucune randonnée.</string>
     <string name="create_button_text">Valider</string>
+    <string name="longitude">longitude</string>
+    <string name="latitude">latitude</string>
 </resources>

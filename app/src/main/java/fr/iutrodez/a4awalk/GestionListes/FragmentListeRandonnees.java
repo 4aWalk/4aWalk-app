@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 import fr.iutrodez.a4awalk.AppelAPI;
@@ -24,6 +25,7 @@ import fr.iutrodez.a4awalk.entity.Hike;
 import fr.iutrodez.a4awalk.GestionListes.GestionItemRando.DetailsRando;
 import fr.iutrodez.a4awalk.GestionListes.GestionItemRando.ItemRandoAdapter;
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.entity.Participant;
 import fr.iutrodez.a4awalk.entity.PointOfInterest;
 import fr.iutrodez.a4awalk.entity.User;
 import fr.iutrodez.a4awalk.model.enums.Level;
@@ -111,6 +113,8 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                     messageView.setText(R.string.no_hikes_message);
                     Log.i("pas de randonnee", "aucune randonnée dispo");
                 } else {
+                    randoRecyclerView.setVisibility(View.VISIBLE);
+                    messageView.setVisibility(View.GONE);
                     recupInfosRandos(result);
                 }
             }
@@ -123,30 +127,72 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     }
 
     private void recupInfosRandos(JSONArray reponse) {
-//        try {
-//            for (int i = 0; i < reponse.length(); i++) {
-//                // On extrait les variables du JSON
-//                Long idRando = reponse.getLong("id");
-//                String name = reponse.getString("name");
-//                String departRando = reponse.getString("depart");
-//                String arriveeRando = reponse.getString("arrivee");
-//                int nbParticipants = reponse.getInt("nbParticipants");
-//                int dureeJours = reponse.getInt("nbJours");
-//                JSONObject tableauPoints = reponse.getJSONObject("pointsInterets");
-//                Hike hike = new Hike(idRando, name, departRando, arriveeRando, dureeJours ,user);
-//                listeRandos.add(hike);
-//                for (int y = 0; y < tableauPoints.length(); y++) {
-//                    listeRandos.get(i).addPointOfInterest(new PointOfInterest(tableauPoints.getString("name"), tableauPoints.getDouble("lat"), tableauPoints.getDouble("lon"), tableauPoints.getString("description"), hike));
-//                }
-//
-//            }
-//            // 4. On crée notre objet Java
-//            //detailsRando = new ItemDetailsRando(idRando, libelleRando, departRando, arriveeRando, pointsInterets, nbParticipants, nbJours);
+        try {
+            for (int i = 0; i < reponse.length(); i++) {
+                // On extrait les variables du JSON
+                JSONObject randoJson = reponse.getJSONObject(i);
+                Long id = (long) randoJson.getInt("id");
+                String name = randoJson.getString("libelle");
+
+                JSONObject departObj = randoJson.getJSONObject("depart");
+                Long idDepart = (long) departObj.getInt("id");
+                double latDepart = departObj.getDouble("latitude");
+                double lonDepart = departObj.getDouble("longitude");
+                String nomDepart = departObj.getString("name");
+                PointOfInterest POIDepart = new PointOfInterest(idDepart, nomDepart, latDepart, lonDepart);
+
+
+                JSONObject arriveeObj = randoJson.getJSONObject("arrivee");
+                Long idArrivee = (long) departObj.getInt("id");
+                double latArrivee = arriveeObj.getDouble("latitude");
+                double lonArrivee = arriveeObj.getDouble("longitude");
+                String nomArrivee = arriveeObj.getString("name");
+                PointOfInterest POIArrivee = new PointOfInterest(idArrivee, nomArrivee, latArrivee, lonArrivee);
+
+                Set<Participant> ensembleParticipants = new HashSet<>();
+                // 1. On récupère le tableau des participants
+                JSONArray participantsArray = randoJson.getJSONArray("participants");
+                int nbParticipants = participantsArray.length();
+
+                //TODO participant et points d'intérêts
+                for (int j = 0; j < participantsArray.length(); j++) {
+                    JSONObject partJson = participantsArray.getJSONObject(j);
+
+                    // On extrait les données du participant (selon votre JSON)
+                    long idPart = partJson.getLong("id");
+                    int age = partJson.getInt("age");
+                    // Note : assurez-vous que votre classe Participant possède un constructeur adapté
+                    // ou utilisez les setters.
+                    Participant p = new Participant();
+                    p.setId(idPart);
+                    p.setAge(age);
+                    String niveauStr = partJson.getString("niveau");
+                    p.setNiveau(Level.valueOf(niveauStr));
+
+                    String morphoStr = partJson.getString("morphologie");
+                    p.setMorphologie(Morphology.valueOf(morphoStr));
+
+                    // Booléens et doubles
+                    p.setCreator(partJson.getBoolean("creator"));
+                    p.setBesoinKcal(partJson.getInt("besoinKcal"));
+                    p.setBesoinEauLitre(partJson.getInt("besoinEauLitre"));
+                    p.setCapaciteEmportMaxKg(partJson.getDouble("capaciteEmportMaxKg"));
+
+                    ensembleParticipants.add(p);
+                }
+
+                int dureeJours = randoJson.getInt("dureeJours");
+                Hike hike = new Hike(id, name, POIDepart, POIArrivee, dureeJours ,user);
+                hike.setParticipants(ensembleParticipants);
+                listeRandos.add(hike);
+
+            }
+            // 4. On crée notre objet Java
               affichageInfosRando();
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//            // Erreur si le JSON est mal formé ou si une clé est fausse
-//        }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            // Erreur si le JSON est mal formé ou si une clé est fausse
+        }
     }
 
     private void affichageInfosRando() {
@@ -162,7 +208,7 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                 // B. Passage des informations à l'autre page (facultatif mais utile)
                 // Supposons que ItemDetailsRando a des getters
                 intent.putExtra("ID_PAGE",1);
-                //intent.putExtra("HIKE_OBJECT", hike);
+                intent.putExtra("HIKE_OBJECT", hike);
 
                 // C. Lancement de l'activité
                 startActivity(intent);
