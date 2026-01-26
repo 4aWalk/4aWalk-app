@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E8DCC4">
+
+    <!-- Inclusion du header EN DEHORS du ScrollView -->
+    <include layout="@layout/header" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btn_retour"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_gravity="start|top"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="Retour"
+                android:backgroundTint="#808080"
+                android:textColor="#FFFFFF"/>
+
+            <ImageView
+                android:id="@+id/profile_image"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/user_icon"
+                android:scaleType="centerCrop"
+                android:background="#E8DCC4"/>
+
+            <!-- Titre -->
+            <TextView
+                android:id="@+id/up_titre_inscription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modifier votre compte"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
+                android:paddingBottom="24dp" />
+
+            <!-- Nom -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_nom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nom"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_nom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Prénom -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_prenom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Prénom"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_prenom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Age -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_age"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Age"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_age"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Adresse personnelle -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_adresse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Adresse personnelle"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_adresse"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Email -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Mot de passe -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_mot_de_passe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Mot de passe"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_mot_de_passe"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Confirmer le mot de passe -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/upd_confirmer_mot_de_passe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Confirmer le mot de passe"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/up_confirmer_mot_de_passe"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:background="@drawable/edittext_border"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Niveau (Spinner) -->
+            <Spinner
+                android:id="@+id/spinner_update_niveau"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/niveau_array"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/edittext_border"/>
+
+            <!-- Morphologie (Spinner) -->
+            <Spinner
+                android:id="@+id/spinner_update_morphologie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/morphologie_array"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/edittext_border"/>
+
+            <!-- Bouton Valider -->
+            <Button
+                android:id="@+id/btn_update_account"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Valider"
+                android:backgroundTint="@color/lightvert"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,5 +1,6 @@
 package fr.iutrodez.a4awalk.GestionCompte;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,7 +35,9 @@ public class ProfilActivity extends AppCompatActivity {
         ImageButton editButton = findViewById(R.id.edit_button);
         if (editButton != null) {
             editButton.setOnClickListener(v -> {
-                Toast.makeText(this, "Édition du profil", Toast.LENGTH_SHORT).show();
+                // Créer un Intent pour ouvrir l'activité de mise à jour
+                Intent intent = new Intent(ProfilActivity.this, UpdateProfilActivity.class);
+                startActivity(intent);
             });
         }
     }
