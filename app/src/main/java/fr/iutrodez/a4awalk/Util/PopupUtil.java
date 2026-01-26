@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk;
+package fr.iutrodez.a4awalk.Util;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -6,7 +6,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import fr.iutrodez.a4awalk.R;
 
 
 public class PopupUtil {

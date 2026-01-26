@@ -1,8 +1,10 @@
-package fr.iutrodez.a4awalk;
+package fr.iutrodez.a4awalk.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageButton;
+
+import fr.iutrodez.a4awalk.R;
 
 public class SacActivity extends AppCompatActivity {
 

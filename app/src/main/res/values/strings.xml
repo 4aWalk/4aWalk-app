@@ -3,16 +3,16 @@
 
     <string-array name="niveaux">
         <item>Choisir le niveau</item>
-        <item>Débutant</item>
-        <item>Intermédiaire</item>
-        <item>Avancé</item>
+        <item>DEBUTANT</item>
+        <item>ENTRAINE</item>
+        <item>SPORTIF</item>
     </string-array>
 
     <string-array name="morphologies">
         <item>Choisir la morphologie</item>
-        <item>Ectomorphe</item>
-        <item>Mésomorphe</item>
-        <item>Endomorphe</item>
+        <item>LEGERE</item>
+        <item>MOYENNE</item>
+        <item>FORTE</item>
     </string-array>
 
     <string name="titrePopup">Participant 1</string>
