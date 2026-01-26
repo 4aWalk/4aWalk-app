@@ -57,15 +57,20 @@ public class MainActivity extends AppCompatActivity {
             LoginService.loginUser(
                     this,
                     loginRequest,
-                    () -> {
-                        Toast.makeText(this, "Connexion réussie !", Toast.LENGTH_SHORT).show();
+                    token -> {
+                        Toast.makeText(this, "Token : " + token, Toast.LENGTH_LONG).show();
 
-                        // 🔁 Redirection après connexion
+                        // Exemple : stockage du token
+                        // SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+                        // prefs.edit().putString("token", token).apply();
+
+                        // Redirection possible
                         // startActivity(new Intent(this, HomeActivity.class));
                         // finish();
                     },
                     errorMsg -> Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
             );
+
         });
 
         registerButton.setOnClickListener(v -> {

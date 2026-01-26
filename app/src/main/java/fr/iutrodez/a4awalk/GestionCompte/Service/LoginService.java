@@ -16,7 +16,7 @@ public class LoginService {
     public static void loginUser(
             Context context,
             LoginRequest loginRequest,
-            Runnable onSuccess,
+            java.util.function.Consumer<String> onSuccess,
             java.util.function.Consumer<String> onError
     ) {
 
@@ -36,19 +36,21 @@ public class LoginService {
                 url,
                 body,
                 response -> {
-                    // Ici plus tard : token, user, etc.
-                    onSuccess.run();
+                    try {
+                        // 🔑 Récupération du token
+                        String token = response.getString("token");
+                        onSuccess.accept(token);
+                    } catch (JSONException e) {
+                        onError.accept("Réponse invalide du serveur");
+                    }
                 },
                 error -> {
-
                     String message;
 
                     if (error.networkResponse == null) {
                         message = "Impossible de se connecter au serveur";
                     } else {
-                        int code = error.networkResponse.statusCode;
-
-                        switch (code) {
+                        switch (error.networkResponse.statusCode) {
                             case 401:
                                 message = "Email ou mot de passe incorrect";
                                 break;
@@ -59,10 +61,9 @@ public class LoginService {
                                 message = "Erreur serveur";
                                 break;
                             default:
-                                message = "Erreur inconnue (" + code + ")";
+                                message = "Erreur inconnue";
                         }
                     }
-
                     onError.accept(message);
                 }
         );
@@ -70,3 +71,4 @@ public class LoginService {
         Volley.newRequestQueue(context).add(request);
     }
 }
+
