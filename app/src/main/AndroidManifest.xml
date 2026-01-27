@@ -15,11 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme._4aWalk"
-        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".GestionCompte.MainActivity"
-            android:name=".GestionListes.ActiviteListes"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,6 +30,7 @@
             android:name=".GestionCompte.InscriptionActivity"
             android:exported="false" />
         <activity android:name=".GestionListes.GestionItemRando.DetailsRando"/>
+        <activity android:name=".GestionListes.ActiviteListes"/>
     </application>
 
 </manifest>
