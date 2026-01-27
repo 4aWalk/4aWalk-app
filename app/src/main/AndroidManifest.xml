@@ -16,7 +16,6 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <!-- ✅ UNE SEULE activité launcher -->
         <activity
             android:name=".GestionCompte.MainActivity"
             android:exported="true">

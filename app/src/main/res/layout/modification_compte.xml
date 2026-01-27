@@ -7,7 +7,7 @@
     android:background="#E8DCC4">
 
     <!-- Inclusion du header EN DEHORS du ScrollView -->
-    <include layout="@layout/header" />
+    <include layout="@layout/header"/>
 
     <ScrollView
         android:layout_width="match_parent"
