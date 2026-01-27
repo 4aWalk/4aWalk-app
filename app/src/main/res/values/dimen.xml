@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="hike_details_margin">15dp</dimen>
+    <dimen name="hike_name">25sp</dimen>
+</resources>

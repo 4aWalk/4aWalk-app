@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/marron"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/hike_details_margin"
+        android:paddingHorizontal="@dimen/hike_details_margin"
+        android:background="@color/marron_fonce"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="0.5"
+            android:text="@string/hike_name"
+            android:textColor="@color/black"/>
+        <EditText
+            android:id="@+id/nom_rando"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:textColor="@color/black"
+            android:clickable="false"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:text="@string/hike_start"
+            android:textColor="@color/black"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/depart_rando_lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/latitude"
+                android:textColorHint="@color/black"
+                android:clickable="false"
+                android:textColor="@color/black" />
+
+            <EditText
+                android:id="@+id/depart_rando_lon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/longitude"
+                android:textColorHint="@color/black"
+                android:clickable="false"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:text="@string/hike_finish"
+            android:textColor="@color/black"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/arrivee_rando_lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/latitude"
+                android:textColorHint="@color/black"
+                android:clickable="false"
+                android:textColor="@color/black" />
+
+            <EditText
+                android:id="@+id/arrivee_rando_lon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/longitude"
+                android:textColorHint="@color/black"
+                android:clickable="false"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hike_duration"
+                android:textColor="@color/black"/>
+            <Spinner
+                android:id="@+id/spinner_jours"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/points_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/points_of_interest"
+            android:textColor="@color/black"/>
+        <ListView
+            android:id="@+id/points_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <ImageButton
+            android:id="@+id/btn_add_poi"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_add"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ajouter un point"
+            android:padding="8dp"
+            app:tint="@color/black"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/participants_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/participants"
+                android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/participants_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/btn_add_participant"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_add"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ajouter un participant"
+            android:padding="8dp"
+            app:tint="@color/black"
+            android:visibility="gone"/>
+        <TextView
+            android:id="@+id/product_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/product"
+            android:textColor="@color/black"
+            android:visibility="gone"/>
+        <TextView
+            android:id="@+id/equipment_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/equipment"
+            android:textColor="@color/black"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/validate_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_button_text"
+            android:layout_gravity="center"
+            android:backgroundTint="@color/green"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+
+</ScrollView>
