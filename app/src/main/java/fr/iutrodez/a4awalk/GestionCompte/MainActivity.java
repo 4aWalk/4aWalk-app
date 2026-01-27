@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import fr.iutrodez.a4awalk.GestionCompte.Service.LoginService;
 import fr.iutrodez.a4awalk.GestionCompte.Validator.LoginValidator;
 import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
+import fr.iutrodez.a4awalk.GestionListes.ActiviteListes;
 import fr.iutrodez.a4awalk.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -58,15 +59,9 @@ public class MainActivity extends AppCompatActivity {
                     this,
                     loginRequest,
                     token -> {
-                        Toast.makeText(this, "Token : " + token, Toast.LENGTH_LONG).show();
-
-                        // Exemple : stockage du token
-                        // SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
-                        // prefs.edit().putString("token", token).apply();
-
-                        // Redirection possible
-                        // startActivity(new Intent(this, HomeActivity.class));
-                        // finish();
+                        Intent intent = new Intent(MainActivity.this, ActiviteListes.class);
+                        intent.putExtra("TOKEN", token);
+                        startActivity(intent);
                     },
                     errorMsg -> Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
             );
