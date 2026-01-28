@@ -45,8 +45,8 @@ public class UpdateProfilActivity extends AppCompatActivity {
         // ===== Initialisation des vues =====
         initViews();
 
-        // ===== Pré-remplissage (données en dur) =====
-        fillFormWithHardcodedData();
+        // ===== Pré-remplissage depuis ProfilActivity =====
+        fillFormWithIntentData();
 
         // ===== Bouton Retour =====
         Button btnRetour = findViewById(R.id.btn_retour);
@@ -78,55 +78,69 @@ public class UpdateProfilActivity extends AppCompatActivity {
     }
 
     // ------------------------------------------------------------------
-    // Pré-remplissage
+    // Pré-remplissage depuis l'Intent
     // ------------------------------------------------------------------
 
-    private void fillFormWithHardcodedData() {
+    private void fillFormWithIntentData() {
+        Intent intent = getIntent();
 
-        etNom.setText("Dupont");
-        etPrenom.setText("Jean");
-        etAge.setText("23");
-        etAdresse.setText("12 rue des Lilas, 12000 Rodez");
-        etEmail.setText("jean.dupont@gmail.com");
+        String nom = intent.getStringExtra("nom");
+        String prenom = intent.getStringExtra("prenom");
+        String age = intent.getStringExtra("age");
+        String adresse = intent.getStringExtra("adresse");
+        String email = intent.getStringExtra("email");
+        String niveau = intent.getStringExtra("niveau");
+        String morphologie = intent.getStringExtra("morphologie");
 
-        // ⚠️ Bonne pratique : pas de mot de passe pré-rempli
+        // Champs texte
+        etNom.setText(nom != null ? nom : "");
+        etPrenom.setText(prenom != null ? prenom : "");
+        etAge.setText(age != null ? age : "");
+        etAdresse.setText(adresse != null ? adresse : "");
+        etEmail.setText(email != null ? email : "");
+
+        // Mot de passe vide pour sécurité
         etMotDePasse.setText("");
         etConfirmerMotDePasse.setText("");
 
-        // Spinner Niveau
-        setSpinnerSelection(
-                spinnerNiveau,
-                R.array.niveau_array,
-                "Intermédiaire"
-        );
-
-        // Spinner Morphologie
-        setSpinnerSelection(
-                spinnerMorphologie,
-                R.array.morphologie_array,
-                "Athlétique"
-        );
+        // Spinners avec sélection dynamique
+        setSpinnerSelection(spinnerNiveau, niveau != null ? niveau : "", "niveau");
+        setSpinnerSelection(spinnerMorphologie, morphologie != null ? morphologie : "", "morphologie");
     }
 
-    private void setSpinnerSelection(Spinner spinner, int arrayRes, String value) {
-        ArrayAdapter<CharSequence> adapter =
-                ArrayAdapter.createFromResource(
-                        this,
-                        arrayRes,
-                        android.R.layout.simple_spinner_item
-                );
+    // ------------------------------------------------------------------
+    // Configuration des spinners
+    // ------------------------------------------------------------------
+
+    private void setSpinnerSelection(Spinner spinner, String value, String type) {
+        ArrayAdapter<CharSequence> adapter;
+        if (type.equals("niveau")) {
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                    new String[]{"DEBUTANT", "ENTRAINE", "SPORTIF"});
+        } else if (type.equals("morphologie")) {
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                    new String[]{"LEGERE", "MOYENNE", "FORTE"});
+        } else {
+            return;
+        }
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        int position = adapter.getPosition(value);
-        if (position >= 0) {
-            spinner.setSelection(position); // ← c'est ici que tu choisis l'item
+        // Trouver la position correspondant à la valeur
+        int position = -1;
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).toString().equalsIgnoreCase(value)) { // <- conversion ici
+                position = i;
+                break;
+            }
         }
+
+        if (position >= 0) spinner.setSelection(position);
     }
 
 
     // ------------------------------------------------------------------
-    // Validation
+    // Validation du formulaire
     // ------------------------------------------------------------------
 
     private void validateForm() {
@@ -145,15 +159,7 @@ public class UpdateProfilActivity extends AppCompatActivity {
         String morphologie = spinnerMorphologie.getSelectedItem().toString();
 
         ValidationResult result = Validator.validate(
-                nom,
-                prenom,
-                age,
-                adresse,
-                email,
-                password,
-                confirmPassword,
-                niveau,
-                morphologie
+                nom, prenom, age, adresse, email, password, confirmPassword, niveau, morphologie
         );
 
         if (!result.valid) {
@@ -161,11 +167,8 @@ public class UpdateProfilActivity extends AppCompatActivity {
             return;
         }
 
-        // ✅ Tout est valide
         Toast.makeText(this, "Profil mis à jour avec succès", Toast.LENGTH_SHORT).show();
-
-        int ageInt = result.age; // déjà parsé
-        // TODO : appel API / sauvegarde
+        // TODO : sauvegarde / appel API
     }
 
     private String getText(TextInputEditText et) {
@@ -177,69 +180,24 @@ public class UpdateProfilActivity extends AppCompatActivity {
     // ------------------------------------------------------------------
 
     private void showValidationError(ValidationResult result) {
-
         switch (result.field) {
-
-            case "nom":
-                etNom.setError(result.message);
-                etNom.requestFocus();
-                break;
-
-            case "prenom":
-                etPrenom.setError(result.message);
-                etPrenom.requestFocus();
-                break;
-
-            case "age":
-                etAge.setError(result.message);
-                etAge.requestFocus();
-                break;
-
-            case "adresse":
-                etAdresse.setError(result.message);
-                etAdresse.requestFocus();
-                break;
-
-            case "email":
-                etEmail.setError(result.message);
-                etEmail.requestFocus();
-                break;
-
-            case "password":
-                etMotDePasse.setError(result.message);
-                etMotDePasse.requestFocus();
-                break;
-
-            case "confirmPassword":
-                etConfirmerMotDePasse.setError(result.message);
-                etConfirmerMotDePasse.requestFocus();
-                break;
-
-            case "niveau":
-                spinnerNiveau.requestFocus();
-                Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show();
-                break;
-
-            case "morphologie":
-                spinnerMorphologie.requestFocus();
-                Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show();
-                break;
+            case "nom": etNom.setError(result.message); etNom.requestFocus(); break;
+            case "prenom": etPrenom.setError(result.message); etPrenom.requestFocus(); break;
+            case "age": etAge.setError(result.message); etAge.requestFocus(); break;
+            case "adresse": etAdresse.setError(result.message); etAdresse.requestFocus(); break;
+            case "email": etEmail.setError(result.message); etEmail.requestFocus(); break;
+            case "password": etMotDePasse.setError(result.message); etMotDePasse.requestFocus(); break;
+            case "confirmPassword": etConfirmerMotDePasse.setError(result.message); etConfirmerMotDePasse.requestFocus(); break;
+            case "niveau": spinnerNiveau.requestFocus(); Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show(); break;
+            case "morphologie": spinnerMorphologie.requestFocus(); Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show(); break;
         }
     }
 
     private void clearErrors() {
-        etNom.setError(null);
-        etPrenom.setError(null);
-        etAge.setError(null);
-        etAdresse.setError(null);
-        etEmail.setError(null);
-        etMotDePasse.setError(null);
-        etConfirmerMotDePasse.setError(null);
+        etNom.setError(null); etPrenom.setError(null); etAge.setError(null);
+        etAdresse.setError(null); etEmail.setError(null);
+        etMotDePasse.setError(null); etConfirmerMotDePasse.setError(null);
     }
-
-    // ------------------------------------------------------------------
-    // Menu
-    // ------------------------------------------------------------------
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -30,15 +30,6 @@ public class ProfilActivity extends AppCompatActivity {
             }
         }
 
-        // Gérer le clic sur le bouton éditer
-        ImageButton editButton = findViewById(R.id.edit_button);
-        if (editButton != null) {
-            editButton.setOnClickListener(v -> {
-                Intent intent = new Intent(ProfilActivity.this, UpdateProfilActivity.class);
-                startActivity(intent);
-            });
-        }
-
         // Récupérer les vues TextView
         TextView userName = findViewById(R.id.user_name);
         TextView userAddress = findViewById(R.id.user_address);
@@ -49,15 +40,39 @@ public class ProfilActivity extends AppCompatActivity {
         ImageView profileImage = findViewById(R.id.profile_image);
 
         // Mettre les données en dur (pour l'instant)
-        userName.setText("Bécogné Néo");
-        userAddress.setText("18 avenue durand de gros");
-        userAge.setText("21 ans");
-        userEmail.setText("neo.becogne@iut-rodez.fr");
-        userLevel.setText("Entraîné");
-        userMorphology.setText("Moyen");
+        String nom = "Bécogné";
+        String prenom = "Néo";
+        String age = "21";
+        String adresse = "18 avenue durand de gros";
+        String email = "neo.becogne@iut-rodez.fr";
+        String niveau = "ENTRAINE";
+        String morphologie = "MOYENNE";
 
-        // Exemple : changer l'image si tu veux (optionnel)
+        userName.setText(nom + " " + prenom);
+        userAddress.setText(adresse);
+        userAge.setText(age + " ans");
+        userEmail.setText(email);
+        userLevel.setText(niveau);
+        userMorphology.setText(morphologie);
+
         profileImage.setImageResource(R.drawable.user_icon);
+
+        // Gérer le clic sur le bouton éditer
+        ImageButton editButton = findViewById(R.id.edit_button);
+        if (editButton != null) {
+            editButton.setOnClickListener(v -> {
+                // Créer l'intent et passer les données
+                Intent intent = new Intent(ProfilActivity.this, UpdateProfilActivity.class);
+                intent.putExtra("nom", nom);
+                intent.putExtra("prenom", prenom);
+                intent.putExtra("age", age);
+                intent.putExtra("adresse", adresse);
+                intent.putExtra("email", email);
+                intent.putExtra("niveau", niveau);
+                intent.putExtra("morphologie", morphologie);
+                startActivity(intent);
+            });
+        }
     }
 
     @Override
