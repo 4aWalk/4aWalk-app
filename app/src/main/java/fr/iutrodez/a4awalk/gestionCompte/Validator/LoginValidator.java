@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte.Validator;
+package fr.iutrodez.a4awalk.gestionCompte.Validator;
 
 import android.util.Patterns;
 

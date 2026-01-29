@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionListes.GestionItemRando;
+package fr.iutrodez.a4awalk.gestionListes.randonnee;
 
 import android.view.View;
 import android.widget.TextView;

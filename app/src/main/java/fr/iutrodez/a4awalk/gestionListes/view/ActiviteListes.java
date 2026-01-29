@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionListes;
+package fr.iutrodez.a4awalk.gestionListes.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
@@ -12,14 +12,10 @@ import fr.iutrodez.a4awalk.R;
 
 public class ActiviteListes extends AppCompatActivity {
 
-    private String token;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activite_listes);
-
-        token = getIntent().getStringExtra("TOKEN");
 
         ViewPager2 pager = findViewById(R.id.activity_main_viewpager);
         TabLayout gestionnaireOnglet = findViewById(R.id.tab_layout);

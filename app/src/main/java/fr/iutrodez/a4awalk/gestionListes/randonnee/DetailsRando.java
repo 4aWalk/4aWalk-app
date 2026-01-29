@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionListes.GestionItemRando;
+package fr.iutrodez.a4awalk.gestionListes.randonnee;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,22 +18,23 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 
-import com.android.volley.Request;
+import com.android.volley.VolleyError;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import fr.iutrodez.a4awalk.AppelAPI;
+import fr.iutrodez.a4awalk.gestionListes.view.FragmentListeRandonnees;
+import fr.iutrodez.a4awalk.service.AppelAPI;
+import fr.iutrodez.a4awalk.gestionCompte.MainActivity;
 import fr.iutrodez.a4awalk.entity.Hike;
 import fr.iutrodez.a4awalk.entity.Participant;
 import fr.iutrodez.a4awalk.entity.PointOfInterest;
-import fr.iutrodez.a4awalk.GestionListes.FragmentListeRandonnees;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.entity.User;
+import fr.iutrodez.a4awalk.entity.TokenManager;
 
 public class DetailsRando extends AppCompatActivity {
 
@@ -83,10 +83,17 @@ public class DetailsRando extends AppCompatActivity {
 
     private Intent intentionRecu;
 
+    private TokenManager tokenManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.details_rando);
+        tokenManager = new TokenManager(this);
+        if (!tokenManager.isValide()) {
+            Intent intent = new Intent(DetailsRando.this, MainActivity.class);
+            startActivity(intent);
+        }
         libelle = findViewById(R.id.nom_rando);
         departLat = findViewById(R.id.depart_rando_lat);
         departLon = findViewById(R.id.depart_rando_lon);
@@ -134,6 +141,7 @@ public class DetailsRando extends AppCompatActivity {
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
         btnAjouterParticipant.setVisibility(View.VISIBLE);
 
+
         // 1. Préparer les données
         jours = new ArrayList<>();
         for (int i = 1; i <= 3; i++) {
@@ -177,7 +185,7 @@ public class DetailsRando extends AppCompatActivity {
                 randoAEnvoyer.put("arrivee",arrivee);
 
                 // Appel de la nouvelle méthode POST
-                AppelAPI.postAPI(URL_CREATION, randoAEnvoyer, this, new AppelAPI.VolleyObjectCallback() {
+                AppelAPI.postAPI(URL_CREATION, tokenManager.getToken(), randoAEnvoyer, this, new AppelAPI.VolleyObjectCallback() {
                     @Override
                     public void onSuccess(JSONObject result) throws JSONException {
                         Log.i("création rando", "randonnée créée");
@@ -185,7 +193,7 @@ public class DetailsRando extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onError(String message) {
+                    public void onError(VolleyError erreur) {
                         // L'erreur est déjà affichée par le Toast dans AppelAPI
                     }
                 });
@@ -207,15 +215,15 @@ public class DetailsRando extends AppCompatActivity {
             poi.put("latitude",pointActuel.getLatitude());
             poi.put("longitude",pointActuel.getLongitude());
             poi.put("name",pointActuel.getName());
-            AppelAPI.postAPI(urlAjoutPOI, poi, this, new AppelAPI.VolleyObjectCallback() {
+            AppelAPI.postAPI(urlAjoutPOI, tokenManager.getToken(), poi, this, new AppelAPI.VolleyObjectCallback() {
                 @Override
                 public void onSuccess(JSONObject result) {
                     Log.i("création rando", "point d'intérêt crée: ");
                 }
 
                 @Override
-                public void onError(String message) {
-                    // L'erreur est déjà affichée par le Toast dans AppelAPI
+                public void onError(VolleyError erreur) {
+                    Log.i("erreur", erreur.toString());
                 }
             });
         }

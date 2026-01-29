@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte;
+package fr.iutrodez.a4awalk.gestionCompte;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,11 +8,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import fr.iutrodez.a4awalk.GestionCompte.Service.LoginService;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.LoginValidator;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
-import fr.iutrodez.a4awalk.GestionListes.ActiviteListes;
+import fr.iutrodez.a4awalk.entity.LoginRequest;
+import fr.iutrodez.a4awalk.gestionCompte.Service.LoginService;
+import fr.iutrodez.a4awalk.gestionCompte.Validator.LoginValidator;
+import fr.iutrodez.a4awalk.gestionCompte.Validator.ValidationResult;
+import fr.iutrodez.a4awalk.gestionListes.view.ActiviteListes;
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.entity.TokenManager;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -59,8 +61,9 @@ public class MainActivity extends AppCompatActivity {
                     this,
                     loginRequest,
                     token -> {
+                        TokenManager tokenManager = new TokenManager(this);
+                        tokenManager.saveToken(token);
                         Intent intent = new Intent(MainActivity.this, ActiviteListes.class);
-                        intent.putExtra("TOKEN", token);
                         startActivity(intent);
                     },
                     errorMsg -> Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()

@@ -34,8 +34,8 @@ public class User implements Person, Parcelable {
     // --- Constructeurs ---
     public User() {}
 
-    public User(String nom, String prenom, String mail, String password, String adresse,
-                int age, Level niveau, Morphology morphologie) {
+    public User(String nom, String prenom, int age, String mail, String password, String adresse,
+                Level niveau, Morphology morphologie) {
         this.nom = nom;
         this.prenom = prenom;
         this.mail = mail;
@@ -189,4 +189,5 @@ public class User implements Person, Parcelable {
 
     public Set<Hike> getCreatedHikes() { return createdHikes; }
     public void setCreatedHikes(Set<Hike> createdHikes) { this.createdHikes = createdHikes; }
+
 }

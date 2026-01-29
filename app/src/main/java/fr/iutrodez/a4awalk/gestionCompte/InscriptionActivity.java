@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte;
+package fr.iutrodez.a4awalk.gestionCompte;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -9,10 +9,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
-import fr.iutrodez.a4awalk.GestionCompte.Service.RegisterService;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.Validator;
+import fr.iutrodez.a4awalk.gestionCompte.Service.RegisterService;
+import fr.iutrodez.a4awalk.gestionCompte.Validator.ValidationResult;
+import fr.iutrodez.a4awalk.gestionCompte.Validator.Validator;
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.entity.User;
+import fr.iutrodez.a4awalk.model.enums.Level;
+import fr.iutrodez.a4awalk.model.enums.Morphology;
 
 public class InscriptionActivity extends AppCompatActivity {
 
@@ -92,11 +95,11 @@ public class InscriptionActivity extends AppCompatActivity {
                     nom,
                     prenom,
                     result.age,
-                    adresse,
                     email,
                     password,
-                    niveau,
-                    morphologie
+                    adresse,
+                    Level.valueOf(niveau),
+                    Morphology.valueOf(morphologie)
             );
 
             RegisterService.registerUser(this, user,
