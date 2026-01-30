@@ -17,7 +17,7 @@
         android:theme="@style/Theme._4aWalk"
         tools:targetApi="31">
         <activity
-            android:name=".gestionCompte.MainActivity"
+            android:name=".activites.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,10 +27,10 @@
         </activity>
 
         <activity
-            android:name=".gestionCompte.InscriptionActivity"
+            android:name=".activites.InscriptionActivity"
             android:exported="false" />
-        <activity android:name=".gestionListes.randonnee.DetailsRando"/>
-        <activity android:name=".gestionListes.view.ActiviteListes"/>
+        <activity android:name=".activites.DetailsRando"/>
+        <activity android:name=".activites.ActiviteListes"/>
     </application>
 
 </manifest>
