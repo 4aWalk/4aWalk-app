@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">4aWalk</string>
     <string name="logo_description">Logo de l application 4awaklk</string>
+
+    <!-- Affichage utilisateur connexion et iscription -->
     <string-array name="niveau_array">
         <item>Choisir votre niveau</item>
         <item>DEBUTANT</item>
@@ -18,6 +20,8 @@
     <string name="TitreInscription">Créer un compte</string>
     <string name="btnConnecter">Se connecter</string>
     <string name="btnInscrire">S inscire</string>
+
+
     <string name="recherche_rando">Rechercher une randonnée</string>
     <string name="onglet_parcours">Parcours</string>
     <string name="onglet_randonnees">Randonnées</string>
@@ -34,4 +38,10 @@
     <string name="create_button_text">Valider</string>
     <string name="longitude">longitude</string>
     <string name="latitude">latitude</string>
+
+    <!-- Erreurs liées à la connexion utilisateur -->
+    <string name="erreur_donnees_util_connexion">Email ou mot de passe incorrect</string>
+    <string name="erreur_serveur">Erreur serveur</string>
+    <string name="erreur_acces">Accès refusé</string>
+    <string name="erreur_ressource">Ressource non trouvée</string>
 </resources>

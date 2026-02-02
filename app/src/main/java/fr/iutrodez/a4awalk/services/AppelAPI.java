@@ -33,7 +33,7 @@ public class AppelAPI {
     /**
      * Méthode GET
      */
-    public static void appelAPI(String url, String token, Context contexte, final VolleyCallback callback) {
+    public static void get(String url, String token, Context contexte, final VolleyCallback callback) {
         JsonArrayRequest requeteVolley = new JsonArrayRequest(Request.Method.GET, url, null,
                 callback::onSuccess,
                 // On passe l'erreur brute directement au callback
@@ -50,7 +50,7 @@ public class AppelAPI {
     /**
      * Méthodes POST
      */
-    public static void postAPI(String url, String token, JSONObject body, Context contexte, final VolleyObjectCallback callback) {
+    public static void post(String url, String token, JSONObject body, Context contexte, final VolleyObjectCallback callback) {
         JsonObjectRequest requeteVolley = new JsonObjectRequest(Request.Method.POST, url, body,
                 response -> {
                     try {

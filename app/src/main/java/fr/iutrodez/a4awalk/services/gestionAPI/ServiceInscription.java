@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 
-public class RegisterService {
+public class ServiceInscription {
 
     private static final String REGISTER_URL = "http://98.94.8.220:8080/users/register";
 
@@ -50,7 +50,7 @@ public class RegisterService {
         }
 
         // Appel via la classe utilitaire AppelAPI
-        AppelAPI.postAPI(REGISTER_URL, null, body, context, new AppelAPI.VolleyObjectCallback() {
+        AppelAPI.post(REGISTER_URL, null, body, context, new AppelAPI.VolleyObjectCallback() {
             @Override
             public void onSuccess(JSONObject result) {
                 onSuccess.onSuccess();

@@ -46,6 +46,17 @@ public class User implements Person, Parcelable {
         this.morphologie = morphologie;
     }
 
+    public User(String nom, String prenom, int age, String mail, String adresse,
+                Level niveau, Morphology morphologie) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.mail = mail;
+        this.adresse = adresse;
+        this.age = age;
+        this.niveau = niveau;
+        this.morphologie = morphologie;
+    }
+
     // --- Implémentation Parcelable ---
 
     protected User(Parcel in) {

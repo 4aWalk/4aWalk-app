@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
-import fr.iutrodez.a4awalk.services.gestionAPI.RegisterService;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceInscription;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
 import fr.iutrodez.a4awalk.modeles.chepas.Validator;
 import fr.iutrodez.a4awalk.R;
@@ -17,7 +17,7 @@ import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 
-public class InscriptionActivity extends AppCompatActivity {
+public class ActiviteInscription extends AppCompatActivity {
 
     private TextInputEditText etNom, etPrenom, etAge, etAdresse, etEmail, etMotDePasse, etConfirmerMotDePasse;
     private Spinner spinnerNiveau, spinnerMorphologie;
@@ -26,7 +26,7 @@ public class InscriptionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.inscription);
+        setContentView(R.layout.activite_inscription);
 
         initViews();
 
@@ -96,13 +96,12 @@ public class InscriptionActivity extends AppCompatActivity {
                     prenom,
                     result.age,
                     email,
-                    password,
                     adresse,
                     Level.valueOf(niveau),
                     Morphology.valueOf(morphologie)
             );
 
-            RegisterService.registerUser(this, user,
+            ServiceInscription.registerUser(this, user,
                     () -> finish(),
                     msg -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
             );

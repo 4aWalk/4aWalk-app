@@ -14,220 +14,112 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.VolleyError;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
-import fr.iutrodez.a4awalk.activites.DetailsRando;
-import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.activites.ActiviteGestionRandonnee;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.adaptateurs.ItemRandoAdapter;
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.modeles.entites.Participant;
-import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceRandonnee;
 
-public class FragmentListeRandonnees extends Fragment implements View.OnClickListener{
-
-    private static final String URL_RANDOS = "http://98.94.8.220:8080/hikes/my";
+public class FragmentListeRandonnees extends Fragment implements View.OnClickListener {
 
     public final static String HIKE_ID_KEY = "HIKE_ID";
-
     public final static String CHILD_MESSAGE_KEY = "CHILD_MESSAGE";
 
-    /**
-     * Liste source des données à afficher :
-     * chaque élément contient une instance de ItemDetailsRando (une photo
-     * et son libellé)
-     */
     private ArrayList<Hike> listeRandos;
-
-    private Set<PointOfInterest> pointsInterets;
-
     private ItemRandoAdapter adaptateur;
-
-    /**
-     * Element permettant d'afficher la liste des randonnées
-     */
     private RecyclerView randoRecyclerView;
-
     private View fab;
-
     private TextView messageView;
-
     private User user;
-
-    private Level level;
-
-    private Morphology morpho;
+    private Intent intentionRecu;
 
     public static FragmentListeRandonnees newInstance() {
-        FragmentListeRandonnees fragment = new FragmentListeRandonnees();
-        return fragment;
+        return new FragmentListeRandonnees();
     }
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // On récupère la vue (le layout) associée au fragment un
         View vueDuFragment = inflater.inflate(R.layout.fragment_liste_randonnees, container, false);
 
-        level = Level.DEBUTANT;
-        morpho = Morphology.LEGERE;
-        user  = new User("LAPEYRE", "Tony", 20,"tony.lapeyre@iut-rodez.fr", "12854", "a", level, morpho);
+        // Initialisation User factice
+        intentionRecu = requireActivity().getIntent();
+        user = (User) intentionRecu.getParcelableExtra("USER_DATA");
         listeRandos = new ArrayList<>();
 
         randoRecyclerView = vueDuFragment.findViewById(R.id.liste_rando);
         messageView = vueDuFragment.findViewById(R.id.empty_message);
-        LinearLayoutManager gestionnaireLineaire = new LinearLayoutManager(vueDuFragment.getContext());
-        randoRecyclerView.setLayoutManager(gestionnaireLineaire);
 
+        randoRecyclerView.setLayoutManager(new LinearLayoutManager(vueDuFragment.getContext()));
 
+        // Initialisation du Token
         TokenManager tokenManager = new TokenManager(getActivity());
-
         String token = tokenManager.getToken();
+
+        // Appel de la méthode qui utilise le service
         initialiseListeRandos(token);
 
         fab = vueDuFragment.findViewById(R.id.fab_add_hike);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Logique pour ajouter une randonnée
-                Log.d("ACTION", "Clic sur le bouton ajouter !");
-                Intent intent = new Intent(getActivity(), DetailsRando.class);
-                intent.putExtra("ID_PAGE",2);
-                startActivity(intent);
-            }
+        fab.setOnClickListener(v -> {
+            Log.d("ACTION", "Clic sur le bouton ajouter !");
+            Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
+            intent.putExtra("ID_PAGE", 2);
+            startActivity(intent);
         });
+
         return vueDuFragment;
     }
 
+    /**
+     * Utilise le ServiceRandonnee pour charger les données
+     */
     public void initialiseListeRandos(String token) {
-        AppelAPI.appelAPI(URL_RANDOS, token, requireContext(), new AppelAPI.VolleyCallback() {
+
+        ServiceRandonnee.recupererRandonneesUtilisateur(requireContext(), token, user, new ServiceRandonnee.RandoCallback() {
             @Override
-            public void onSuccess(JSONArray result) {
-                if (result == null || result.length() == 0) {
+            public void onSuccess(ArrayList<Hike> randonnees) {
+                // Mise à jour de la liste locale
+                listeRandos = randonnees;
+
+                // Gestion de l'affichage vide/plein
+                if (listeRandos.isEmpty()) {
                     randoRecyclerView.setVisibility(View.GONE);
                     messageView.setVisibility(View.VISIBLE);
                     messageView.setText(R.string.no_hikes_message);
-                    Log.i("pas de randonnee", "aucune randonnée dispo");
+                    Log.i("INFO", "Aucune randonnée disponible");
                 } else {
                     randoRecyclerView.setVisibility(View.VISIBLE);
                     messageView.setVisibility(View.GONE);
-                    recupInfosRandos(result);
+                    affichageInfosRando();
                 }
             }
 
             @Override
-            public void onError(VolleyError erreur) {
-                Log.i("erreur", erreur.toString());
+            public void onError(VolleyError error) {
+                Log.e("ERREUR API", "Erreur lors de la récupération des randos: " + error.toString());
+                // Ici, vous pourriez afficher un Toast ou une Snackbar pour avertir l'utilisateur
             }
         });
     }
 
-    private void recupInfosRandos(JSONArray reponse) {
-        try {
-            for (int i = 0; i < reponse.length(); i++) {
-                // On extrait les variables du JSON
-                JSONObject randoJson = reponse.getJSONObject(i);
-                Long id = (long) randoJson.getInt("id");
-                String name = randoJson.getString("libelle");
-
-                JSONObject departObj = randoJson.getJSONObject("depart");
-                Long idDepart = (long) departObj.getInt("id");
-                double latDepart = departObj.getDouble("latitude");
-                double lonDepart = departObj.getDouble("longitude");
-                String nomDepart = departObj.getString("name");
-                PointOfInterest POIDepart = new PointOfInterest(idDepart, nomDepart, latDepart, lonDepart);
-
-
-                JSONObject arriveeObj = randoJson.getJSONObject("arrivee");
-                Long idArrivee = (long) departObj.getInt("id");
-                double latArrivee = arriveeObj.getDouble("latitude");
-                double lonArrivee = arriveeObj.getDouble("longitude");
-                String nomArrivee = arriveeObj.getString("name");
-                PointOfInterest POIArrivee = new PointOfInterest(idArrivee, nomArrivee, latArrivee, lonArrivee);
-
-                Set<Participant> ensembleParticipants = new HashSet<>();
-                // 1. On récupère le tableau des participants
-                JSONArray participantsArray = randoJson.getJSONArray("participants");
-                int nbParticipants = participantsArray.length();
-
-                //TODO participant et points d'intérêts
-                for (int j = 0; j < participantsArray.length(); j++) {
-                    JSONObject partJson = participantsArray.getJSONObject(j);
-
-                    // On extrait les données du participant (selon votre JSON)
-                    long idPart = partJson.getLong("id");
-                    int age = partJson.getInt("age");
-                    // Note : assurez-vous que votre classe Participant possède un constructeur adapté
-                    // ou utilisez les setters.
-                    Participant p = new Participant();
-                    p.setId(idPart);
-                    p.setAge(age);
-                    String niveauStr = partJson.getString("niveau");
-                    p.setNiveau(Level.valueOf(niveauStr));
-
-                    String morphoStr = partJson.getString("morphologie");
-                    p.setMorphologie(Morphology.valueOf(morphoStr));
-
-                    // Booléens et doubles
-                    p.setCreator(partJson.getBoolean("creator"));
-                    p.setBesoinKcal(partJson.getInt("besoinKcal"));
-                    p.setBesoinEauLitre(partJson.getInt("besoinEauLitre"));
-                    p.setCapaciteEmportMaxKg(partJson.getDouble("capaciteEmportMaxKg"));
-
-                    ensembleParticipants.add(p);
-                }
-
-                int dureeJours = randoJson.getInt("dureeJours");
-                Hike hike = new Hike(id, name, POIDepart, POIArrivee, dureeJours ,user);
-                hike.setParticipants(ensembleParticipants);
-                listeRandos.add(hike);
-
-            }
-            // 4. On crée notre objet Java
-              affichageInfosRando();
-        } catch (JSONException e) {
-            e.printStackTrace();
-            // Erreur si le JSON est mal formé ou si une clé est fausse
-        }
-    }
-
     private void affichageInfosRando() {
-        // 4. Initialisation de l'Adapter avec l'interface (Callback)
-        adaptateur = new ItemRandoAdapter(listeRandos, new ItemRandoAdapter.OnRandoClickListener() {
-            @Override
-            public void onRandoClick(Hike hike) {
-
-                // A. Création de l'intention pour ouvrir la page de détail
-                // Remplacez "DetailActivity.class" par le nom de votre classe de destination
-                Intent intent = new Intent(getActivity(), DetailsRando.class);
-
-                // B. Passage des informations à l'autre page (facultatif mais utile)
-                // Supposons que ItemDetailsRando a des getters
-                intent.putExtra("ID_PAGE",1);
-                intent.putExtra("HIKE_OBJECT", hike);
-
-                // C. Lancement de l'activité
-                startActivity(intent);
-            }
+        adaptateur = new ItemRandoAdapter(listeRandos, hike -> {
+            Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
+            intent.putExtra("ID_PAGE", 1);
+            intent.putExtra("HIKE_OBJECT", hike);
+            startActivity(intent);
         });
         randoRecyclerView.setAdapter(adaptateur);
     }
 
     @Override
     public void onClick(View v) {
-
+        // ...
     }
 }

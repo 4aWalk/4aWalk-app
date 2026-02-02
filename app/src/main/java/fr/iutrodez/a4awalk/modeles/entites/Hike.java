@@ -26,7 +26,7 @@ public class Hike implements Parcelable {
     private int dureeJours;
     private User creator;
     private Set<Participant> participants = new HashSet<>();
-    private Set<PointOfInterest> optionalPoints = new HashSet<>();
+    private List<PointOfInterest> optionalPoints = new ArrayList<>();
 
     // --- Constructeurs ---
     public Hike() {}
@@ -57,7 +57,7 @@ public class Hike implements Parcelable {
 
         List<PointOfInterest> poiList = new ArrayList<>();
         in.readList(poiList, PointOfInterest.class.getClassLoader());
-        optionalPoints = new HashSet<>(poiList);
+        optionalPoints = new ArrayList<>(poiList);
     }
 
     @Override
@@ -174,5 +174,5 @@ public class Hike implements Parcelable {
 
     public int participantSize() {return this.participants.size();}
 
-    public Set<PointOfInterest> getOptionalPoints() { return optionalPoints; }
-    public void setOptionalPoints(Set<PointOfInterest> optionalPoints) { this.optionalPoints = optionalPoints; }}
+    public List<PointOfInterest> getOptionalPoints() { return optionalPoints; }
+    public void setOptionalPoints(List<PointOfInterest> optionalPoints) { this.optionalPoints = optionalPoints; }}

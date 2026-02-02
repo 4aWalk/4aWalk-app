@@ -9,13 +9,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import fr.iutrodez.a4awalk.modeles.entites.LoginRequest;
-import fr.iutrodez.a4awalk.services.gestionAPI.LoginService;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceConnexion;
 import fr.iutrodez.a4awalk.modeles.chepas.LoginValidator;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 
-public class MainActivity extends AppCompatActivity {
+public class ActivitePrincipale extends AppCompatActivity {
 
     private EditText emailInput;
     private EditText passwordInput;
@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.connexion);
+        setContentView(R.layout.activite_connexion);
 
         emailInput = findViewById(R.id.emailInput);
         passwordInput = findViewById(R.id.passwordInput);
@@ -56,13 +56,14 @@ public class MainActivity extends AppCompatActivity {
 
             LoginRequest loginRequest = new LoginRequest(email, password);
 
-            LoginService.loginUser(
+            ServiceConnexion.loginUser(
                     this,
                     loginRequest,
-                    token -> {
+                    (token, user) -> {
                         TokenManager tokenManager = new TokenManager(this);
                         tokenManager.saveToken(token);
-                        Intent intent = new Intent(MainActivity.this, ActiviteListes.class);
+                        Intent intent = new Intent(ActivitePrincipale.this, ActiviteListes.class);
+                        intent.putExtra("USER_DATA",user);
                         startActivity(intent);
                     },
                     errorMsg -> Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         registerButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, InscriptionActivity.class));
+            startActivity(new Intent(this, ActiviteInscription.class));
         });
     }
 }
