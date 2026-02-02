@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.Util;
+package fr.iutrodez.a4awalk.GestionP.Activity.Util;
 
 import android.app.Activity;
 import android.app.Dialog;

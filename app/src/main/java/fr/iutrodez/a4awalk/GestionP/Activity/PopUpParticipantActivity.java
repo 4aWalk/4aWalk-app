@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.Activity;
+package fr.iutrodez.a4awalk.GestionP.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,10 +19,10 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.Request.ParticipantRequest;
-import fr.iutrodez.a4awalk.Service.ParticipantService;
-import fr.iutrodez.a4awalk.Util.PopupUtil;
-import fr.iutrodez.a4awalk.Validator.ParticipantValidator;
+import fr.iutrodez.a4awalk.GestionP.Activity.Request.ParticipantRequest;
+import fr.iutrodez.a4awalk.GestionP.Activity.Service.ParticipantService;
+import fr.iutrodez.a4awalk.GestionP.Activity.Util.PopupUtil;
+import fr.iutrodez.a4awalk.GestionP.Activity.Validator.ParticipantValidator;
 
 public class PopUpParticipantActivity extends AppCompatActivity {
 

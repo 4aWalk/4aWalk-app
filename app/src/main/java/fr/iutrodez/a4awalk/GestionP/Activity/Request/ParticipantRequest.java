@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.Request;
+package fr.iutrodez.a4awalk.GestionP.Activity.Request;
 
 import org.json.JSONException;
 import org.json.JSONObject;

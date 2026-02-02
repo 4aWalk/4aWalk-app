@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.Activity;
+package fr.iutrodez.a4awalk.GestionP.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;

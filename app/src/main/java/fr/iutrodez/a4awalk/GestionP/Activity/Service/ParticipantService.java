@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.Service;
+package fr.iutrodez.a4awalk.GestionP.Activity.Service;
 
 import android.content.Context;
 
