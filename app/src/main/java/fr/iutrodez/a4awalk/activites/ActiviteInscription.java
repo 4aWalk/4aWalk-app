@@ -1,6 +1,7 @@
 package fr.iutrodez.a4awalk.activites;
 
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -8,6 +9,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceInscription;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
@@ -22,6 +26,8 @@ public class ActiviteInscription extends AppCompatActivity {
     private TextInputEditText etNom, etPrenom, etAge, etAdresse, etEmail, etMotDePasse, etConfirmerMotDePasse;
     private Spinner spinnerNiveau, spinnerMorphologie;
     private Button btnCreateAccount, btnRetour;
+    ArrayAdapter<String> adapterNiveau;
+    ArrayAdapter<String> adapterMorphologie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +102,7 @@ public class ActiviteInscription extends AppCompatActivity {
                     prenom,
                     result.age,
                     email,
+                    password,
                     adresse,
                     Level.valueOf(niveau),
                     Morphology.valueOf(morphologie)
@@ -122,5 +129,35 @@ public class ActiviteInscription extends AppCompatActivity {
         spinnerMorphologie = findViewById(R.id.spinner_morphologie);
         btnCreateAccount = findViewById(R.id.btn_create_account);
         btnRetour = findViewById(R.id.btn_retour);
+
+        List<String> niveauList = new ArrayList<>();
+        niveauList.add("Choisissez votre niveau");
+        for (Level level : Level.values()) {
+            niveauList.add(level.name());
+        }
+
+        // Récupère toutes les valeurs de l'enum Level
+        adapterNiveau = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                niveauList
+        );
+        adapterNiveau.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerNiveau.setAdapter(adapterNiveau);
+
+        List<String> morphoList = new ArrayList<>();
+        morphoList.add("Choisissez votre morphologie");
+        for (Morphology morph : Morphology.values()) {
+            morphoList.add(morph.name());
+        }
+
+        // Récupère toutes les valeurs de l'enum Morphology
+        adapterMorphologie = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                morphoList
+        );
+        adapterMorphologie.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerMorphologie.setAdapter(adapterMorphologie);
     }
 }

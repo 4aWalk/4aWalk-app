@@ -28,6 +28,7 @@
     <string name="retour">Retour</string>
     <string name="TitreInscription">Créer un compte</string>
     <string name="btnConnecter">Se connecter</string>
+    <string name="btnConnexion">Connexion</string>
     <string name="btnInscrire">S inscrire</string>
 
     <string name="recherche_rando">Rechercher une randonnée</string>

@@ -1,5 +1,7 @@
 package fr.iutrodez.a4awalk.activites;
 
+import fr.iutrodez.a4awalk.activites.GestionParticipant;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -26,7 +28,8 @@ import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
-import fr.iutrodez.a4awalk.services.gestionAPI.CreationRandonneeService;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceCreationRandonnee;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 
 public class ActiviteGestionRandonnee extends AppCompatActivity {
 
@@ -47,9 +50,13 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
     // Métier
     private TokenManager tokenManager;
-    private CreationRandonneeService creationService;
+    private ServiceCreationRandonnee creationService;
     private User currentUser;
+    private List<Participant> participants;
     private Hike hike;
+
+    // id de la randonnée créée pour l'ajout des points d'intérêts et des participants
+    private Long idRandonnee;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,13 +64,9 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         setContentView(R.layout.activite_details_randonnee);
 
         tokenManager = new TokenManager(this);
-        if (!tokenManager.isValide()) {
-            startActivity(new Intent(this, ActivitePrincipale.class));
-            finish();
-            return;
-        }
+        //TODO vérifier validité token
 
-        creationService = new CreationRandonneeService(this);
+        creationService = new ServiceCreationRandonnee(this);
 
         recupererDonneesIntent();
         initElementsGraphiques();
@@ -105,7 +108,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         ajouterUtilisateurCourant();
 
         btnAjouterPOI.setOnClickListener(v -> gererDialogPOI(-1));
-        btnAjouterParticipant.setOnClickListener(v -> gererDialogParticipant(-1));
+        btnAjouterParticipant.setOnClickListener(v -> GestionParticipant.gererDialogParticipant(this, tokenManager.getToken()));
 
         // Ajout des écouteurs sur les listes pour modification/suppression
         listePoints.setOnItemClickListener((parent, view, position, id) -> {
@@ -113,7 +116,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         });
 
         listeParticipants.setOnItemClickListener((parent, view, position, id) -> {
-            gererDialogParticipant(position);
+            GestionParticipant.gererDialogParticipant(this, tokenManager.getToken());
         });
 
         validateButton.setOnClickListener(v -> traiterClicValidation());
@@ -134,11 +137,18 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                 arriveeLon.getText().toString(),
                 listeTemporairePOI,
                 listeTemporaireParticipants,
-                new CreationRandonneeService.CreationCallback() {
+                new ServiceCreationRandonnee.CreationCallback() {
                     @Override
-                    public void onSuccess() {
-                        Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée créée avec succès !", Toast.LENGTH_SHORT).show();
-                        fermerAvecResultat(Activity.RESULT_OK, null);
+                    public void onSuccess(long hikeId) {
+                        Toast.makeText(ActiviteGestionRandonnee.this,
+                                "Randonnée n°" + hikeId + " créée avec succès !",
+                                Toast.LENGTH_SHORT).show();
+
+                        // On stocke l'ID récupéré
+                        idRandonnee = hikeId;
+
+                        // Vous pouvez maintenant naviguer ou mettre à jour l'UI
+                        validateButton.setEnabled(true);
                     }
 
                     @Override
@@ -148,6 +158,11 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                     }
                 }
         );
+        for (Participant participant : participants) {
+            ServiceParticipant.ajoutParticipantAPI(this, tokenManager.getToken(), participant, idRandonnee);
+        }
+
+        fermerAvecResultat(Activity.RESULT_OK, null);
     }
 
     private void ajouterUtilisateurCourant() {
@@ -180,7 +195,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         btnAjouterParticipant.setVisibility(View.VISIBLE);
 
         List<Integer> jours = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) jours.add(i);
+        for (int i = 1; i <= 3; i++) jours.add(i);
         ArrayAdapter<Integer> adapterJours = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, jours);
         adapterJours.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         nbJours.setAdapter(adapterJours);
@@ -249,13 +264,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
         builder.setNegativeButton("Annuler", null);
         builder.show();
-    }
-
-    /**
-     * Gère l'affichage du dialogue pour les Participants.
-     */
-    private void gererDialogParticipant(int position) {
-
     }
 
     private void consultationRandonnee() {

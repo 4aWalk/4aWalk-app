@@ -178,7 +178,7 @@
             android:layout_height="wrap_content"
             android:text="@string/create_button_text"
             android:layout_gravity="center"
-            android:backgroundTint="@color/green"
+            android:backgroundTint="@color/vert"
             android:visibility="gone"/>
     </LinearLayout>
 
