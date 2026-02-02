@@ -2,9 +2,10 @@
     <string name="app_name">4aWalk</string>
     <string name="logo_description">Logo de l application 4awaklk</string>
 
-    <!-- Affichage utilisateur connexion et iscription -->
+    <!-- Affichage utilisateur connexion et inscription -->
     <string-array name="niveau_array">
         <item>Choisir votre niveau</item>
+    </string-array>
 
     <string-array name="niveaux">
         <item>Choisir le niveau</item>
@@ -15,17 +16,19 @@
 
     <string-array name="morphologie_array">
         <item>Choisir votre morphologie</item>
+    </string-array>
+
     <string-array name="morphologies">
         <item>Choisir la morphologie</item>
         <item>LEGERE</item>
         <item>MOYENNE</item>
         <item>FORTE</item>
     </string-array>
+
     <string name="retour">Retour</string>
     <string name="TitreInscription">Créer un compte</string>
     <string name="btnConnecter">Se connecter</string>
-    <string name="btnInscrire">S inscire</string>
-
+    <string name="btnInscrire">S inscrire</string>
 
     <string name="recherche_rando">Rechercher une randonnée</string>
     <string name="onglet_parcours">Parcours</string>
@@ -61,6 +64,5 @@
 
     <string name="btnAnnuler">Annuler</string>
     <string name="btnValider">Valider</string>
-
 
 </resources>
