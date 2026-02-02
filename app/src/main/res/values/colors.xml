@@ -10,10 +10,11 @@
     <color name="vert">#4CAF50</color>
     <color name="primary">#4A7C59</color>
     <color name="primary_dark">#2F4E37</color>
-    <color name="green">#4CAF50</color>
     <color name="background">#E9DDBE</color>
     <color name="lightvert">#1c6223</color>
     <color name="grey">#B0B0B0</color>
 
 
+    <color name="lightvert">#90EE90</color>
+    <color name="grey">#B0B0B0</color>
 </resources>

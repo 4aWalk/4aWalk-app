@@ -5,6 +5,9 @@
     <!-- Affichage utilisateur connexion et iscription -->
     <string-array name="niveau_array">
         <item>Choisir votre niveau</item>
+
+    <string-array name="niveaux">
+        <item>Choisir le niveau</item>
         <item>DEBUTANT</item>
         <item>ENTRAINE</item>
         <item>SPORTIF</item>
@@ -12,6 +15,8 @@
 
     <string-array name="morphologie_array">
         <item>Choisir votre morphologie</item>
+    <string-array name="morphologies">
+        <item>Choisir la morphologie</item>
         <item>LEGERE</item>
         <item>MOYENNE</item>
         <item>FORTE</item>
@@ -44,4 +49,18 @@
     <string name="erreur_serveur">Erreur serveur</string>
     <string name="erreur_acces">Accès refusé</string>
     <string name="erreur_ressource">Ressource non trouvée</string>
+
+    <string name="titrePopup">Participant 1</string>
+    <string name="age">Âge</string>
+    <string name="besoinKCAL">Besoin kcal/jour</string>
+    <string name="besoinEAU">Besoin en eau (L)</string>
+    <string name="sac">Possède un sac à dos</string>
+    <string name="capacite">Capacité (kg) du sac</string>
+    <string name="ajouterP">Ajouter le participant</string>
+    <string name="btnSac">Voir le sac à dos</string>
+
+    <string name="btnAnnuler">Annuler</string>
+    <string name="btnValider">Valider</string>
+
+
 </resources>
