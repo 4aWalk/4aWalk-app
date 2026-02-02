@@ -7,10 +7,23 @@
     android:background="#EFE5C7"
     android:padding="12dp">
 
+    <!-- BOUTON RETOUR EN HAUT -->
+    <ImageButton
+        android:id="@+id/btnRetour"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/btn_round_bg"
+        android:src="@drawable/ic_arrow_back"
+        android:contentDescription="Retour"
+        android:scaleType="centerInside"
+        android:layout_gravity="start"/>
+
+    <View android:layout_height="12dp" android:layout_width="match_parent"/>
+
     <!-- CARTE OSM -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="300dp"
         android:background="@drawable/map_rounded">
 
         <org.osmdroid.views.MapView
@@ -30,6 +43,7 @@
         android:padding="24dp">
 
         <TextView
+            android:id="@+id/tvNomParcours"
             android:text="Parcours 1"
             android:textSize="32sp"
             android:textStyle="bold"
@@ -53,6 +67,7 @@
                 android:layout_height="wrap_content"/>
 
             <TextView
+                android:id="@+id/tvDepart"
                 android:text="Les granges des forêts"
                 android:textSize="18sp"
                 android:textColor="#000"
@@ -75,13 +90,14 @@
             android:layout_marginBottom="16dp">
 
             <TextView
-                android:text="Point d'arriver  :  "
+                android:text="Point d'arrivée :"
                 android:textSize="18sp"
                 android:textColor="#000"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
+                android:id="@+id/tvArrivee"
                 android:text="Pointe feuillette"
                 android:textSize="18sp"
                 android:textColor="#000"
@@ -104,13 +120,14 @@
             android:layout_marginBottom="16dp">
 
             <TextView
-                android:text="Date de réalisation  :"
+                android:text="Date de réalisation :"
                 android:textSize="18sp"
                 android:textColor="#000"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
+                android:id="@+id/tvDate"
                 android:text="08/10/2025"
                 android:textSize="18sp"
                 android:textColor="#000"
@@ -139,6 +156,7 @@
                 android:layout_height="wrap_content"/>
 
             <TextView
+                android:id="@+id/tvRandonnee"
                 android:text="Randonnée 1"
                 android:textSize="18sp"
                 android:textColor="#000"
@@ -154,8 +172,9 @@
         </LinearLayout>
     </LinearLayout>
 
-    <View android:layout_height="24dp" android:layout_width="match_parent"/>
+    <View android:layout_height="12dp" android:layout_width="match_parent"/>
 
+    <!-- BOUTON SUPPRIMER UNIQUEMENT -->
     <Button
         android:id="@+id/btnSupprimer"
         android:layout_width="match_parent"
