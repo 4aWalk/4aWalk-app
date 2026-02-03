@@ -36,8 +36,6 @@ public class SuiviParcours extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private Marker userMarker;
-
-    // AJOUT : La ligne qui tracera le parcours
     private Polyline traceUtilisateur;
 
     private List<GeoPoint> pointsParcours;
@@ -48,6 +46,9 @@ public class SuiviParcours extends AppCompatActivity {
 
     private Location lastLocation = null;
     private Location locationDerniereMajTexte = null;
+
+    // --- AJOUT : Variable pour éviter de spammer l'alerte ---
+    private boolean alerteApprocheFaite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,13 +70,10 @@ public class SuiviParcours extends AppCompatActivity {
         tvProchainPoint = findViewById(R.id.tvProchainPoint);
         tvArrivee = findViewById(R.id.tvArrivee);
 
-        // --- AJOUT : Initialisation de la trace ---
         traceUtilisateur = new Polyline();
-        traceUtilisateur.getOutlinePaint().setColor(Color.GREEN); // Couleur verte
-        traceUtilisateur.getOutlinePaint().setStrokeWidth(12f);   // Un peu plus épais pour être bien visible
-        // On l'ajoute tout de suite à la map (elle est vide pour l'instant)
+        traceUtilisateur.getOutlinePaint().setColor(Color.GREEN);
+        traceUtilisateur.getOutlinePaint().setStrokeWidth(12f);
         map.getOverlays().add(traceUtilisateur);
-        // ------------------------------------------
 
         pointsParcours = new ArrayList<>();
         pointsParcours.add(new GeoPoint(44.360369301617794, 2.5758112393065384));
@@ -172,9 +170,7 @@ public class SuiviParcours extends AppCompatActivity {
 
     private void mettreAJourMarker(GeoPoint userPos) {
 
-        // --- AJOUT : On ajoute le point courant à la ligne verte ---
         traceUtilisateur.addPoint(userPos);
-        // -----------------------------------------------------------
 
         if (userMarker == null) {
             userMarker = new Marker(map);
@@ -215,6 +211,7 @@ public class SuiviParcours extends AppCompatActivity {
         GeoPoint prochain = pointsParcours.get(indexProchainPoint);
         float[] resultatsCalcul = new float[1];
 
+        // 1. Calcul distance réelle vers le point actuel
         Location.distanceBetween(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -224,10 +221,24 @@ public class SuiviParcours extends AppCompatActivity {
         );
         float distanceVersCibleActuelle = resultatsCalcul[0];
 
+        // --- AJOUT : Alerte d'approche (50m) ---
+        // On vérifie si on est proche ET si on n'a pas déjà prévenu pour ce point
+        if (distanceVersCibleActuelle <= 50 && !alerteApprocheFaite) {
+            Toast.makeText(this, "Vous approchez du point (" + (int)distanceVersCibleActuelle + "m)", Toast.LENGTH_LONG).show();
+            alerteApprocheFaite = true; // On retient qu'on a prévenu pour ne pas spammer
+        }
+        // ----------------------------------------
+
+        // 2. Validation du point (20m)
         boolean pointVientDetreValide = false;
         if (distanceVersCibleActuelle < 20 && indexProchainPoint < pointsParcours.size() - 1) {
             indexProchainPoint++;
             pointVientDetreValide = true;
+
+            // --- AJOUT : On réinitialise l'alerte pour le PROCHAIN point ---
+            alerteApprocheFaite = false;
+            // ---------------------------------------------------------------
+
             Toast.makeText(this, "Point validé !", Toast.LENGTH_SHORT).show();
 
             GeoPoint nouveauProchain = pointsParcours.get(indexProchainPoint);
@@ -238,6 +249,8 @@ public class SuiviParcours extends AppCompatActivity {
             );
             distanceVersCibleActuelle = resultatsCalcul[0];
         }
+
+        // --- LOGIQUE D'AFFICHAGE ---
 
         float distanceDepuisDernierAffichage = 0;
         if (locationDerniereMajTexte != null) {
