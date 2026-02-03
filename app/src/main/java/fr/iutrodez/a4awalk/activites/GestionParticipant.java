@@ -1,12 +1,13 @@
 package fr.iutrodez.a4awalk.activites;
 
-import static fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant.ajoutParticipantUI;
+import static fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant.creationParticipant;
 
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -18,13 +19,20 @@ import android.widget.TextView;
 import fr.iutrodez.a4awalk.GestionP.Activity.SacActivity;
 import fr.iutrodez.a4awalk.GestionP.Activity.Validator.ParticipantValidator;
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.modeles.entites.Participant;
+import fr.iutrodez.a4awalk.modeles.enums.Level;
+import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 
 public class GestionParticipant {
+
+    public interface ParticipantCallback {
+        void onParticipantCreated(Participant participant);
+    }
 
     /**
      * Gère l'affichage du dialogue pour les Participants.
      */
-    public static void gererDialogParticipant(Context context, String token) {
+    public static void gererDialogParticipant(Context context, String token, ParticipantCallback callback) {
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.popup_participant);
         dialog.getWindow().setBackgroundDrawable(
@@ -119,6 +127,8 @@ public class GestionParticipant {
 
             if (!isValid) return;
 
+            Log.i("verif", "Vérification faite");
+
             int ageInt = Integer.parseInt(age);
             Integer kcalInt = Integer.parseInt(kcal);
             Integer eauInt = Integer.parseInt(eau);
@@ -128,7 +138,11 @@ public class GestionParticipant {
                 capaciteDouble = capacite.isEmpty() ? null : Double.parseDouble(capacite);
             }
 
-            ajoutParticipantUI(context, token, ageInt, choixNiveau, choixMorpho, kcalInt, eauInt, capaciteDouble);
+            Participant nouveauParticipant = creationParticipant(ageInt, Level.valueOf(choixNiveau), Morphology.valueOf(choixMorpho), kcalInt, eauInt, capaciteDouble);
+
+            if (callback != null) {
+                callback.onParticipantCreated(nouveauParticipant);
+            }
             dialog.dismiss();
         });
 

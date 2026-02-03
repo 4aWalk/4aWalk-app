@@ -9,34 +9,21 @@ import com.android.volley.VolleyError;
 import org.json.JSONObject;
 
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
+import fr.iutrodez.a4awalk.modeles.enums.Level;
+import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServiceParticipant {
 
     private final static String URL_AJOUT_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants";
 
-    public static JSONObject ajoutParticipantUI(Context context, String token, int age, String choixNiveau,
-                                                String choixMorpho, Integer kcal, Integer eau,
-                                                double capacite) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("age", age);
-            json.put("niveau", choixNiveau);
-            json.put("morphologie", choixMorpho);
-
-            json.put("besoinKcal", kcal);
-            json.put("besoinEauLitre", eau);
-            if (capacite != 0.0) json.put("capaciteEmportMaxKg", capacite);
-
-            return json;
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Erreur JSON", Toast.LENGTH_SHORT).show();
-        }
-        return null;
+    public static Participant creationParticipant(int age, Level choixNiveau,
+                                                  Morphology choixMorpho, Integer kcal, Integer eau,
+                                                  double capacite) {
+        return new Participant(age, choixNiveau, choixMorpho, false, kcal, eau, capacite);
     }
 
-    public static void ajoutParticipantAPI(Context context, String token, Participant participant, Long idRandonnee) {
+    public static void ajoutParticipant(Context context, String token, Participant participant, Long idRandonnee) {
         JSONObject body = new JSONObject();
         try {
             body.put("age", participant.getAge());
@@ -48,26 +35,25 @@ public class ServiceParticipant {
             if (participant.getCapaciteEmportMaxKg() != 0.0) {
                 body.put("capaciteEmportMaxKg", participant.getCapaciteEmportMaxKg());
             }
-            addParticipant(
-                    context,
-                    idRandonnee,
-                    body,
-                    token,
-                    response -> {
-                        Toast.makeText(context, "Participant ajouté !", Toast.LENGTH_LONG).show();
-                    },
-                    error -> {
-                        Toast.makeText(context, "Erreur : " + error.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-            );
-
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(context, "Erreur JSON", Toast.LENGTH_SHORT).show();
         }
+        addParticipantAPI(
+                context,
+                idRandonnee,
+                body,
+                token,
+                response -> {
+                    Toast.makeText(context, "Participant ajouté !", Toast.LENGTH_LONG).show();
+                },
+                error -> {
+                    Toast.makeText(context, "Erreur : " + error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+        );
     }
 
-    public static void addParticipant(
+    public static void addParticipantAPI(
             Context context,
             Long hikeId,
             JSONObject body,

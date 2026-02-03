@@ -40,10 +40,6 @@ public class ServiceCreationRandonnee {
      * Point d'entrée principal pour créer une randonnée complète
      */
     public void creerRandonnee(String libelle, int duree,
-                               String depLat, String depLon,
-                               String arrLat, String arrLon,
-                               List<PointOfInterest> pois,
-                               List<Participant> participants,
                                CreationCallback callback) {
         try {
             JSONObject randoAEnvoyer = construireJsonRandonnee(libelle, duree);
@@ -54,10 +50,7 @@ public class ServiceCreationRandonnee {
                     try {
                         // Extraction de l'ID depuis la réponse JSON
                         long randoID = result.getLong("id");
-
-                        // IMPORTANT : Transmettre randoID à envoyerDonneesLiees
-                        // Cette méthode devra appeler callback.onSuccess(randoID) à la toute fin
-                        envoyerDonneesLiees(randoID, depLat, depLon, arrLat, arrLon, pois, participants, callback);
+                        callback.onSuccess(randoID);
 
                     } catch (JSONException e) {
                         callback.onError("Erreur lors de la lecture de l'ID de la randonnée créée.");
@@ -90,18 +83,5 @@ public class ServiceCreationRandonnee {
         json.put("arrivee", arrivee);
 
         return json;
-    }
-
-    private void envoyerDonneesLiees(long randoID,
-                                     String depLat, String depLon,
-                                     String arrLat, String arrLon,
-                                     List<PointOfInterest> pois,
-                                     List<Participant> participants,
-                                     CreationCallback callback) {
-
-        // 2. POIs intermédiaires
-        //for (PointOfInterest p : pois) {
-        //    createAndSendPOI(randoID, p.getName(), p.getLatitude(), p.getLongitude());
-        //}
     }
 }

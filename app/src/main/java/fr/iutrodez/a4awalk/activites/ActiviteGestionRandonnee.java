@@ -1,7 +1,5 @@
 package fr.iutrodez.a4awalk.activites;
 
-import fr.iutrodez.a4awalk.activites.GestionParticipant;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -28,8 +26,11 @@ import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
+import fr.iutrodez.a4awalk.modeles.enums.Level;
+import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 
 public class ActiviteGestionRandonnee extends AppCompatActivity {
 
@@ -45,6 +46,8 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
     // Données locales pour l'affichage
     private ArrayList<PointOfInterest> listeTemporairePOI = new ArrayList<>();
     private ArrayAdapter<PointOfInterest> adapterPOI;
+
+    // C'est cette liste qui servira de référence pour l'adapter ET l'envoi API
     private ArrayList<Participant> listeTemporaireParticipants = new ArrayList<>();
     private ArrayAdapter<Participant> adapterParticipants;
 
@@ -52,10 +55,9 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
     private TokenManager tokenManager;
     private ServiceCreationRandonnee creationService;
     private User currentUser;
-    private List<Participant> participants;
     private Hike hike;
 
-    // id de la randonnée créée pour l'ajout des points d'intérêts et des participants
+    // id de la randonnée créée
     private Long idRandonnee;
 
     @Override
@@ -64,8 +66,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         setContentView(R.layout.activite_details_randonnee);
 
         tokenManager = new TokenManager(this);
-        //TODO vérifier validité token
-
         creationService = new ServiceCreationRandonnee(this);
 
         recupererDonneesIntent();
@@ -105,18 +105,38 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
     private void creationRandonnee() {
         activeModeCreation();
-        ajouterUtilisateurCourant();
+        ajouterUtilisateurCourant(); // Ajoute le participant n°1 (moi)
 
         btnAjouterPOI.setOnClickListener(v -> gererDialogPOI(-1));
-        btnAjouterParticipant.setOnClickListener(v -> GestionParticipant.gererDialogParticipant(this, tokenManager.getToken()));
 
-        // Ajout des écouteurs sur les listes pour modification/suppression
-        listePoints.setOnItemClickListener((parent, view, position, id) -> {
-            gererDialogPOI(position);
+        // Gestion du clic AJOUT PARTICIPANT ---
+        btnAjouterParticipant.setOnClickListener(v -> {
+            // 1. Vérification du nombre limite (3 participants max inclus user)
+            if (listeTemporaireParticipants.size() >= 3) {
+                Toast.makeText(this, "Impossible d'ajouter : limite de 3 participants atteinte.", Toast.LENGTH_LONG).show();
+            } else {
+                // 2. Appel du dialogue avec le Callback
+                GestionParticipant.gererDialogParticipant(this, tokenManager.getToken(),
+                        new GestionParticipant.ParticipantCallback() {
+                            @Override
+                            public void onParticipantCreated(Participant nouveauParticipant) {
+
+                                // CALCUL DU NUMERO DU PARTICIPANT (2 ou 3)
+                                int numeroSuivant = listeTemporaireParticipants.size() + 1;
+                                nouveauParticipant.setNoParticipant(String.valueOf(numeroSuivant));
+
+                                // 3. Ajout à la liste et mise à jour de l'affichage
+                                listeTemporaireParticipants.add(nouveauParticipant);
+                                adapterParticipants.notifyDataSetChanged();
+
+                                Toast.makeText(ActiviteGestionRandonnee.this, "Participant " + numeroSuivant + " ajouté !", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
         });
 
-        listeParticipants.setOnItemClickListener((parent, view, position, id) -> {
-            GestionParticipant.gererDialogParticipant(this, tokenManager.getToken());
+        listePoints.setOnItemClickListener((parent, view, position, id) -> {
+            gererDialogPOI(position);
         });
 
         validateButton.setOnClickListener(v -> traiterClicValidation());
@@ -128,27 +148,14 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         String nom = libelle.getText().toString();
         int duree = Integer.parseInt(nbJours.getSelectedItem().toString());
 
-        creationService.creerRandonnee(
-                nom,
-                duree,
-                departLat.getText().toString(),
-                departLon.getText().toString(),
-                arriveeLat.getText().toString(),
-                arriveeLon.getText().toString(),
-                listeTemporairePOI,
-                listeTemporaireParticipants,
-                new ServiceCreationRandonnee.CreationCallback() {
+        creationService.creerRandonnee(nom, duree, new ServiceCreationRandonnee.CreationCallback() {
                     @Override
                     public void onSuccess(long hikeId) {
                         Toast.makeText(ActiviteGestionRandonnee.this,
                                 "Randonnée n°" + hikeId + " créée avec succès !",
                                 Toast.LENGTH_SHORT).show();
 
-                        // On stocke l'ID récupéré
                         idRandonnee = hikeId;
-
-                        // Vous pouvez maintenant naviguer ou mettre à jour l'UI
-                        validateButton.setEnabled(true);
                     }
 
                     @Override
@@ -158,20 +165,35 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                     }
                 }
         );
-        for (Participant participant : participants) {
-            ServiceParticipant.ajoutParticipantAPI(this, tokenManager.getToken(), participant, idRandonnee);
+        for (PointOfInterest poi : listeTemporairePOI) {
+            ServicePOI.ajoutPOI(ActiviteGestionRandonnee.this, tokenManager.getToken(), poi, idRandonnee);
         }
-
+        for (Participant participant : listeTemporaireParticipants) {
+            ServiceParticipant.ajoutParticipant(ActiviteGestionRandonnee.this, tokenManager.getToken(), participant, idRandonnee);
+        }
         fermerAvecResultat(Activity.RESULT_OK, null);
     }
 
     private void ajouterUtilisateurCourant() {
-        if (currentUser != null) {
-            // Création d'un participant par défaut pour l'utilisateur courant
-            Participant moi = new Participant();
-            listeTemporaireParticipants.add(moi);
-            if (adapterParticipants != null) adapterParticipants.notifyDataSetChanged();
-        }
+        // Création du participant factice pour le créateur (Participant 1)
+        Participant moi = new Participant();
+
+        // Configuration pour l'affichage "Participant 1"
+        moi.setNoParticipant("1");
+        moi.setCreator(true);
+
+        // Données factices pour que l'objet soit valide
+        moi.setAge(25);
+        moi.setNiveau(Level.valueOf("SPORTIF"));
+        moi.setMorphologie(Morphology.valueOf("LEGERE"));
+        moi.setBesoinKcal(2500);
+        moi.setBesoinEauLitre(3);
+        moi.setCapaciteEmportMaxKg(15.0);
+        moi.setCreator(true);
+
+        // Ajout à la liste
+        listeTemporaireParticipants.add(moi);
+        if (adapterParticipants != null) adapterParticipants.notifyDataSetChanged();
     }
 
     private void fermerAvecResultat(int resultCode, String messageErreur) {
@@ -207,12 +229,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         listeParticipants.setAdapter(adapterParticipants);
     }
 
-    // --- GESTION DES DIALOGUES (Création, Modification, Suppression) ---
-
-    /**
-     * Gère l'affichage du dialogue pour les POI.
-     * @param position L'index dans la liste. Si -1, c'est un nouvel ajout.
-     */
+    // --- GESTION DES DIALOGUES POI ---
     private void gererDialogPOI(int position) {
         boolean isModification = (position >= 0);
         PointOfInterest poiAModifier = isModification ? listeTemporairePOI.get(position) : null;
@@ -225,7 +242,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         final EditText inputLat = view.findViewById(R.id.edit_poi_lat);
         final EditText inputLon = view.findViewById(R.id.edit_poi_lon);
 
-        // Pré-remplissage si modification
         if (isModification && poiAModifier != null) {
             inputNom.setText(poiAModifier.getName());
             inputLat.setText(String.valueOf(poiAModifier.getLatitude()));
@@ -234,7 +250,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
         builder.setView(view);
 
-        // Bouton Positif : Ajouter ou Modifier
         builder.setPositiveButton(isModification ? "Modifier" : "Ajouter", (dialog, which) -> {
             try {
                 String nom = inputNom.getText().toString();
@@ -254,7 +269,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             }
         });
 
-        // Bouton Neutre : Supprimer (seulement si on modifie un existant)
         if (isModification) {
             builder.setNeutralButton("Supprimer", (dialog, which) -> {
                 listeTemporairePOI.remove(position);
