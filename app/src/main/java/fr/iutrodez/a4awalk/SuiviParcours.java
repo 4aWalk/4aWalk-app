@@ -37,6 +37,9 @@ public class SuiviParcours extends AppCompatActivity {
     private LocationCallback locationCallback;
     private Marker userMarker;
 
+    // AJOUT : La ligne qui tracera le parcours
+    private Polyline traceUtilisateur;
+
     private List<GeoPoint> pointsParcours;
     private int indexProchainPoint = 0;
 
@@ -44,7 +47,6 @@ public class SuiviParcours extends AppCompatActivity {
     private TextView tvArrivee;
 
     private Location lastLocation = null;
-
     private Location locationDerniereMajTexte = null;
 
     @Override
@@ -66,6 +68,14 @@ public class SuiviParcours extends AppCompatActivity {
 
         tvProchainPoint = findViewById(R.id.tvProchainPoint);
         tvArrivee = findViewById(R.id.tvArrivee);
+
+        // --- AJOUT : Initialisation de la trace ---
+        traceUtilisateur = new Polyline();
+        traceUtilisateur.getOutlinePaint().setColor(Color.GREEN); // Couleur verte
+        traceUtilisateur.getOutlinePaint().setStrokeWidth(12f);   // Un peu plus épais pour être bien visible
+        // On l'ajoute tout de suite à la map (elle est vide pour l'instant)
+        map.getOverlays().add(traceUtilisateur);
+        // ------------------------------------------
 
         pointsParcours = new ArrayList<>();
         pointsParcours.add(new GeoPoint(44.360369301617794, 2.5758112393065384));
@@ -120,7 +130,6 @@ public class SuiviParcours extends AppCompatActivity {
             return;
         }
 
-        // Nouvelle API LocationRequest.Builder
         LocationRequest locationRequest = new LocationRequest.Builder(
                 Priority.PRIORITY_HIGH_ACCURACY, 3000)
                 .setMinUpdateIntervalMillis(1500)
@@ -133,10 +142,8 @@ public class SuiviParcours extends AppCompatActivity {
                 if (result == null) return;
 
                 for (Location location : result.getLocations()) {
-                    // Filtrage précision
                     if (location.getAccuracy() > 25) continue;
 
-                    // Micro-déplacements
                     if (lastLocation != null &&
                             location.distanceTo(lastLocation) < 3) continue;
 
@@ -165,6 +172,10 @@ public class SuiviParcours extends AppCompatActivity {
 
     private void mettreAJourMarker(GeoPoint userPos) {
 
+        // --- AJOUT : On ajoute le point courant à la ligne verte ---
+        traceUtilisateur.addPoint(userPos);
+        // -----------------------------------------------------------
+
         if (userMarker == null) {
             userMarker = new Marker(map);
             userMarker.setTitle("Vous êtes ici");
@@ -185,7 +196,6 @@ public class SuiviParcours extends AppCompatActivity {
 
         userMarker.setPosition(userPos);
 
-        // 🔹 Recentrage intelligent
         IGeoPoint center = map.getMapCenter();
         if (center instanceof GeoPoint) {
             GeoPoint centerGeo = (GeoPoint) center;
@@ -194,20 +204,17 @@ public class SuiviParcours extends AppCompatActivity {
             }
         }
 
-
         map.invalidate();
     }
 
     /* ===================== DISTANCES ===================== */
 
     private void calculerDistances(Location location) {
-        // Sécurité : si on a fini le parcours, on ne fait rien
         if (indexProchainPoint >= pointsParcours.size()) return;
 
         GeoPoint prochain = pointsParcours.get(indexProchainPoint);
         float[] resultatsCalcul = new float[1];
 
-        // 1. Calcul de la distance réelle vers le point actuel (CIBLE IMMÉDIATE)
         Location.distanceBetween(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -217,16 +224,12 @@ public class SuiviParcours extends AppCompatActivity {
         );
         float distanceVersCibleActuelle = resultatsCalcul[0];
 
-        // 2. Vérification de validation du point (Rayon de 20m)
-        // On garde 20m pour la validation officielle pour être précis
         boolean pointVientDetreValide = false;
         if (distanceVersCibleActuelle < 20 && indexProchainPoint < pointsParcours.size() - 1) {
             indexProchainPoint++;
             pointVientDetreValide = true;
             Toast.makeText(this, "Point validé !", Toast.LENGTH_SHORT).show();
 
-            // Comme on a changé de point, on recalcule la distance vers le NOUVEAU point immédiat
-            // pour que les calculs suivants soient justes
             GeoPoint nouveauProchain = pointsParcours.get(indexProchainPoint);
             Location.distanceBetween(
                     location.getLatitude(), location.getLongitude(),
@@ -236,18 +239,11 @@ public class SuiviParcours extends AppCompatActivity {
             distanceVersCibleActuelle = resultatsCalcul[0];
         }
 
-        // --- LOGIQUE D'AFFICHAGE INTELLIGENTE ---
-
-        // Calcul du déplacement depuis la dernière mise à jour texte
         float distanceDepuisDernierAffichage = 0;
         if (locationDerniereMajTexte != null) {
             distanceDepuisDernierAffichage = location.distanceTo(locationDerniereMajTexte);
         }
 
-        // CONDITION DE MISE A JOUR :
-        // A. Si on est loin (>50m) : on ne met à jour que tous les 100m (économie batterie/lecture)
-        // B. Si on est proche (<=50m) : on met à jour tout le temps (pour voir le décompte précis)
-        // C. Si on vient de valider un point : on met à jour immédiatement
         boolean estProche = distanceVersCibleActuelle <= 50;
 
         if (locationDerniereMajTexte == null ||
@@ -256,31 +252,18 @@ public class SuiviParcours extends AppCompatActivity {
                 distanceDepuisDernierAffichage >= 100) {
 
             locationDerniereMajTexte = location;
-
-            // Calcul de la distance totale restante (logique corrigée précédemment)
             float distanceTotale = calculerDistanceTotaleRestante(location);
-
             float distanceAffiche = distanceVersCibleActuelle;
 
-            // --- C'EST ICI QUE LA MAGIE OPÈRE (ANTICIPATION) ---
-            // Si on est à moins de 50m ET qu'il existe un point encore après le point actuel
             if (estProche && indexProchainPoint + 1 < pointsParcours.size()) {
-
                 GeoPoint pointApresLeProchain = pointsParcours.get(indexProchainPoint + 1);
                 float[] resultatsAnticipation = new float[1];
-
-                // On calcule la distance directe entre MOI et le point N+1
                 Location.distanceBetween(
                         location.getLatitude(), location.getLongitude(),
                         pointApresLeProchain.getLatitude(), pointApresLeProchain.getLongitude(),
                         resultatsAnticipation
                 );
-
-                // On décide d'afficher cette distance là à l'utilisateur
                 distanceAffiche = resultatsAnticipation[0];
-
-                // Optionnel : Vous pouvez changer le texte pour indiquer que c'est le suivant
-                // tvProchainPoint.setText("Vers le point suivant (anticipé)...");
             }
 
             mettreAJourAffichageDistances(distanceAffiche, distanceTotale);
@@ -290,7 +273,6 @@ public class SuiviParcours extends AppCompatActivity {
     private float calculerDistanceTotaleRestante(Location location) {
         float total = 0;
 
-        // 1. D'abord, on ajoute la distance entre MOI et le PROCHAIN point
         if (indexProchainPoint < pointsParcours.size()) {
             GeoPoint prochain = pointsParcours.get(indexProchainPoint);
             float[] distToNext = new float[1];
@@ -304,7 +286,6 @@ public class SuiviParcours extends AppCompatActivity {
             total += distToNext[0];
         }
 
-        // 2. Ensuite, on ajoute la somme des distances entre les points restants de la liste
         for (int i = indexProchainPoint; i < pointsParcours.size() - 1; i++) {
             float[] r = new float[1];
             Location.distanceBetween(
@@ -316,12 +297,10 @@ public class SuiviParcours extends AppCompatActivity {
             );
             total += r[0];
         }
-
         return total;
     }
 
     private void mettreAJourAffichageDistances(float prochain, float arrivee) {
-
         tvProchainPoint.setText(
                 prochain >= 1000
                         ? String.format("Prochain point dans %.2f km", prochain / 1000)
