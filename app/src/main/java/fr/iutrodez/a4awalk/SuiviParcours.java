@@ -45,6 +45,9 @@ public class SuiviParcours extends AppCompatActivity {
 
     private Location lastLocation = null;
 
+    // On stocke la position où on a mis à jour le texte pour la dernière fois
+    private Location locationDerniereMajTexte = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -199,10 +202,12 @@ public class SuiviParcours extends AppCompatActivity {
     /* ===================== DISTANCES ===================== */
 
     private void calculerDistances(Location location) {
+        if (indexProchainPoint >= pointsParcours.size()) return; // Fin du parcours
 
         GeoPoint prochain = pointsParcours.get(indexProchainPoint);
         float[] d = new float[1];
 
+        // Calcul de la distance vers le prochain point immédiat
         Location.distanceBetween(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -211,14 +216,47 @@ public class SuiviParcours extends AppCompatActivity {
                 d
         );
 
+        boolean pointChange = false;
+
+        // Vérification : est-on arrivé au point ? (Rayon de 20m)
         if (d[0] < 20 && indexProchainPoint < pointsParcours.size() - 1) {
             indexProchainPoint++;
+            pointChange = true; // On retient qu'on a changé de cible
+            Toast.makeText(this, "Point validé !", Toast.LENGTH_SHORT).show();
         }
 
-        mettreAJourAffichageDistances(
-                d[0],
-                calculerDistanceTotaleRestante(location)
-        );
+        // --- LOGIQUE DE MISE A JOUR DE L'AFFICHAGE ---
+
+        // On calcule la distance parcourue depuis la dernière mise à jour du TEXTE
+        float distanceDepuisDernierAffichage = 0;
+        if (locationDerniereMajTexte != null) {
+            distanceDepuisDernierAffichage = location.distanceTo(locationDerniereMajTexte);
+        }
+
+        // ON MET À JOUR L'AFFICHAGE SEULEMENT SI :
+        // 1. C'est la toute première fois (locationDerniereMajTexte est null)
+        // 2. OU on a parcouru plus de 100 mètres
+        // 3. OU on vient de valider un point (pointChange est vrai) -> il faut forcer la mise à jour car la cible a changé !
+        if (locationDerniereMajTexte == null || distanceDepuisDernierAffichage >= 100 || pointChange) {
+
+            // On sauvegarde cette position comme référence pour les prochains 100m
+            locationDerniereMajTexte = location;
+
+            // On lance le calcul complet (avec la correction de logique vue précédemment)
+            float distanceRestanteTotale = calculerDistanceTotaleRestante(location);
+
+            // Si on a changé de point, on recalcule la distance vers le NOUVEAU point
+            if (pointChange) {
+                GeoPoint nouveauProchain = pointsParcours.get(indexProchainPoint);
+                Location.distanceBetween(
+                        location.getLatitude(), location.getLongitude(),
+                        nouveauProchain.getLatitude(), nouveauProchain.getLongitude(),
+                        d // d[0] contient maintenant la distance vers le nouveau point
+                );
+            }
+
+            mettreAJourAffichageDistances(d[0], distanceRestanteTotale);
+        }
     }
 
     private float calculerDistanceTotaleRestante(Location location) {
