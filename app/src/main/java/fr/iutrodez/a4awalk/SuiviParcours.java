@@ -45,7 +45,6 @@ public class SuiviParcours extends AppCompatActivity {
 
     private Location lastLocation = null;
 
-    // On stocke la position où on a mis à jour le texte pour la dernière fois
     private Location locationDerniereMajTexte = null;
 
     @Override
@@ -202,60 +201,89 @@ public class SuiviParcours extends AppCompatActivity {
     /* ===================== DISTANCES ===================== */
 
     private void calculerDistances(Location location) {
-        if (indexProchainPoint >= pointsParcours.size()) return; // Fin du parcours
+        // Sécurité : si on a fini le parcours, on ne fait rien
+        if (indexProchainPoint >= pointsParcours.size()) return;
 
         GeoPoint prochain = pointsParcours.get(indexProchainPoint);
-        float[] d = new float[1];
+        float[] resultatsCalcul = new float[1];
 
-        // Calcul de la distance vers le prochain point immédiat
+        // 1. Calcul de la distance réelle vers le point actuel (CIBLE IMMÉDIATE)
         Location.distanceBetween(
                 location.getLatitude(),
                 location.getLongitude(),
                 prochain.getLatitude(),
                 prochain.getLongitude(),
-                d
+                resultatsCalcul
         );
+        float distanceVersCibleActuelle = resultatsCalcul[0];
 
-        boolean pointChange = false;
-
-        // Vérification : est-on arrivé au point ? (Rayon de 20m)
-        if (d[0] < 20 && indexProchainPoint < pointsParcours.size() - 1) {
+        // 2. Vérification de validation du point (Rayon de 20m)
+        // On garde 20m pour la validation officielle pour être précis
+        boolean pointVientDetreValide = false;
+        if (distanceVersCibleActuelle < 20 && indexProchainPoint < pointsParcours.size() - 1) {
             indexProchainPoint++;
-            pointChange = true; // On retient qu'on a changé de cible
+            pointVientDetreValide = true;
             Toast.makeText(this, "Point validé !", Toast.LENGTH_SHORT).show();
+
+            // Comme on a changé de point, on recalcule la distance vers le NOUVEAU point immédiat
+            // pour que les calculs suivants soient justes
+            GeoPoint nouveauProchain = pointsParcours.get(indexProchainPoint);
+            Location.distanceBetween(
+                    location.getLatitude(), location.getLongitude(),
+                    nouveauProchain.getLatitude(), nouveauProchain.getLongitude(),
+                    resultatsCalcul
+            );
+            distanceVersCibleActuelle = resultatsCalcul[0];
         }
 
-        // --- LOGIQUE DE MISE A JOUR DE L'AFFICHAGE ---
+        // --- LOGIQUE D'AFFICHAGE INTELLIGENTE ---
 
-        // On calcule la distance parcourue depuis la dernière mise à jour du TEXTE
+        // Calcul du déplacement depuis la dernière mise à jour texte
         float distanceDepuisDernierAffichage = 0;
         if (locationDerniereMajTexte != null) {
             distanceDepuisDernierAffichage = location.distanceTo(locationDerniereMajTexte);
         }
 
-        // ON MET À JOUR L'AFFICHAGE SEULEMENT SI :
-        // 1. C'est la toute première fois (locationDerniereMajTexte est null)
-        // 2. OU on a parcouru plus de 100 mètres
-        // 3. OU on vient de valider un point (pointChange est vrai) -> il faut forcer la mise à jour car la cible a changé !
-        if (locationDerniereMajTexte == null || distanceDepuisDernierAffichage >= 100 || pointChange) {
+        // CONDITION DE MISE A JOUR :
+        // A. Si on est loin (>50m) : on ne met à jour que tous les 100m (économie batterie/lecture)
+        // B. Si on est proche (<=50m) : on met à jour tout le temps (pour voir le décompte précis)
+        // C. Si on vient de valider un point : on met à jour immédiatement
+        boolean estProche = distanceVersCibleActuelle <= 50;
 
-            // On sauvegarde cette position comme référence pour les prochains 100m
+        if (locationDerniereMajTexte == null ||
+                pointVientDetreValide ||
+                estProche ||
+                distanceDepuisDernierAffichage >= 100) {
+
             locationDerniereMajTexte = location;
 
-            // On lance le calcul complet (avec la correction de logique vue précédemment)
-            float distanceRestanteTotale = calculerDistanceTotaleRestante(location);
+            // Calcul de la distance totale restante (logique corrigée précédemment)
+            float distanceTotale = calculerDistanceTotaleRestante(location);
 
-            // Si on a changé de point, on recalcule la distance vers le NOUVEAU point
-            if (pointChange) {
-                GeoPoint nouveauProchain = pointsParcours.get(indexProchainPoint);
+            float distanceAffiche = distanceVersCibleActuelle;
+
+            // --- C'EST ICI QUE LA MAGIE OPÈRE (ANTICIPATION) ---
+            // Si on est à moins de 50m ET qu'il existe un point encore après le point actuel
+            if (estProche && indexProchainPoint + 1 < pointsParcours.size()) {
+
+                GeoPoint pointApresLeProchain = pointsParcours.get(indexProchainPoint + 1);
+                float[] resultatsAnticipation = new float[1];
+
+                // On calcule la distance directe entre MOI et le point N+1
                 Location.distanceBetween(
                         location.getLatitude(), location.getLongitude(),
-                        nouveauProchain.getLatitude(), nouveauProchain.getLongitude(),
-                        d // d[0] contient maintenant la distance vers le nouveau point
+                        pointApresLeProchain.getLatitude(), pointApresLeProchain.getLongitude(),
+                        resultatsAnticipation
                 );
+
+                // On décide d'afficher cette distance là à l'utilisateur
+                distanceAffiche = resultatsAnticipation[0];
+
+                // Optionnel : Vous pouvez changer le texte pour indiquer que c'est le suivant
+                // tvProchainPoint.setText("Vers le point suivant (anticipé)...");
             }
 
-            mettreAJourAffichageDistances(d[0], distanceRestanteTotale);
+            mettreAJourAffichageDistances(distanceAffiche, distanceTotale);
         }
     }
 
