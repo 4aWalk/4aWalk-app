@@ -224,6 +224,21 @@ public class SuiviParcours extends AppCompatActivity {
     private float calculerDistanceTotaleRestante(Location location) {
         float total = 0;
 
+        // 1. D'abord, on ajoute la distance entre MOI et le PROCHAIN point
+        if (indexProchainPoint < pointsParcours.size()) {
+            GeoPoint prochain = pointsParcours.get(indexProchainPoint);
+            float[] distToNext = new float[1];
+            Location.distanceBetween(
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    prochain.getLatitude(),
+                    prochain.getLongitude(),
+                    distToNext
+            );
+            total += distToNext[0];
+        }
+
+        // 2. Ensuite, on ajoute la somme des distances entre les points restants de la liste
         for (int i = indexProchainPoint; i < pointsParcours.size() - 1; i++) {
             float[] r = new float[1];
             Location.distanceBetween(
@@ -235,6 +250,7 @@ public class SuiviParcours extends AppCompatActivity {
             );
             total += r[0];
         }
+
         return total;
     }
 
