@@ -1,13 +1,13 @@
-package fr.iutrodez.a4awalk;
+package fr.iutrodez.a4awalk.SuiviParcour;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.*;
 import android.graphics.drawable.*;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.os.*;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +27,8 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.*;
 
 import java.util.*;
+
+import fr.iutrodez.a4awalk.R;
 
 public class SuiviParcours extends AppCompatActivity {
 
@@ -50,6 +52,9 @@ public class SuiviParcours extends AppCompatActivity {
     // --- AJOUT : Variable pour éviter de spammer l'alerte ---
     private boolean alerteApprocheFaite = false;
 
+    // --- AJOUT : MediaPlayer pour le son de notification ---
+    private MediaPlayer mediaPlayer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,15 +65,15 @@ public class SuiviParcours extends AppCompatActivity {
         );
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
-        setContentView(R.layout.main_activity);
+        setContentView(fr.iutrodez.a4awalk.R.layout.main_activity);
 
-        map = findViewById(R.id.mapView);
+        map = findViewById(fr.iutrodez.a4awalk.R.id.mapView);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
 
-        tvProchainPoint = findViewById(R.id.tvProchainPoint);
-        tvArrivee = findViewById(R.id.tvArrivee);
+        tvProchainPoint = findViewById(fr.iutrodez.a4awalk.R.id.tvProchainPoint);
+        tvArrivee = findViewById(fr.iutrodez.a4awalk.R.id.tvArrivee);
 
         traceUtilisateur = new Polyline();
         traceUtilisateur.getOutlinePaint().setColor(Color.GREEN);
@@ -87,6 +92,9 @@ public class SuiviParcours extends AppCompatActivity {
 
         ajouterMarkers(pointsParcours);
         calculerItineraire(pointsParcours);
+
+        // --- Initialiser MediaPlayer ---
+        mediaPlayer = MediaPlayer.create(this, fr.iutrodez.a4awalk.R.raw.notif);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         verifierPermissionsEtDemarrer();
@@ -211,7 +219,6 @@ public class SuiviParcours extends AppCompatActivity {
         GeoPoint prochain = pointsParcours.get(indexProchainPoint);
         float[] resultatsCalcul = new float[1];
 
-        // 1. Calcul distance réelle vers le point actuel
         Location.distanceBetween(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -221,13 +228,16 @@ public class SuiviParcours extends AppCompatActivity {
         );
         float distanceVersCibleActuelle = resultatsCalcul[0];
 
-        // --- AJOUT : Alerte d'approche (50m) ---
-        // On vérifie si on est proche ET si on n'a pas déjà prévenu pour ce point
+        // --- AJOUT : Alerte d'approche (50m) + son ---
         if (distanceVersCibleActuelle <= 50 && !alerteApprocheFaite) {
             Toast.makeText(this, "Vous approchez du point (" + (int)distanceVersCibleActuelle + "m)", Toast.LENGTH_LONG).show();
-            alerteApprocheFaite = true; // On retient qu'on a prévenu pour ne pas spammer
+            alerteApprocheFaite = true;
+
+            // Jouer le son
+            if (mediaPlayer != null) {
+                mediaPlayer.start();
+            }
         }
-        // ----------------------------------------
 
         // 2. Validation du point (20m)
         boolean pointVientDetreValide = false;
@@ -235,9 +245,7 @@ public class SuiviParcours extends AppCompatActivity {
             indexProchainPoint++;
             pointVientDetreValide = true;
 
-            // --- AJOUT : On réinitialise l'alerte pour le PROCHAIN point ---
             alerteApprocheFaite = false;
-            // ---------------------------------------------------------------
 
             Toast.makeText(this, "Point validé !", Toast.LENGTH_SHORT).show();
 
@@ -251,7 +259,6 @@ public class SuiviParcours extends AppCompatActivity {
         }
 
         // --- LOGIQUE D'AFFICHAGE ---
-
         float distanceDepuisDernierAffichage = 0;
         if (locationDerniereMajTexte != null) {
             distanceDepuisDernierAffichage = location.distanceTo(locationDerniereMajTexte);
@@ -350,10 +357,12 @@ public class SuiviParcours extends AppCompatActivity {
 
                 runOnUiThread(() -> map.getOverlays().add(0, line));
             } catch (Exception e) {
-                Log.e("OSRM", e.getMessage());
+                e.printStackTrace();
             }
         }).start();
     }
+
+    /* ===================== LIFECYCLE ===================== */
 
     @Override
     protected void onPause() {
@@ -367,5 +376,14 @@ public class SuiviParcours extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         map.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 }
