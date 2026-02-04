@@ -19,69 +19,66 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 public class ServiceCreationRandonnee {
 
     private final static String URL_CREATION = "http://98.94.8.220:8080/hikes";
-    private final static String URL_AJOUT_POI = "http://98.94.8.220:8080/hikes/%d/poi";
-
-    private Context context;
-    private TokenManager tokenManager;
 
     // Interface pour communiquer le résultat final à l'Activité
-    public interface CreationCallback {
-        // On ajoute un paramètre pour recevoir l'ID
+    public interface FullCreationCallback {
         void onSuccess(long hikeId);
         void onError(String message);
-    }
-
-    public ServiceCreationRandonnee(Context context) {
-        this.context = context;
-        this.tokenManager = new TokenManager(context);
     }
 
     /**
      * Point d'entrée principal pour créer une randonnée complète
      */
-    public void creerRandonnee(String libelle, int duree,
-                               CreationCallback callback) {
-        try {
-            JSONObject randoAEnvoyer = construireJsonRandonnee(libelle, duree);
+    public static void validerRandonneeComplete(Context context, String token, String nom, int duree,
+                                                FullCreationCallback callback){
 
-            AppelAPI.post(URL_CREATION, tokenManager.getToken(), randoAEnvoyer, context, new AppelAPI.VolleyObjectCallback() {
-                @Override
-                public void onSuccess(JSONObject result) {
-                    try {
-                        // Extraction de l'ID depuis la réponse JSON
-                        long randoID = result.getLong("id");
-                        callback.onSuccess(randoID);
+        // Appel interne pour créer la randonnée
+        creerRandonnee(context, token, nom, duree, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) throws JSONException {
+                // On récupère l'ID de la rando créée (clé "id" selon ton API)
+                long hikeId = result.getLong("id");
+                Log.i("1", "Création randonnée n°" + hikeId);
 
-                    } catch (JSONException e) {
-                        callback.onError("Erreur lors de la lecture de l'ID de la randonnée créée.");
-                    }
-                }
+                // On informe l'activité que le processus est lancé avec succès
+                callback.onSuccess(hikeId);
+            }
 
-                @Override
-                public void onError(VolleyError erreur) {
-                    callback.onError("Échec de la création de la randonnée (API).");
-                }
-            });
-
-        } catch (JSONException e) {
-            callback.onError("Erreur interne lors de la construction des données.");
-        }
+            @Override
+            public void onError(com.android.volley.VolleyError error) {
+                callback.onError("Erreur lors de la création de la randonnée : " + error.getMessage());
+            }
+        });
     }
 
-    private JSONObject construireJsonRandonnee(String libelle, int duree) throws JSONException {
+    private static void creerRandonnee(Context context, String token, String nom, int duree,
+                                       AppelAPI.VolleyObjectCallback callback) {
+
+        JSONObject body = construireJsonRandonnee(nom, duree);
+
+        AppelAPI.post(URL_CREATION, token, body, context, callback);
+    }
+
+    private static JSONObject construireJsonRandonnee(String libelle, int duree) {
         JSONObject json = new JSONObject();
-        json.put("libelle", libelle);
-        json.put("dureeJours", duree);
+        try {
 
-        // IDs techniques requis par l'API pour la structure initiale
-        JSONObject depart = new JSONObject();
-        depart.put("id", 1);
-        json.put("depart", depart);
+            json.put("libelle", libelle);
+            json.put("dureeJours", duree);
 
-        JSONObject arrivee = new JSONObject();
-        arrivee.put("id", 2);
-        json.put("arrivee", arrivee);
+            // IDs techniques requis par l'API pour la structure initiale
+            JSONObject depart = new JSONObject();
+            depart.put("id", 1);
+            json.put("depart", depart);
 
-        return json;
+            JSONObject arrivee = new JSONObject();
+            arrivee.put("id", 2);
+            json.put("arrivee", arrivee);
+
+            return json;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

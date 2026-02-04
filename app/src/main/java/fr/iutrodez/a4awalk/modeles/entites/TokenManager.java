@@ -23,13 +23,6 @@ public class TokenManager {
 
     // Récupérer le token
     public String getToken() {
-        //return sharedPreferences.getString(KEY_TOKEN, null); // null est la valeur par défaut
-        return "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MkA0YXdhbGsuZnIiLCJ1c2VySWQiOjIsImlhdCI6MTc3MDAzNDgyNCwiZXhwIjoxNzcwMTIxMjI0fQ.GI92JgWV0cdRYD6Cnz7ubf9EqqRizNQJ0U1KQnbwSPI";
-    }
-
-    // Supprimer le token (pour la déconnexion)
-    public void clearToken() {
-        editor.remove(KEY_TOKEN);
-        editor.apply();
+        return sharedPreferences.getString(KEY_TOKEN, null); // null est la valeur par défaut
     }
 }

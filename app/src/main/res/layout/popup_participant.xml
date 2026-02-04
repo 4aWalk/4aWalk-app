@@ -6,7 +6,6 @@
     android:padding="16dp"
     android:background="@drawable/popup_background">
 
-    <!-- Header avec texte et bouton fermer -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,14 +31,34 @@
             android:contentDescription="Fermer"/>
     </LinearLayout>
 
-    <!-- Séparateur -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
         android:layout_marginBottom="8dp"/>
 
-    <!-- Champs sécurisés -->
+    <EditText
+        android:id="@+id/etNom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/nom"
+        android:textColor="@android:color/black"
+        android:textColorHint="@android:color/darker_gray"
+        android:backgroundTint="@android:color/black"
+        android:inputType="textPersonName|textCapCharacters"
+        android:minHeight="48dp"/>
+
+    <EditText
+        android:id="@+id/etPrenom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/prenom"
+        android:textColor="@android:color/black"
+        android:textColorHint="@android:color/darker_gray"
+        android:backgroundTint="@android:color/black"
+        android:inputType="textPersonName|textCapWords"
+        android:minHeight="48dp"/>
+
     <EditText
         android:id="@+id/etAge"
         android:layout_width="match_parent"
@@ -51,7 +70,6 @@
         android:inputType="number"
         android:minHeight="48dp"/>
 
-    <!-- Spinner pour Niveau -->
     <Spinner
         android:id="@+id/spinnerNiveau"
         android:layout_width="match_parent"
@@ -61,7 +79,6 @@
         android:background="@drawable/spinner"
         android:popupBackground="@android:color/white"/>
 
-    <!-- Spinner pour Morphologie -->
     <Spinner
         android:id="@+id/spinnerMorphologie"
         android:layout_width="match_parent"
@@ -93,7 +110,6 @@
         android:inputType="numberDecimal"
         android:minHeight="48dp"/>
 
-    <!-- Checkbox -->
     <CheckBox
         android:id="@+id/cbSacADos"
         android:layout_width="match_parent"
@@ -116,7 +132,6 @@
         android:layout_marginTop="4dp"
         android:minHeight="48dp"/>
 
-    <!-- Boutons -->
     <Button
         android:id="@+id/btnAjouter"
         android:text="@string/ajouterP"

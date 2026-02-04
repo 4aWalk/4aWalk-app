@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
+
 import fr.iutrodez.a4awalk.modeles.Person;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
@@ -16,7 +18,10 @@ import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 public class Participant implements Person, Parcelable {
 
     private Long id;
-    private String noParticipant; // Ajout du champ
+    // Remplacement de noParticipant par nom et prenom
+    private String nom;
+    private String prenom;
+
     private Integer age;
     private Level niveau;
     private Morphology morphologie;
@@ -40,9 +45,10 @@ public class Participant implements Person, Parcelable {
         this.capaciteEmportMaxKg = capaciteEmportMaxKg;
     }
 
-    public Participant(String noParticipant, int age, Level niveau, Morphology morphologie, boolean creator,
+    public Participant(String nom, String prenom, int age, Level niveau, Morphology morphologie, boolean creator,
                        int besoinKcal, int besoinEauLitre, double capaciteEmportMaxKg) {
-        this.noParticipant = noParticipant;
+        this.nom = nom;
+        this.prenom = prenom;
         this.age = age;
         this.niveau = niveau;
         this.morphologie = morphologie;
@@ -57,19 +63,19 @@ public class Participant implements Person, Parcelable {
     protected Participant(Parcel in) {
         if (in.readByte() == 0) id = null; else id = in.readLong();
 
-        // Lecture de noParticipant
-        noParticipant = in.readString();
+        // Lecture Nom et Prénom
+        nom = in.readString();
+        prenom = in.readString();
 
         if (in.readByte() == 0) age = null; else age = in.readInt();
 
-        // Lecture des Enums via leur nom String
         String niveauStr = in.readString();
         niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : null;
 
         String morphoStr = in.readString();
         morphologie = (morphoStr != null) ? Morphology.valueOf(morphoStr) : null;
 
-        creator = in.readByte() != 0; // byte to boolean
+        creator = in.readByte() != 0;
 
         if (in.readByte() == 0) besoinKcal = null; else besoinKcal = in.readInt();
         if (in.readByte() == 0) besoinEauLitre = null; else besoinEauLitre = in.readInt();
@@ -80,17 +86,14 @@ public class Participant implements Person, Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         if (id == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeLong(id); }
 
-        // Écriture de noParticipant
-        dest.writeString(noParticipant);
+        // Écriture Nom et Prénom
+        dest.writeString(nom);
+        dest.writeString(prenom);
 
         if (age == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeInt(age); }
-
-        // Écriture des Enums
         dest.writeString(niveau != null ? niveau.name() : null);
         dest.writeString(morphologie != null ? morphologie.name() : null);
-
-        dest.writeByte((byte) (creator ? 1 : 0)); // boolean to byte
-
+        dest.writeByte((byte) (creator ? 1 : 0));
         if (besoinKcal == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeInt(besoinKcal); }
         if (besoinEauLitre == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeInt(besoinEauLitre); }
         if (capaciteEmportMaxKg == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(capaciteEmportMaxKg); }
@@ -113,37 +116,68 @@ public class Participant implements Person, Parcelable {
         return 0;
     }
 
-    // --- Logique métier (Entity Logic) ---
+    // --- Logique métier ---
 
     public boolean isOverloaded() {
         if (this.backpack == null) return false;
         return this.backpack.getTotalMassKg() > this.capaciteEmportMaxKg;
     }
 
-    // --- Méthode toString pour l'affichage dans la ListView ---
+    // --- Overrides Equals & HashCode ---
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Participant that = (Participant) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     @NonNull
     @Override
     public String toString() {
-        String label = (noParticipant != null && !noParticipant.isEmpty()) ? "Participant " + noParticipant : "Nouveau participant";
+        // Construction du nom complet pour l'affichage
+        String fullName = "";
+        if (prenom != null && !prenom.isEmpty()) fullName += prenom + " ";
+        if (nom != null && !nom.isEmpty()) fullName += nom;
+
+        if (fullName.trim().isEmpty()) {
+            fullName = "Nouveau participant";
+        } else {
+            fullName = fullName.trim();
+        }
+
         String details = "";
         if (age != null) details += age + " ans";
         if (niveau != null) details += " - " + niveau;
 
-        return label + " (" + details + ")";
+        return fullName + " (" + details + ")";
     }
 
     // --- Implémentation de l'interface Person ---
-    @Override public String getNom() { return noParticipant; } // On utilise noParticipant comme "nom" par défaut
+
+    // On suppose que l'interface Person demande getNom().
+    // Si elle demande aussi getPrenom(), ajoutez l'Override.
+    @Override public String getNom() { return this.nom; }
+
     @Override public int getAge() { return (age != null) ? age : 0; }
     @Override public Level getNiveau() { return this.niveau; }
     @Override public Morphology getMorphologie() { return this.morphologie; }
 
     // --- Getters et Setters ---
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getNoParticipant() { return noParticipant; }
-    public void setNoParticipant(String noParticipant) { this.noParticipant = noParticipant; }
+    public void setNom(String nom) { this.nom = nom; }
+
+    public String getPrenom() { return prenom; }
+    public void setPrenom(String prenom) { this.prenom = prenom; }
 
     public void setAge(int age) { this.age = age; }
     public void setNiveau(Level niveau) { this.niveau = niveau; }

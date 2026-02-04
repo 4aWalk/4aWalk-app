@@ -3,6 +3,7 @@ package fr.iutrodez.a4awalk.activites;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
@@ -10,6 +11,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.adaptateurs.AdaptateurDesFragments;
+import fr.iutrodez.a4awalk.modeles.entites.User;
 
 public class ActiviteListes extends AppCompatActivity {
 
@@ -18,34 +20,26 @@ public class ActiviteListes extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activite_listes);
 
+        // --- Ton code de récupération adapté à l'activité ---
+        User user;
+        Intent intentionRecu = getIntent();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            user = intentionRecu.getParcelableExtra("USER_DATA", User.class);
+        } else {
+            user = intentionRecu.getParcelableExtra("USER_DATA");
+        }
+        // ----------------------------------------------------
+
         ViewPager2 pager = findViewById(R.id.activity_main_viewpager);
         TabLayout gestionnaireOnglet = findViewById(R.id.tab_layout);
 
-        /*
-         * on associe au ViewPager un adaptateur (c'est lui qui organise le
-         * défilement entre les fragments à afficher)
-         */
-        pager.setAdapter(new AdaptateurDesFragments(this));
+        // On passe l'objet 'user' à l'adaptateur
+        pager.setAdapter(new AdaptateurDesFragments(this, user));
 
-        /*
-         * On regroupe dans un tableau les intitulés des boutons d'onglet
-         */
         String[] titreOnglet = {getString(R.string.onglet_randonnees),
                 getString(R.string.onglet_parcours)};
-        /*
-         * On crée une instance de type TabLayoutMediator qui fera le lien entre
-         * le gestionnaire de pagination et le gestionnaire des onglets
-         * La méthode onConfigureTab permet de préciser quel intitulé de bouton
-         * d'onglets correspond à tel ou tel onglet, selon la position de celui-ci
-         * L'instance TabLayoutMediator est attachée à l'activité courante
-         *
-         */
+
         new TabLayoutMediator(gestionnaireOnglet, pager,
-                new TabLayoutMediator.TabConfigurationStrategy() {
-                    @Override public void onConfigureTab(TabLayout.Tab tab,
-                                                         int position) {
-                        tab.setText(titreOnglet[position]);
-                    }
-                }).attach();
+                (tab, position) -> tab.setText(titreOnglet[position])).attach();
     }
 }

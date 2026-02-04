@@ -1,7 +1,5 @@
 package fr.iutrodez.a4awalk.activites;
 
-import static fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant.creationParticipant;
-
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import fr.iutrodez.a4awalk.GestionP.Activity.SacActivity;
 import fr.iutrodez.a4awalk.GestionP.Activity.Validator.ParticipantValidator;
@@ -35,16 +34,24 @@ public class GestionParticipant {
     public static void gererDialogParticipant(Context context, String token, ParticipantCallback callback) {
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.popup_participant);
-        dialog.getWindow().setBackgroundDrawable(
-                new ColorDrawable(Color.TRANSPARENT)
-        );
 
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        // Récupération des vues
         ImageButton btnClose = dialog.findViewById(R.id.btnClose);
         Button btnVoirSac = dialog.findViewById(R.id.btnVoirSac);
         Button btnAjouter = dialog.findViewById(R.id.btnAjouter);
 
         Spinner spinner1 = dialog.findViewById(R.id.spinnerNiveau);
         Spinner spinner2 = dialog.findViewById(R.id.spinnerMorphologie);
+
+        // --- NOUVEAUX CHAMPS NOM / PRENOM ---
+        // Assurez-vous que ces ID existent dans popup_participant.xml
+        EditText etNom = dialog.findViewById(R.id.etNom);
+        EditText etPrenom = dialog.findViewById(R.id.etPrenom);
+        // ------------------------------------
 
         EditText etAge = dialog.findViewById(R.id.etAge);
         EditText etBesoinKcal = dialog.findViewById(R.id.etBesoinKcal);
@@ -58,6 +65,7 @@ public class GestionParticipant {
             etCapacite.setEnabled(isChecked);
         });
 
+        // Configuration des Spinners (Code inchangé)
         String[] liste1 = context.getResources().getStringArray(R.array.niveaux);
         String[] liste2 = context.getResources().getStringArray(R.array.morphologies);
 
@@ -69,7 +77,6 @@ public class GestionParticipant {
                 view.setBackgroundColor(Color.TRANSPARENT);
                 return view;
             }
-
             @Override
             public TextView getDropDownView(int position, android.view.View convertView, android.view.ViewGroup parent) {
                 TextView view = (TextView) super.getDropDownView(position, convertView, parent);
@@ -88,7 +95,6 @@ public class GestionParticipant {
                 view.setBackgroundColor(Color.TRANSPARENT);
                 return view;
             }
-
             @Override
             public TextView getDropDownView(int position, android.view.View convertView, android.view.ViewGroup parent) {
                 TextView view = (TextView) super.getDropDownView(position, convertView, parent);
@@ -99,6 +105,7 @@ public class GestionParticipant {
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner2.setAdapter(adapter2);
 
+        // Listeners
         btnClose.setOnClickListener(view -> dialog.dismiss());
 
         btnVoirSac.setOnClickListener(view -> {
@@ -107,6 +114,9 @@ public class GestionParticipant {
         });
 
         btnAjouter.setOnClickListener(view -> {
+            // Récupération des valeurs String
+            String nom = (etNom != null) ? etNom.getText().toString().trim() : "";
+            String prenom = (etPrenom != null) ? etPrenom.getText().toString().trim() : "";
 
             String age = etAge.getText().toString().trim();
             String kcal = etBesoinKcal.getText().toString().trim();
@@ -115,6 +125,7 @@ public class GestionParticipant {
             String choixNiveau = spinner1.getSelectedItem().toString();
             String choixMorpho = spinner2.getSelectedItem().toString();
 
+            // Validation (Ajouter la validation Nom/Prénom si nécessaire dans votre Validator)
             boolean isValid = ParticipantValidator.validate(
                     etAge,
                     etBesoinKcal,
@@ -127,18 +138,34 @@ public class GestionParticipant {
 
             if (!isValid) return;
 
+            // Validation sommaire pour Nom/Prénom (si non géré par le validator)
+            if (nom.isEmpty() || prenom.isEmpty()) {
+                Toast.makeText(context, "Nom et Prénom requis", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             Log.i("verif", "Vérification faite");
 
             int ageInt = Integer.parseInt(age);
             Integer kcalInt = Integer.parseInt(kcal);
             Integer eauInt = Integer.parseInt(eau);
-            double capaciteDouble;
-            capaciteDouble = 0.0;
-            if (cbSacADos.isChecked()) {
-                capaciteDouble = capacite.isEmpty() ? null : Double.parseDouble(capacite);
+            double capaciteDouble = 0.0;
+            if (cbSacADos.isChecked() && !capacite.isEmpty()) {
+                capaciteDouble = Double.parseDouble(capacite);
             }
 
-            Participant nouveauParticipant = creationParticipant(ageInt, Level.valueOf(choixNiveau), Morphology.valueOf(choixMorpho), kcalInt, eauInt, capaciteDouble);
+            // Création directe via le constructeur (plus sûr si ServiceParticipant n'est pas à jour)
+            Participant nouveauParticipant = new Participant(
+                    nom,
+                    prenom,
+                    ageInt,
+                    Level.valueOf(choixNiveau),
+                    Morphology.valueOf(choixMorpho),
+                    false, // isCreator par défaut false ici
+                    kcalInt,
+                    eauInt,
+                    capaciteDouble
+            );
 
             if (callback != null) {
                 callback.onParticipantCreated(nouveauParticipant);

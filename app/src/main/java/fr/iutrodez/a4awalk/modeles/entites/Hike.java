@@ -3,15 +3,11 @@ package fr.iutrodez.a4awalk.modeles.entites;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import fr.iutrodez.a4awalk.modeles.erreurs.HikeException;
-
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import fr.iutrodez.a4awalk.modeles.erreurs.HikeException;
 
 /**
  * Représente une randonnée planifiée.
@@ -25,7 +21,9 @@ public class Hike implements Parcelable {
     private PointOfInterest arrivee;
     private int dureeJours;
     private User creator;
-    private Set<Participant> participants = new HashSet<>();
+
+    // CHANGEMENT MAJEUR : ArrayList au lieu de Set pour Parcelable
+    private ArrayList<Participant> participants = new ArrayList<>();
     private List<PointOfInterest> optionalPoints = new ArrayList<>();
 
     // --- Constructeurs ---
@@ -45,16 +43,16 @@ public class Hike implements Parcelable {
     protected Hike(Parcel in) {
         if (in.readByte() == 0) id = null; else id = in.readLong();
         libelle = in.readString();
-        // Correction de la lecture Parcelable
         depart = in.readParcelable(PointOfInterest.class.getClassLoader());
         arrivee = in.readParcelable(PointOfInterest.class.getClassLoader());
         dureeJours = in.readInt();
         creator = in.readParcelable(User.class.getClassLoader());
 
-        List<Participant> partList = new ArrayList<>();
-        in.readList(partList, Participant.class.getClassLoader());
-        participants = new HashSet<>(partList);
+        // Lecture optimisée de la liste typée Participant
+        participants = in.createTypedArrayList(Participant.CREATOR);
 
+        // Lecture de la liste de POI
+        // (Si POI implémente Parcelable correctement, on pourrait aussi utiliser createTypedArrayList)
         List<PointOfInterest> poiList = new ArrayList<>();
         in.readList(poiList, PointOfInterest.class.getClassLoader());
         optionalPoints = new ArrayList<>(poiList);
@@ -65,11 +63,14 @@ public class Hike implements Parcelable {
         if (id == null) dest.writeByte((byte) 0);
         else { dest.writeByte((byte) 1); dest.writeLong(id); }
         dest.writeString(libelle);
-        dest.writeParcelable(depart, flags); // Écriture objet
-        dest.writeParcelable(arrivee, flags); // Écriture objet
+        dest.writeParcelable(depart, flags);
+        dest.writeParcelable(arrivee, flags);
         dest.writeInt(dureeJours);
         dest.writeParcelable(creator, flags);
-        dest.writeList(new ArrayList<>(participants));
+
+        // Écriture optimisée de la liste typée
+        dest.writeTypedList(participants);
+
         dest.writeList(new ArrayList<>(optionalPoints));
     }
 
@@ -89,24 +90,26 @@ public class Hike implements Parcelable {
             return new Hike[size];
         }
     };
-    // --- Logique métier de bas niveau (Entity Logic) ---
+
+    // --- Logique métier (Entity Logic) ---
 
     /**
      * Ajoute un participant à la randonnée.
-     * @throws HikeException si le participant est nul ou déjà présent.
+     * Vérifie manuellement l'existence car on utilise une List.
      */
     public void addParticipant(Participant participant) throws HikeException {
         if (participant == null) {
             throw new HikeException("Le participant ne peut pas être nul.");
         }
-        if (!this.participants.add(participant)) {
+        // Utilisation de contains (nécessite equals() dans Participant)
+        if (this.participants.contains(participant)) {
             throw new HikeException("Ce participant est déjà inscrit à cette randonnée.");
         }
+        this.participants.add(participant);
     }
 
     /**
      * Retire un participant de la randonnée.
-     * Utilise equals() basé sur l'ID du participant.
      */
     public void removeParticipant(Participant participant) throws HikeException {
         if (!this.participants.remove(participant)) {
@@ -115,7 +118,7 @@ public class Hike implements Parcelable {
     }
 
     /**
-     * Ajoute un point d'intérêt et maintient la cohérence bidirectionnelle.
+     * Ajoute un point d'intérêt.
      */
     public void addPointOfInterest(PointOfInterest poi) {
         this.optionalPoints.add(poi);
@@ -158,7 +161,6 @@ public class Hike implements Parcelable {
 
     public int getDureeJours() { return dureeJours; }
 
-    /** Valide que la durée est comprise entre 1 et 3 jours */
     public void setDureeJours(int dureeJours) {
         if (dureeJours < 1 || dureeJours > 3) {
             throw new IllegalArgumentException("La durée doit être comprise entre 1 et 3 jours.");
@@ -169,10 +171,19 @@ public class Hike implements Parcelable {
     public User getCreator() { return creator; }
     public void setCreator(User creator) { this.creator = creator; }
 
-    public Set<Participant> getParticipants() { return participants; }
-    public void setParticipants(Set<Participant> participants) { this.participants = participants; }
+    // On retourne et on accepte désormais une ArrayList/List
+    public ArrayList<Participant> getParticipants() { return participants; }
 
-    public int participantSize() {return this.participants.size();}
+    // Surcharge pour accepter Set si besoin de compatibilité legacy, mais convertit en List
+    public void setParticipants(ArrayList<Participant> participants) { this.participants = participants; }
+
+    // Méthode de compatibilité si votre Service utilise encore Set au début
+    public void setParticipants(java.util.Set<Participant> participantsSet) {
+        this.participants = new ArrayList<>(participantsSet);
+    }
+
+    public int participantSize() { return this.participants.size(); }
 
     public List<PointOfInterest> getOptionalPoints() { return optionalPoints; }
-    public void setOptionalPoints(List<PointOfInterest> optionalPoints) { this.optionalPoints = optionalPoints; }}
+    public void setOptionalPoints(List<PointOfInterest> optionalPoints) { this.optionalPoints = optionalPoints; }
+}

@@ -1,12 +1,15 @@
 package fr.iutrodez.a4awalk.services.gestionAPI;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
 import org.json.JSONObject;
+
+import java.util.List;
 
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
@@ -23,9 +26,29 @@ public class ServiceParticipant {
         return new Participant(age, choixNiveau, choixMorpho, false, kcal, eau, capacite);
     }
 
-    public static void ajoutParticipant(Context context, String token, Participant participant, Long idRandonnee) {
-        JSONObject body = new JSONObject();
+    public static void ajoutParticipants(Context context, String token, List<Participant> participant, Long idRandonnee) {
+
+        for(Participant participant1 : participant) {
+            JSONObject body = buildParticipantJSON(participant1);
+
+            addParticipantAPI(
+                    context,
+                    idRandonnee,
+                    body,
+                    token,
+                    response -> {
+                        Toast.makeText(context, "Participant ajouté !", Toast.LENGTH_LONG).show();
+                    },
+                    error -> {
+                        Toast.makeText(context, "Erreur : " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+            );
+        }
+    }
+
+    private static JSONObject buildParticipantJSON(Participant participant) {
         try {
+            JSONObject body = new JSONObject();
             body.put("age", participant.getAge());
             body.put("niveau", participant.getNiveau().toString());
             body.put("morphologie", participant.getMorphologie().toString());
@@ -35,22 +58,11 @@ public class ServiceParticipant {
             if (participant.getCapaciteEmportMaxKg() != 0.0) {
                 body.put("capaciteEmportMaxKg", participant.getCapaciteEmportMaxKg());
             }
+            return body;
         } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Erreur JSON", Toast.LENGTH_SHORT).show();
+            return null;
         }
-        addParticipantAPI(
-                context,
-                idRandonnee,
-                body,
-                token,
-                response -> {
-                    Toast.makeText(context, "Participant ajouté !", Toast.LENGTH_LONG).show();
-                },
-                error -> {
-                    Toast.makeText(context, "Erreur : " + error.getMessage(), Toast.LENGTH_LONG).show();
-                }
-        );
+
     }
 
     public static void addParticipantAPI(
@@ -70,6 +82,7 @@ public class ServiceParticipant {
             public void onSuccess(JSONObject result) {
                 // On transmet la réponse au listener d'origine
                 if (success != null) {
+                    Log.i("API_PARTICIPANT", result.toString());
                     success.onResponse(result);
                 }
             }
