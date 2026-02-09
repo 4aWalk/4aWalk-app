@@ -16,6 +16,8 @@ import com.android.volley.VolleyError;
 
 import java.util.ArrayList;
 
+import fr.iutrodez.a4awalk.activites.ActiviteGestionRandonnee;
+import fr.iutrodez.a4awalk.adaptateurs.ItemRandoAdapter;
 import fr.iutrodez.a4awalk.modeles.entites.Course;
 import fr.iutrodez.a4awalk.adaptateurs.ItemParcoursAdapter;
 import fr.iutrodez.a4awalk.R;
@@ -90,6 +92,16 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
                 // TODO prévention de l'utilisateur
             }
         });
+    }
+
+    private void affichageInfosParcours() {
+        adaptateur = new ItemParcoursAdapter(listeParcours, course -> {
+            Intent intent = new Intent(getActivity(), ParcoursDetailsActivity.class);
+            intent.putExtra("ID_PAGE", 1);
+            intent.putExtra("PARCOURS_OBJECT", course);
+            startActivity(intent);
+        });
+        parcoursRecyclerView.setAdapter(adaptateur);
     }
 
 
