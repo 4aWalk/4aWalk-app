@@ -31,7 +31,7 @@ public class ServiceParcours {
     /**
      * Récupère les randonnées depuis l'API, les transforme en objets et notifie le callback.
      */
-    public static void recupererParcoursUtilisateur(Context context, String token, User currentUser, ParcoursCallback callback) {
+    public static void recupererParcoursUtilisateur(Context context, String token, ParcoursCallback callback) {
 
         AppelAPI.get(URL_RANDOS, token, context, new AppelAPI.VolleyCallback() {
             @Override
@@ -75,9 +75,7 @@ public class ServiceParcours {
                 // --- DATE ---
                 // Parsing de la date ISO-8601 ("2026-02-05T08:19:12.027")
                 String dateStr = courseJson.optString("dateRealisation", null);
-                if (dateStr != null) {
-                    course.setDateRealisation(LocalDateTime.parse(dateStr));
-                }
+                course.setDateRealisation(LocalDateTime.parse(dateStr));
 
                 // --- DEPART & ARRIVEE (Gestion du null) ---
                 // Dans ton JSON, ils sont null, donc on vérifie avec isNull()
@@ -108,6 +106,7 @@ public class ServiceParcours {
                 liste.add(course);
             }
         } catch (JSONException e) {
+            // TODO faire un message d'erreur
             e.printStackTrace();
         }
         return liste;

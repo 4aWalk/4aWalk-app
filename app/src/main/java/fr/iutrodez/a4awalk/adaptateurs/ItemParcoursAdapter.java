@@ -17,10 +17,10 @@ public class ItemParcoursAdapter extends RecyclerView.Adapter<ParcoursViewHolder
     /**
      * Source de données à afficher par la liste
      */
-    private List<Course> lesDonnees;
+    private final List<Course> lesDonnees;
 
     // 1. Variable pour stocker l'écouteur
-    private OnParcoursClickListener listener;
+    private final OnParcoursClickListener listener;
 
     // 2. Interface pour communiquer avec l'Activity
     public interface OnParcoursClickListener {
@@ -37,6 +37,7 @@ public class ItemParcoursAdapter extends RecyclerView.Adapter<ParcoursViewHolder
         this.listener = listener; // On sauvegarde l'écouteur
     }
 
+    @NonNull
     @Override
     public ParcoursViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(

@@ -16,15 +16,12 @@ import com.android.volley.VolleyError;
 
 import java.util.ArrayList;
 
-import fr.iutrodez.a4awalk.activites.ActiviteGestionRandonnee;
 import fr.iutrodez.a4awalk.modeles.entites.Course;
-import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.adaptateurs.ItemParcoursAdapter;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
-import fr.iutrodez.a4awalk.services.gestionAPI.ServiceRandonnee;
 
 public class FragmentListeParcours extends Fragment implements View.OnClickListener {
 
@@ -46,7 +43,7 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
 
         // Initialisation User factice
         intentionRecu = requireActivity().getIntent();
-        user = (User) intentionRecu.getParcelableExtra("USER_DATA");
+        user = intentionRecu.getParcelableExtra("USER_DATA");
         listeParcours = new ArrayList<>();
 
         parcoursRecyclerView = vueDuFragment.findViewById(R.id.liste_parcours);
@@ -69,7 +66,7 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
      */
     public void initialiseListeParcours(String token) {
 
-        ServiceParcours.recupererParcoursUtilisateur(requireContext(), token, user, new ServiceParcours.ParcoursCallback() {
+        ServiceParcours.recupererParcoursUtilisateur(requireContext(), token, new ServiceParcours.ParcoursCallback() {
             @Override
             public void onSuccess(ArrayList<Course> parcours) {
                 // Mise à jour de la liste locale

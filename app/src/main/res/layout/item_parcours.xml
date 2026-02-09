@@ -20,7 +20,7 @@
             android:layout_marginVertical="2dp"
             android:gravity="center"
             android:layout_weight="1"
-            android:text="Parcours 1"
+            android:text="@string/parcours_placeholder"
             android:textColor="@color/black"/>
 
         <TextView
@@ -30,7 +30,7 @@
             android:layout_marginVertical="2dp"
             android:gravity="center"
             android:layout_weight="1"
-            android:text="Randonné 1"
+            android:text="@string/randonne_placeholder"
             android:textColor="@color/black"/>
 
     </LinearLayout>

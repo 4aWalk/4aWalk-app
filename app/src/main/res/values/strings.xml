@@ -67,5 +67,7 @@
 
     <string name="btnAnnuler">Annuler</string>
     <string name="btnValider">Valider</string>
+    <string name="randonne_placeholder">Randonné 1</string>
+    <string name="parcours_placeholder">Parcours 1</string>
 
 </resources>
