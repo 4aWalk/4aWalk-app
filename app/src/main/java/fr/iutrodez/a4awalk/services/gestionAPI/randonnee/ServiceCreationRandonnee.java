@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.services.gestionAPI;
+package fr.iutrodez.a4awalk.services.gestionAPI.randonnee;
 
 import android.content.Context;
 import android.util.Log;

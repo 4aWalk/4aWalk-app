@@ -12,7 +12,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,7 +27,7 @@ import fr.iutrodez.a4awalk.adaptateurs.ItemRandoAdapter;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
-import fr.iutrodez.a4awalk.services.gestionAPI.ServiceRandonnee;
+import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
 
 public class FragmentListeRandonnees extends Fragment implements View.OnClickListener {
 
@@ -132,7 +131,7 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                 if (listeRandos.isEmpty()) {
                     randoRecyclerView.setVisibility(View.GONE);
                     messageView.setVisibility(View.VISIBLE);
-                    messageView.setText(R.string.no_hikes_message); // Assure-toi que cette string existe
+                    messageView.setText(R.string.no_hikes_message);
                 } else {
                     randoRecyclerView.setVisibility(View.VISIBLE);
                     messageView.setVisibility(View.GONE);

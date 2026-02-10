@@ -67,5 +67,7 @@
     <string name="btnValider">Valider</string>
     <string name="nom">Nom</string>
     <string name="prenom">Prenom</string>
+    <string name="bouton_modifier_randonnee">Modifier la randonnée</string>
+    <string name="bouton_ajouter_randonnee">Ajouter la randonnée</string>
 
 </resources>

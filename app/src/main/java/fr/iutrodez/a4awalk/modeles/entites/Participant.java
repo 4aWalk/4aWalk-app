@@ -18,7 +18,8 @@ import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 public class Participant implements Person, Parcelable {
 
     private Long id;
-    // Remplacement de noParticipant par nom et prenom
+    private Long idRando; // <--- NOUVEAU CHAMP
+
     private String nom;
     private String prenom;
 
@@ -32,21 +33,12 @@ public class Participant implements Person, Parcelable {
     private Backpack backpack;
 
     // --- Constructeurs ---
-    public Participant() {}
-
-    public Participant(int age, Level niveau, Morphology morphologie, boolean creator,
-                       int besoinKcal, int besoinEauLitre, double capaciteEmportMaxKg) {
-        this.age = age;
-        this.niveau = niveau;
-        this.morphologie = morphologie;
-        this.creator = creator;
-        this.besoinKcal = besoinKcal;
-        this.besoinEauLitre = besoinEauLitre;
-        this.capaciteEmportMaxKg = capaciteEmportMaxKg;
+    public Participant() {
     }
 
+    // Mise à jour du constructeur pour prendre en compte idRando
     public Participant(String nom, String prenom, int age, Level niveau, Morphology morphologie, boolean creator,
-                       int besoinKcal, int besoinEauLitre, double capaciteEmportMaxKg) {
+                       int besoinKcal, int besoinEauLitre, double capaciteEmportMaxKg, Long idRando) {
         this.nom = nom;
         this.prenom = prenom;
         this.age = age;
@@ -56,18 +48,22 @@ public class Participant implements Person, Parcelable {
         this.besoinKcal = besoinKcal;
         this.besoinEauLitre = besoinEauLitre;
         this.capaciteEmportMaxKg = capaciteEmportMaxKg;
+        this.idRando = idRando; // <--- ASSIGNATION
     }
 
     // --- Implémentation Parcelable ---
 
     protected Participant(Parcel in) {
-        if (in.readByte() == 0) id = null; else id = in.readLong();
+        if (in.readByte() == 0) id = null;
+        else id = in.readLong();
+        if (in.readByte() == 0) idRando = null;
+        else idRando = in.readLong(); // <--- LECTURE PARCEL
 
-        // Lecture Nom et Prénom
         nom = in.readString();
         prenom = in.readString();
 
-        if (in.readByte() == 0) age = null; else age = in.readInt();
+        if (in.readByte() == 0) age = null;
+        else age = in.readInt();
 
         String niveauStr = in.readString();
         niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : null;
@@ -77,26 +73,53 @@ public class Participant implements Person, Parcelable {
 
         creator = in.readByte() != 0;
 
-        if (in.readByte() == 0) besoinKcal = null; else besoinKcal = in.readInt();
-        if (in.readByte() == 0) besoinEauLitre = null; else besoinEauLitre = in.readInt();
-        if (in.readByte() == 0) capaciteEmportMaxKg = null; else capaciteEmportMaxKg = in.readDouble();
+        if (in.readByte() == 0) besoinKcal = null;
+        else besoinKcal = in.readInt();
+        if (in.readByte() == 0) besoinEauLitre = null;
+        else besoinEauLitre = in.readInt();
+        if (in.readByte() == 0) capaciteEmportMaxKg = null;
+        else capaciteEmportMaxKg = in.readDouble();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        if (id == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeLong(id); }
+        if (id == null) dest.writeByte((byte) 0);
+        else {
+            dest.writeByte((byte) 1);
+            dest.writeLong(id);
+        }
+        if (idRando == null) dest.writeByte((byte) 0);
+        else {
+            dest.writeByte((byte) 1);
+            dest.writeLong(idRando);
+        } // <--- ECRITURE PARCEL
 
-        // Écriture Nom et Prénom
         dest.writeString(nom);
         dest.writeString(prenom);
 
-        if (age == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeInt(age); }
+        if (age == null) dest.writeByte((byte) 0);
+        else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(age);
+        }
         dest.writeString(niveau != null ? niveau.name() : null);
         dest.writeString(morphologie != null ? morphologie.name() : null);
         dest.writeByte((byte) (creator ? 1 : 0));
-        if (besoinKcal == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeInt(besoinKcal); }
-        if (besoinEauLitre == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeInt(besoinEauLitre); }
-        if (capaciteEmportMaxKg == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(capaciteEmportMaxKg); }
+        if (besoinKcal == null) dest.writeByte((byte) 0);
+        else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(besoinKcal);
+        }
+        if (besoinEauLitre == null) dest.writeByte((byte) 0);
+        else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(besoinEauLitre);
+        }
+        if (capaciteEmportMaxKg == null) dest.writeByte((byte) 0);
+        else {
+            dest.writeByte((byte) 1);
+            dest.writeDouble(capaciteEmportMaxKg);
+        }
     }
 
     public static final Creator<Participant> CREATOR = new Creator<Participant>() {
@@ -141,7 +164,6 @@ public class Participant implements Person, Parcelable {
     @NonNull
     @Override
     public String toString() {
-        // Construction du nom complet pour l'affichage
         String fullName = "";
         if (prenom != null && !prenom.isEmpty()) fullName += prenom + " ";
         if (nom != null && !nom.isEmpty()) fullName += nom;
@@ -161,40 +183,97 @@ public class Participant implements Person, Parcelable {
 
     // --- Implémentation de l'interface Person ---
 
-    // On suppose que l'interface Person demande getNom().
-    // Si elle demande aussi getPrenom(), ajoutez l'Override.
-    @Override public String getNom() { return this.nom; }
+    @Override
+    public String getNom() {
+        return this.nom;
+    }
 
-    @Override public int getAge() { return (age != null) ? age : 0; }
-    @Override public Level getNiveau() { return this.niveau; }
-    @Override public Morphology getMorphologie() { return this.morphologie; }
+    @Override
+    public int getAge() {
+        return (age != null) ? age : 0;
+    }
+
+    @Override
+    public Level getNiveau() {
+        return this.niveau;
+    }
+
+    @Override
+    public Morphology getMorphologie() {
+        return this.morphologie;
+    }
 
     // --- Getters et Setters ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public void setNom(String nom) { this.nom = nom; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getPrenom() { return prenom; }
-    public void setPrenom(String prenom) { this.prenom = prenom; }
+    public Long getIdRando() {
+        return idRando;
+    } // <--- GETTER
 
-    public void setAge(int age) { this.age = age; }
-    public void setNiveau(Level niveau) { this.niveau = niveau; }
-    public void setMorphologie(Morphology morphologie) { this.morphologie = morphologie; }
-    public boolean getCreator() { return creator; }
-    public void setCreator(boolean isCreator) { this.creator = isCreator; }
-    public int getBesoinKcal() { return (besoinKcal != null) ? besoinKcal : 0; }
-    public void setBesoinKcal(int besoinKcal) { this.besoinKcal = besoinKcal; }
-    public int getBesoinEauLitre() { return (besoinEauLitre != null) ? besoinEauLitre : 0; }
-    public void setBesoinEauLitre(int besoinEauLitre) { this.besoinEauLitre = besoinEauLitre; }
-    public double getCapaciteEmportMaxKg() { return (capaciteEmportMaxKg != null) ? capaciteEmportMaxKg : 0.0; }
-    public void setCapaciteEmportMaxKg(double capaciteEmportMaxKg) { this.capaciteEmportMaxKg = capaciteEmportMaxKg; }
-    public Backpack getBackpack() { return backpack; }
-    public void setBackpack(Backpack backpack) {
-        this.backpack = backpack;
-        if (backpack != null && backpack.getOwner() != this) {
-            backpack.setOwner(this);
-        }
+    public void setIdRando(Long idRando) {
+        this.idRando = idRando;
+    } // <--- SETTER
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public void setNiveau(Level niveau) {
+        this.niveau = niveau;
+    }
+
+    public void setMorphologie(Morphology morphologie) {
+        this.morphologie = morphologie;
+    }
+
+    public boolean getCreator() {
+        return creator;
+    }
+
+    public void setCreator(boolean isCreator) {
+        this.creator = isCreator;
+    }
+
+    public int getBesoinKcal() {
+        return (besoinKcal != null) ? besoinKcal : 0;
+    }
+
+    public void setBesoinKcal(int besoinKcal) {
+        this.besoinKcal = besoinKcal;
+    }
+
+    public int getBesoinEauLitre() {
+        return (besoinEauLitre != null) ? besoinEauLitre : 0;
+    }
+
+    public void setBesoinEauLitre(int besoin) {
+        this.besoinEauLitre = besoinEauLitre;
+    }
+
+    public double getCapaciteEmportMaxKg() {
+        return this.capaciteEmportMaxKg;
+    }
+
+    public void setCapaciteEmportMaxKg(double capacite) {
+        this.capaciteEmportMaxKg = capacite;
     }
 }

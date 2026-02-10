@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.services.gestionAPI;
+package fr.iutrodez.a4awalk.services.gestionAPI.randonnee;
 
 import android.content.Context;
 import android.util.Log;
@@ -84,6 +84,19 @@ public class ServiceRandonnee {
                         arriveeObj.getDouble("longitude")
                 );
 
+                ArrayList<PointOfInterest> listePoi = new ArrayList<>();
+                JSONArray points = randoJson.getJSONArray("points");
+                for (int j = 0; j < points.length(); j++) {
+                    JSONObject point = points.getJSONObject(j);
+                    PointOfInterest poi = new PointOfInterest(
+                            point.getLong("id"),
+                            point.getString("nom"),
+                            point.getDouble("latitude"),
+                            point.getDouble("longitude")
+                    );
+                    listePoi.add(poi);
+                }
+
                 // --- 4. Participants (ArrayList pour Parcelable) ---
                 ArrayList<Participant> listeParticipants = new ArrayList<>();
                 JSONArray participantsArray = randoJson.getJSONArray("participants");
@@ -93,15 +106,13 @@ public class ServiceRandonnee {
                     Participant p = new Participant();
 
                     p.setId(partJson.getLong("id"));
+                    p.setPrenom(partJson.optString("prenom", ""));
+                    p.setNom(partJson.optString("nom", ""));
                     p.setAge(partJson.getInt("age"));
                     p.setCreator(partJson.getBoolean("isCreator"));
                     p.setBesoinKcal(partJson.getInt("besoinKcal"));
                     p.setBesoinEauLitre(partJson.getInt("besoinEauLitre"));
                     p.setCapaciteEmportMaxKg(partJson.getDouble("capaciteEmportMaxKg"));
-
-                    // Gestion du Nom/Prénom vers noParticipant (pour l'affichage toString)
-                    String prenom = partJson.optString("prenom", "");
-                    String nom = partJson.optString("nom", "");
 
                     // Gestion sécurisée des Enums (Level)
                     try {
@@ -128,6 +139,7 @@ public class ServiceRandonnee {
 
                 // On passe l'ArrayList complète (compatible avec le nouveau code Parcelable)
                 hike.setParticipants(listeParticipants);
+                hike.setOptionalPoints(listePoi);
 
                 liste.add(hike);
             }

@@ -5,15 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
+import android.view.View;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import fr.iutrodez.a4awalk.GestionP.Activity.SacActivity;
 import fr.iutrodez.a4awalk.GestionP.Activity.Validator.ParticipantValidator;
@@ -21,158 +23,208 @@ import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 
 public class GestionParticipant {
 
+    public static final int ETAT_CREATION = 1;
+    public static final int ETAT_CONSULTATION = 2;
+    public static final int ETAT_MODIFICATION = 3;
+
     public interface ParticipantCallback {
-        void onParticipantCreated(Participant participant);
+        void onActionSuccess(Participant participant);
     }
 
     /**
-     * Gère l'affichage du dialogue pour les Participants.
+     * Point d'entrée principal.
+     * @param hikeId L'ID de la randonnée (nécessaire pour modification/création contextuelle)
      */
-    public static void gererDialogParticipant(Context context, String token, ParticipantCallback callback) {
+    public static void afficherDialogParticipant(Context context, int etat, String token,
+                                                 Long hikeId, // <--- NOUVEAU PARAMETRE
+                                                 @Nullable Participant participant,
+                                                 ParticipantCallback callback) {
+
+        if (etat < 1 || etat > 3) throw new IllegalArgumentException("État invalide");
+
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.popup_participant);
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        Window window = dialog.getWindow();
+        if (window != null) window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        ViewHolder views = new ViewHolder(dialog);
+
+        // Configuration Commune
+        views.etCapacite.setEnabled(false);
+        views.cbSacADos.setOnCheckedChangeListener((btn, isChecked) -> views.etCapacite.setEnabled(isChecked));
+        configurerSpinner(context, views.spinnerNiveau, R.array.niveaux);
+        configurerSpinner(context, views.spinnerMorpho, R.array.morphologies);
+
+        // --- Gestion par État ---
+        switch (etat) {
+            case ETAT_CREATION:
+                setupModeCreation(context, dialog, views, token, hikeId, callback);
+                break;
+            case ETAT_CONSULTATION:
+                setupModeConsultation(views, participant);
+                break;
+            case ETAT_MODIFICATION:
+                setupModeModification(context, dialog, views, token, hikeId, participant, callback);
+                break;
         }
 
-        // Récupération des vues
-        ImageButton btnClose = dialog.findViewById(R.id.btnClose);
-        Button btnVoirSac = dialog.findViewById(R.id.btnVoirSac);
-        Button btnAjouter = dialog.findViewById(R.id.btnAjouter);
-
-        Spinner spinner1 = dialog.findViewById(R.id.spinnerNiveau);
-        Spinner spinner2 = dialog.findViewById(R.id.spinnerMorphologie);
-
-        // --- NOUVEAUX CHAMPS NOM / PRENOM ---
-        // Assurez-vous que ces ID existent dans popup_participant.xml
-        EditText etNom = dialog.findViewById(R.id.etNom);
-        EditText etPrenom = dialog.findViewById(R.id.etPrenom);
-        // ------------------------------------
-
-        EditText etAge = dialog.findViewById(R.id.etAge);
-        EditText etBesoinKcal = dialog.findViewById(R.id.etBesoinKcal);
-        EditText etBesoinEau = dialog.findViewById(R.id.etBesoinEau);
-        EditText etCapacite = dialog.findViewById(R.id.etCapacite);
-        CheckBox cbSacADos = dialog.findViewById(R.id.cbSacADos);
-
-        etCapacite.setEnabled(false);
-
-        cbSacADos.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            etCapacite.setEnabled(isChecked);
-        });
-
-        // Configuration des Spinners (Code inchangé)
-        String[] liste1 = context.getResources().getStringArray(R.array.niveaux);
-        String[] liste2 = context.getResources().getStringArray(R.array.morphologies);
-
-        ArrayAdapter<String> adapter1 = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, liste1) {
-            @Override
-            public TextView getView(int position, android.view.View convertView, android.view.ViewGroup parent) {
-                TextView view = (TextView) super.getView(position, convertView, parent);
-                view.setTextColor(Color.BLACK);
-                view.setBackgroundColor(Color.TRANSPARENT);
-                return view;
-            }
-            @Override
-            public TextView getDropDownView(int position, android.view.View convertView, android.view.ViewGroup parent) {
-                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
-                view.setTextColor(Color.BLACK);
-                return view;
-            }
-        };
-        adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner1.setAdapter(adapter1);
-
-        ArrayAdapter<String> adapter2 = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, liste2) {
-            @Override
-            public TextView getView(int position, android.view.View convertView, android.view.ViewGroup parent) {
-                TextView view = (TextView) super.getView(position, convertView, parent);
-                view.setTextColor(Color.BLACK);
-                view.setBackgroundColor(Color.TRANSPARENT);
-                return view;
-            }
-            @Override
-            public TextView getDropDownView(int position, android.view.View convertView, android.view.ViewGroup parent) {
-                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
-                view.setTextColor(Color.BLACK);
-                return view;
-            }
-        };
-        adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner2.setAdapter(adapter2);
-
-        // Listeners
-        btnClose.setOnClickListener(view -> dialog.dismiss());
-
-        btnVoirSac.setOnClickListener(view -> {
+        views.btnClose.setOnClickListener(v -> dialog.dismiss());
+        views.btnVoirSac.setOnClickListener(v -> {
             Intent intent = new Intent(context, SacActivity.class);
             context.startActivity(intent);
         });
 
-        btnAjouter.setOnClickListener(view -> {
-            // Récupération des valeurs String
-            String nom = (etNom != null) ? etNom.getText().toString().trim() : "";
-            String prenom = (etPrenom != null) ? etPrenom.getText().toString().trim() : "";
-
-            String age = etAge.getText().toString().trim();
-            String kcal = etBesoinKcal.getText().toString().trim();
-            String eau = etBesoinEau.getText().toString().trim();
-            String capacite = etCapacite.getText().toString().trim();
-            String choixNiveau = spinner1.getSelectedItem().toString();
-            String choixMorpho = spinner2.getSelectedItem().toString();
-
-            // Validation (Ajouter la validation Nom/Prénom si nécessaire dans votre Validator)
-            boolean isValid = ParticipantValidator.validate(
-                    etAge,
-                    etBesoinKcal,
-                    etBesoinEau,
-                    etCapacite,
-                    spinner1,
-                    spinner2,
-                    cbSacADos.isChecked()
-            );
-
-            if (!isValid) return;
-
-            // Validation sommaire pour Nom/Prénom (si non géré par le validator)
-            if (nom.isEmpty() || prenom.isEmpty()) {
-                Toast.makeText(context, "Nom et Prénom requis", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Log.i("verif", "Vérification faite");
-
-            int ageInt = Integer.parseInt(age);
-            Integer kcalInt = Integer.parseInt(kcal);
-            Integer eauInt = Integer.parseInt(eau);
-            double capaciteDouble = 0.0;
-            if (cbSacADos.isChecked() && !capacite.isEmpty()) {
-                capaciteDouble = Double.parseDouble(capacite);
-            }
-
-            // Création directe via le constructeur (plus sûr si ServiceParticipant n'est pas à jour)
-            Participant nouveauParticipant = new Participant(
-                    nom,
-                    prenom,
-                    ageInt,
-                    Level.valueOf(choixNiveau),
-                    Morphology.valueOf(choixMorpho),
-                    false, // isCreator par défaut false ici
-                    kcalInt,
-                    eauInt,
-                    capaciteDouble
-            );
-
-            if (callback != null) {
-                callback.onParticipantCreated(nouveauParticipant);
-            }
-            dialog.dismiss();
-        });
-
         dialog.show();
+    }
+
+    private static void setupModeCreation(Context context, Dialog dialog, ViewHolder views, String token, Long hikeId, ParticipantCallback callback) {
+        views.btnAction.setText("Ajouter");
+        views.btnAction.setVisibility(View.VISIBLE);
+        views.btnAction.setOnClickListener(v ->
+                traiterSoumission(context, dialog, views, token, hikeId, null, callback, false)
+        );
+    }
+
+    private static void setupModeConsultation(ViewHolder views, Participant participant) {
+        if (participant == null) return;
+        remplirChamps(views, participant);
+        verrouillerChamps(views);
+        views.btnAction.setVisibility(View.GONE);
+        views.cbSacADos.setEnabled(false);
+    }
+
+    private static void setupModeModification(Context context, Dialog dialog, ViewHolder views, String token, Long hikeId, Participant participant, ParticipantCallback callback) {
+        if (participant == null) return;
+
+        remplirChamps(views, participant);
+        views.btnAction.setText("Modifier");
+        views.btnAction.setVisibility(View.VISIBLE);
+
+        views.btnAction.setOnClickListener(v ->
+                traiterSoumission(context, dialog, views, token, hikeId, participant.getId(), callback, true)
+        );
+    }
+
+    private static void traiterSoumission(Context context, Dialog dialog, ViewHolder views, String token,
+                                          Long hikeId, Long participantId, ParticipantCallback callback, boolean isUpdate) {
+
+        boolean isValidForm = ParticipantValidator.validate(
+                views.etAge, views.etBesoinKcal, views.etBesoinEau, views.etCapacite,
+                views.spinnerNiveau, views.spinnerMorpho, views.cbSacADos.isChecked()
+        );
+
+        if (!isValidForm) return;
+
+        try {
+            Participant p = extraireDonneesVues(views);
+            p.setIdRando(hikeId); // <--- ASSIGNATION ID RANDO
+
+            if (isUpdate) {
+                p.setId(participantId);
+                // Appel API Modification avec gestion d'erreur intégrée dans le service
+                ServiceParticipant.modifierParticipantAPI(context, token, p, () -> {
+                    if (callback != null) callback.onActionSuccess(p);
+                    dialog.dismiss();
+                });
+            } else {
+                // Création locale (l'appel API se fera lors de la validation globale de la rando si c'est une création de rando)
+                if (callback != null) {
+                    callback.onActionSuccess(p);
+                    dialog.dismiss();
+                }
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(context, "Erreur de format numérique", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ... (Reste des méthodes extraireDonneesVues, remplirChamps, etc. identiques) ...
+    // Assurez-vous simplement que extraireDonneesVues utilise le nouveau constructeur de Participant avec idRando (ou null par défaut)
+
+    private static Participant extraireDonneesVues(ViewHolder v) {
+        String nom = v.etNom.getText().toString().trim();
+        String prenom = v.etPrenom.getText().toString().trim();
+        int age = Integer.parseInt(v.etAge.getText().toString().trim());
+        int kcal = Integer.parseInt(v.etBesoinKcal.getText().toString().trim());
+        int eau = Integer.parseInt(v.etBesoinEau.getText().toString().trim());
+        double cap = v.cbSacADos.isChecked() && !v.etCapacite.getText().toString().isEmpty()
+                ? Double.parseDouble(v.etCapacite.getText().toString().replace(",", "."))
+                : 0.0;
+
+        // On passe null à idRando ici, il est set dans traiterSoumission
+        return new Participant(nom, prenom, age,
+                Level.valueOf(v.spinnerNiveau.getSelectedItem().toString()),
+                Morphology.valueOf(v.spinnerMorpho.getSelectedItem().toString()),
+                false, kcal, eau, cap, null);
+    }
+
+    // ... (ViewHolder et utilitaires UI inchangés) ...
+    // Je remets ViewHolder pour la compilation
+    private static class ViewHolder {
+        ImageButton btnClose;
+        Button btnVoirSac, btnAction;
+        EditText etNom, etPrenom, etAge, etBesoinKcal, etBesoinEau, etCapacite;
+        CheckBox cbSacADos;
+        Spinner spinnerNiveau, spinnerMorpho;
+
+        ViewHolder(Dialog d) {
+            btnClose = d.findViewById(R.id.btnClose);
+            btnVoirSac = d.findViewById(R.id.btnVoirSac);
+            btnAction = d.findViewById(R.id.btnAjouter);
+            etNom = d.findViewById(R.id.etNom);
+            etPrenom = d.findViewById(R.id.etPrenom);
+            etAge = d.findViewById(R.id.etAge);
+            etBesoinKcal = d.findViewById(R.id.etBesoinKcal);
+            etBesoinEau = d.findViewById(R.id.etBesoinEau);
+            etCapacite = d.findViewById(R.id.etCapacite);
+            cbSacADos = d.findViewById(R.id.cbSacADos);
+            spinnerNiveau = d.findViewById(R.id.spinnerNiveau);
+            spinnerMorpho = d.findViewById(R.id.spinnerMorphologie);
+        }
+    }
+
+    private static void configurerSpinner(Context context, Spinner spinner, int arrayResId) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item,
+                context.getResources().getStringArray(arrayResId));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+    private static void remplirChamps(ViewHolder v, Participant p) {
+        if (v.etNom != null) v.etNom.setText(p.getNom());
+        if (v.etPrenom != null) v.etPrenom.setText(p.getPrenom());
+        v.etAge.setText(String.valueOf(p.getAge()));
+        v.etBesoinKcal.setText(String.valueOf(p.getBesoinKcal()));
+        v.etBesoinEau.setText(String.valueOf(p.getBesoinEauLitre()));
+
+        if (p.getCapaciteEmportMaxKg() > 0) {
+            v.cbSacADos.setChecked(true);
+            v.etCapacite.setEnabled(true);
+            v.etCapacite.setText(String.valueOf(p.getCapaciteEmportMaxKg()));
+        } else {
+            v.cbSacADos.setChecked(false);
+            v.etCapacite.setText("");
+        }
+        selectionnerSpinner(v.spinnerNiveau, p.getNiveau().toString());
+        selectionnerSpinner(v.spinnerMorpho, p.getMorphologie().toString());
+    }
+
+    private static void verrouillerChamps(ViewHolder v) {
+        v.etNom.setEnabled(false); v.etPrenom.setEnabled(false); v.etAge.setEnabled(false);
+        v.etBesoinKcal.setEnabled(false); v.etBesoinEau.setEnabled(false); v.etCapacite.setEnabled(false);
+        v.spinnerNiveau.setEnabled(false); v.spinnerMorpho.setEnabled(false);
+    }
+
+    private static void selectionnerSpinner(Spinner spinner, String value) {
+        ArrayAdapter adapter = (ArrayAdapter) spinner.getAdapter();
+        if (adapter != null) {
+            int position = adapter.getPosition(value);
+            if (position >= 0) spinner.setSelection(position);
+        }
     }
 }

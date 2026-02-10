@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -33,9 +32,7 @@ import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.services.AppelAPI;
-import fr.iutrodez.a4awalk.services.gestionAPI.ServiceCreationRandonnee;
-
-import fr.iutrodez.a4awalk.activites.GestionParticipant;
+import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 
 public class ActiviteGestionRandonnee extends AppCompatActivity {
 
@@ -149,31 +146,54 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         }
     }
 
-    // --- METHODE UTILITAIRE POUR GERER L'ETAT DU BOUTON AJOUTER ---
     private void updateBtnParticipantState() {
         if (listeTemporaireParticipants.size() >= 3) {
             btnAjouterParticipant.setEnabled(false);
-            btnAjouterParticipant.setAlpha(0.5f); // Rend le bouton semi-transparent pour indiquer qu'il est désactivé
+            btnAjouterParticipant.setAlpha(0.5f);
         } else {
             btnAjouterParticipant.setEnabled(true);
             btnAjouterParticipant.setAlpha(1.0f);
         }
     }
 
-    // =========================================================================
-    // MODES
-    // =========================================================================
-
     private void consultationRandonnee() {
+        // Affichage des conteneurs
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
+
+        // On désactive l'édition des champs globaux
         setChampsEditables(false);
+
+        // On cache les boutons d'ajout
         btnAjouterPOI.setVisibility(View.GONE);
         btnAjouterParticipant.setVisibility(View.GONE);
-        listePoints.setEnabled(false);
-        listeParticipants.setEnabled(false);
 
-        validateButton.setText("Modifier la randonnée");
+        // IMPORTANT : On laisse les listes activées pour permettre le scroll et le clic
+        listePoints.setEnabled(true);
+        listeParticipants.setEnabled(true);
+
+        // --- GESTION CLIC PARTICIPANT (CONSULTATION) ---
+        listeParticipants.setOnItemClickListener((parent, view, position, id) -> {
+            Participant p = listeTemporaireParticipants.get(position);
+
+            GestionParticipant.afficherDialogParticipant(
+                    ActiviteGestionRandonnee.this,
+                    GestionParticipant.ETAT_CONSULTATION,
+                    tokenManager.getToken(),
+                    currentHike.getId(), // <--- AJOUT DE L'ID
+                    p,
+                    null
+            );
+        });
+
+        // --- GESTION CLIC POI (CONSULTATION) ---
+        listePoints.setOnItemClickListener((parent, view, position, id) -> {
+            // On appelle le dialogue POI en mode lecture seule (true)
+            gererDialogPOI(position, true);
+        });
+
+        // Bouton pour passer en mode modification (inchangé)
+        validateButton.setText(R.string.bouton_modifier_randonnee);
         validateButton.setOnClickListener(v -> {
             participantsOriginaux.clear();
             participantsOriginaux.addAll(listeTemporaireParticipants);
@@ -187,14 +207,13 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         containerPoi.setVisibility(View.GONE);
         containerParticipants.setVisibility(View.GONE);
         setChampsEditables(true);
-        validateButton.setText("Ajouter la randonnée");
-
-        // On vérifie l'état initial (normalement vide, donc activé)
-        updateBtnParticipantState();
-
+        validateButton.setText(R.string.bouton_ajouter_randonnee);
         validateButton.setOnClickListener(v -> traiterCreation());
     }
 
+    /**
+     * Adaptation majeure ici pour utiliser le nouveau GestionParticipant
+     */
     private void modificationRandonnee() {
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
@@ -204,11 +223,16 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
 
-        // Mise à jour initiale de l'état du bouton selon le nombre de participants existants
         updateBtnParticipantState();
 
-        btnAjouterPOI.setOnClickListener(v -> gererDialogPOI(-1));
-        listePoints.setOnItemClickListener((parent, view, position, id) -> gererDialogPOI(position));
+        // --- ADAPTATION GESTION POI ---
+        // On passe 'false' car on veut pouvoir éditer (pas de lecture seule)
+        btnAjouterPOI.setOnClickListener(v -> gererDialogPOI(-1, false));
+
+        listePoints.setOnItemClickListener((parent, view, position, id) ->
+                gererDialogPOI(position, false)
+        );
+
         listePoints.setOnItemLongClickListener((parent, view, position, id) -> {
             listeTemporairePOI.remove(position);
             adapterPOI.notifyDataSetChanged();
@@ -216,52 +240,72 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             return true;
         });
 
-        // Gestion Participants
+        // --- ADAPTATION GESTION PARTICIPANTS ---
+
+        // 1. Ajout de Participant (Etat 1: Création)
         btnAjouterParticipant.setOnClickListener(v -> {
-            GestionParticipant.gererDialogParticipant(
+            GestionParticipant.afficherDialogParticipant(
                     ActiviteGestionRandonnee.this,
+                    GestionParticipant.ETAT_CREATION,
                     tokenManager.getToken(),
+                    currentHike.getId(), // <--- AJOUT DE L'ID
+                    null,
                     new GestionParticipant.ParticipantCallback() {
                         @Override
-                        public void onParticipantCreated(Participant newParticipant) {
+                        public void onActionSuccess(Participant newParticipant) {
                             newParticipant.setId(0L);
+                            newParticipant.setIdRando(currentHike.getId()); // Sécurité supplémentaire
                             listeTemporaireParticipants.add(newParticipant);
                             adapterParticipants.notifyDataSetChanged();
-
-                            // Vérification après ajout
                             updateBtnParticipantState();
                         }
                     }
             );
         });
 
+        // 2. Modification de Participant (Etat 3: Modification)
         listeParticipants.setOnItemClickListener((parent, view, position, id) -> {
-            GestionParticipant.gererDialogParticipant(
+            Participant pToEdit = listeTemporaireParticipants.get(position);
+
+            // S'assurer que l'objet a bien l'ID rando avant de l'envoyer
+            if (pToEdit.getIdRando() == null) {
+                pToEdit.setIdRando(currentHike.getId());
+            }
+
+            int etat = (pToEdit.getId() != null && pToEdit.getId() != 0)
+                    ? GestionParticipant.ETAT_MODIFICATION
+                    : GestionParticipant.ETAT_CREATION;
+
+            GestionParticipant.afficherDialogParticipant(
                     ActiviteGestionRandonnee.this,
+                    etat,
                     tokenManager.getToken(),
+                    currentHike.getId(), // <--- AJOUT DE L'ID
+                    pToEdit,
                     new GestionParticipant.ParticipantCallback() {
                         @Override
-                        public void onParticipantCreated(Participant newParticipant) {
-                            Participant oldParticipant = listeTemporaireParticipants.get(position);
-                            newParticipant.setId(oldParticipant.getId());
-                            listeTemporaireParticipants.set(position, newParticipant);
+                        public void onActionSuccess(Participant updatedParticipant) {
+                            // On répercute l'ID pour ne pas perdre la ref
+                            if (pToEdit.getId() != null) updatedParticipant.setId(pToEdit.getId());
+                            updatedParticipant.setIdRando(currentHike.getId());
+
+                            listeTemporaireParticipants.set(position, updatedParticipant);
                             adapterParticipants.notifyDataSetChanged();
-                            // Pas besoin d'updateBtnState ici car la taille ne change pas
                         }
                     }
             );
         });
 
+        // Suppression (Long click)
         listeParticipants.setOnItemLongClickListener((parent, view, position, id) -> {
             listeTemporaireParticipants.remove(position);
             adapterParticipants.notifyDataSetChanged();
-            Toast.makeText(this, "Participant retiré", Toast.LENGTH_SHORT).show();
-
-            // Vérification après suppression (réactive le bouton si < 3)
+            Toast.makeText(this, "Participant retiré (validez pour enregistrer)", Toast.LENGTH_SHORT).show();
             updateBtnParticipantState();
             return true;
         });
 
+        // Validation finale
         validateButton.setText("Enregistrer les modifications");
         validateButton.setOnClickListener(v -> {
             try {
@@ -271,10 +315,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             }
         });
     }
-
-    // =========================================================================
-    // API
-    // =========================================================================
 
     private void traiterCreation() {
         String nom = libelle.getText().toString();
@@ -294,7 +334,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                     }
                     @Override
                     public void onError(String message) {
-                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur API", Toast.LENGTH_LONG).show();
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur :" + message, Toast.LENGTH_LONG).show();
                     }
                 }
         );
@@ -320,19 +360,20 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
         String urlUpdateHike = BASE_URL + "/hikes/" + currentHike.getId();
 
-        AppelAPI.put(urlUpdateHike, tokenManager.getToken(), bodyHike, this, new AppelAPI.VolleyObjectCallback() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                traiterMiseAJourParticipants(currentHike.getId());
-                traiterMiseAJourPOI(currentHike.getId());
-                Toast.makeText(ActiviteGestionRandonnee.this, "Modifications enregistrées", Toast.LENGTH_SHORT).show();
-                fermerAvecResultat(Activity.RESULT_OK, null);
-            }
-            @Override
-            public void onError(VolleyError error) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur MAJ Rando", Toast.LENGTH_SHORT).show();
-            }
-        });
+        AppelAPI.put(urlUpdateHike, tokenManager.getToken(), bodyHike, this,
+                new AppelAPI.VolleyObjectCallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        traiterMiseAJourParticipants(currentHike.getId());
+                        traiterMiseAJourPOI(currentHike.getId());
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Modifications enregistrées", Toast.LENGTH_SHORT).show();
+                        fermerAvecResultat(Activity.RESULT_OK, null);
+                    }
+                    @Override
+                    public void onError(VolleyError error) {
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur MAJ Rando", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void traiterMiseAJourParticipants(long hikeId) {
@@ -356,13 +397,17 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             } catch (JSONException e) { continue; }
 
             Long id = p.getId();
+            // Si ID est null ou 0, c'est un ajout
             if (id == null || id == 0) {
                 AppelAPI.post(BASE_URL + "/hikes/" + hikeId + "/participants", tokenManager.getToken(), body, this, silentCallback);
             } else {
+                // UPDATE : Déjà traité par GestionParticipant si on a cliqué sur modifier,
+                // mais ce doublon assure la cohérence si l'API n'a pas été appelée avant.
                 AppelAPI.put(BASE_URL + "/hikes/" + hikeId + "/participants/" + id, tokenManager.getToken(), body, this, silentCallback);
             }
         }
 
+        // Suppression des participants retirés de la liste
         for (Participant pOrigin : participantsOriginaux) {
             boolean present = false;
             for (Participant pTemp : listeTemporaireParticipants) {
@@ -433,7 +478,6 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         if (hike.getParticipants() != null) listeTemporaireParticipants.addAll(hike.getParticipants());
         adapterParticipants.notifyDataSetChanged();
 
-        // Vérification après remplissage
         updateBtnParticipantState();
     }
 
@@ -446,43 +490,72 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         nbJours.setEnabled(editable);
     }
 
-    private void gererDialogPOI(int position) {
-        boolean isModification = (position >= 0);
-        PointOfInterest poiAModifier = isModification ? listeTemporairePOI.get(position) : null;
+    /**
+     * Affiche le détail d'un POI.
+     * @param position Index dans la liste (-1 pour un ajout).
+     * @param isReadOnly Si true, affiche le dialogue en mode consultation uniquement.
+     */
+    private void gererDialogPOI(int position, boolean isReadOnly) {
+        boolean isCreation = (position == -1);
+        PointOfInterest poi = (!isCreation) ? listeTemporairePOI.get(position) : null;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(isModification ? "Détails POI" : "Nouveau POI");
+        builder.setTitle(isCreation ? "Nouveau POI" : (isReadOnly ? "Détails POI" : "Modifier POI"));
+
+        // Inflation de la vue
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_ajout_poi, null);
         final EditText inputNom = view.findViewById(R.id.edit_poi_nom);
         final EditText inputLat = view.findViewById(R.id.edit_poi_lat);
         final EditText inputLon = view.findViewById(R.id.edit_poi_lon);
-        if (isModification && poiAModifier != null) {
-            inputNom.setText(poiAModifier.getName());
-            inputLat.setText(String.valueOf(poiAModifier.getLatitude()));
-            inputLon.setText(String.valueOf(poiAModifier.getLongitude()));
+
+        // Remplissage des données
+        if (poi != null) {
+            inputNom.setText(poi.getName());
+            inputLat.setText(String.valueOf(poi.getLatitude()));
+            inputLon.setText(String.valueOf(poi.getLongitude()));
         }
-        builder.setView(view);
-        builder.setPositiveButton(isModification ? "Valider" : "Ajouter", (dialog, which) -> {
-            try {
-                String nom = inputNom.getText().toString();
-                double lat = Double.parseDouble(inputLat.getText().toString());
-                double lon = Double.parseDouble(inputLon.getText().toString());
-                if (isModification) {
-                    poiAModifier.setName(nom);
-                    poiAModifier.setLatitude(lat);
-                    poiAModifier.setLongitude(lon);
-                } else {
-                    listeTemporairePOI.add(new PointOfInterest(0L, nom, lat, lon));
+
+        // Gestion du mode Lecture Seule
+        if (isReadOnly) {
+            inputNom.setEnabled(false);
+            inputLat.setEnabled(false);
+            inputLon.setEnabled(false);
+
+            // Un simple bouton pour fermer
+            builder.setPositiveButton("Fermer", null);
+        } else {
+            // Mode Création ou Modification
+            builder.setPositiveButton("Valider", (dialog, which) -> {
+                try {
+                    String nom = inputNom.getText().toString();
+                    double lat = Double.parseDouble(inputLat.getText().toString());
+                    double lon = Double.parseDouble(inputLon.getText().toString());
+
+                    if (poi != null) {
+                        poi.setName(nom);
+                        poi.setLatitude(lat);
+                        poi.setLongitude(lon);
+                    } else {
+                        listeTemporairePOI.add(new PointOfInterest(0L, nom, lat, lon));
+                    }
+                    adapterPOI.notifyDataSetChanged();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(this, "Format incorrect pour latitude/longitude", Toast.LENGTH_SHORT).show();
                 }
-                adapterPOI.notifyDataSetChanged();
-            } catch (Exception e) {}
-        });
-        if (isModification) {
-            builder.setNeutralButton("Supprimer", (dialog, which) -> {
-                listeTemporairePOI.remove(position);
-                adapterPOI.notifyDataSetChanged();
             });
+
+            builder.setNegativeButton("Annuler", null);
+
+            // Bouton supprimer (seulement si on modifie un existant)
+            if (!isCreation) {
+                builder.setNeutralButton("Supprimer", (dialog, which) -> {
+                    listeTemporairePOI.remove(position);
+                    adapterPOI.notifyDataSetChanged();
+                });
+            }
         }
-        builder.setNegativeButton("Annuler", null);
+
+        builder.setView(view);
         builder.show();
     }
 

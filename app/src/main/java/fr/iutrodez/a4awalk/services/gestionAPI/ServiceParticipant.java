@@ -18,30 +18,57 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServiceParticipant {
 
-    private final static String URL_AJOUT_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants";
+    // URL de base avec placeholders : %d (hikeId)
+    private final static String URL_BASE_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants";
+    // Pour modification : .../participants/participantId
+    private final static String URL_MODIF_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants/%d";
 
     public static Participant creationParticipant(int age, Level choixNiveau,
                                                   Morphology choixMorpho, Integer kcal, Integer eau,
                                                   double capacite) {
-        return new Participant(age, choixNiveau, choixMorpho, false, kcal, eau, capacite);
+        return new Participant(null, null, age, choixNiveau, choixMorpho, false, kcal, eau, capacite, null);
+    }
+
+    /**
+     * Modifie un participant existant via API (PUT)
+     */
+    public static void modifierParticipantAPI(Context context, String token, Participant participant, Runnable onSuccess) {
+        if (participant.getId() == null || participant.getIdRando() == null) {
+            Toast.makeText(context, "Erreur : ID manquant pour la modification", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        JSONObject body = buildParticipantJSON(participant);
+        if (body == null) return;
+
+        // Construction de l'URL : /hikes/{idRando}/participants/{idParticipant}
+        String url = String.format(URL_MODIF_PARTICIPANT, participant.getIdRando(), participant.getId());
+
+        AppelAPI.put(url, token, body, context, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                Toast.makeText(context, "Participant modifié !", Toast.LENGTH_SHORT).show();
+                if (onSuccess != null) onSuccess.run();
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(context, "Erreur lors de la modification", Toast.LENGTH_SHORT).show();
+                error.printStackTrace();
+            }
+        });
     }
 
     public static void ajoutParticipants(Context context, String token, List<Participant> participant, Long idRandonnee) {
-
         for(Participant participant1 : participant) {
             JSONObject body = buildParticipantJSON(participant1);
-
             addParticipantAPI(
                     context,
                     idRandonnee,
                     body,
                     token,
-                    response -> {
-                        Toast.makeText(context, "Participant ajouté !", Toast.LENGTH_LONG).show();
-                    },
-                    error -> {
-                        Toast.makeText(context, "Erreur : " + error.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                    response -> Toast.makeText(context, "Participant ajouté !", Toast.LENGTH_LONG).show(),
+                    error -> Toast.makeText(context, "Erreur : " + error.getMessage(), Toast.LENGTH_LONG).show()
             );
         }
     }
@@ -49,10 +76,13 @@ public class ServiceParticipant {
     private static JSONObject buildParticipantJSON(Participant participant) {
         try {
             JSONObject body = new JSONObject();
+            // Ajout Nom/Prenom si présents
+            if (participant.getNom() != null) body.put("nom", participant.getNom());
+            if (participant.getPrenom() != null) body.put("prenom", participant.getPrenom());
+
             body.put("age", participant.getAge());
             body.put("niveau", participant.getNiveau().toString());
             body.put("morphologie", participant.getMorphologie().toString());
-
             body.put("besoinKcal", participant.getBesoinKcal());
             body.put("besoinEauLitre", participant.getBesoinEauLitre());
             if (participant.getCapaciteEmportMaxKg() != 0.0) {
@@ -62,7 +92,6 @@ public class ServiceParticipant {
         } catch (Exception e) {
             return null;
         }
-
     }
 
     public static void addParticipantAPI(
@@ -73,26 +102,15 @@ public class ServiceParticipant {
             Response.Listener<JSONObject> success,
             Response.ErrorListener error
     ) {
-        // Préparation de l'URL
-        String url = String.format(URL_AJOUT_PARTICIPANT, hikeId);
-
-        // Appel via la classe utilitaire
+        String url = String.format(URL_BASE_PARTICIPANT, hikeId);
         AppelAPI.post(url, token, body, context, new AppelAPI.VolleyObjectCallback() {
             @Override
             public void onSuccess(JSONObject result) {
-                // On transmet la réponse au listener d'origine
-                if (success != null) {
-                    Log.i("API_PARTICIPANT", result.toString());
-                    success.onResponse(result);
-                }
+                if (success != null) success.onResponse(result);
             }
-
             @Override
             public void onError(VolleyError volleyError) {
-                // On transmet l'erreur au listener d'origine
-                if (error != null) {
-                    error.onErrorResponse(volleyError);
-                }
+                if (error != null) error.onErrorResponse(volleyError);
             }
         });
     }
