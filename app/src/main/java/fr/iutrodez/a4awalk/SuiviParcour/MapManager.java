@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.Color;
 
 import org.osmdroid.bonuspack.routing.OSRMRoadManager;
 import org.osmdroid.bonuspack.routing.Road;
@@ -15,55 +16,92 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
 
-import android.graphics.Color;
-
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Gestionnaire de carte pour l'affichage et le suivi du parcours.
+ * <p>
+ * Permet d'ajouter des marqueurs, de tracer l'itinéraire et de suivre la position de l'utilisateur.
+ */
 public class MapManager {
+
+    /** MapView sur laquelle afficher les éléments */
     private final MapView map;
+
+    /** Contexte de l'application ou activité */
     private final Context context;
+
+    /** Polyline représentant le tracé de l'utilisateur */
     private final Polyline userTrace;
+
+    /** Marker représentant la position de l'utilisateur */
     private Marker userMarker;
 
+    /**
+     * Crée un MapManager pour gérer une MapView.
+     *
+     * @param map     MapView à gérer
+     * @param context Contexte de l'application
+     */
     public MapManager(MapView map, Context context) {
         this.map = map;
         this.context = context;
+
         userTrace = new Polyline();
         userTrace.getOutlinePaint().setColor(0xFF00FF00); // vert
         userTrace.getOutlinePaint().setStrokeWidth(12f);
+
         map.getOverlays().add(userTrace);
     }
 
+    /**
+     * Ajoute des marqueurs sur la carte pour une liste de points.
+     *
+     * @param points Liste de GeoPoint à afficher
+     */
     public void addMarkers(List<GeoPoint> points) {
-        for (GeoPoint p : points) {
-            Marker m = new Marker(map);
-            m.setPosition(p);
-            m.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            map.getOverlays().add(m);
+        for (GeoPoint point : points) {
+            Marker marker = new Marker(map);
+            marker.setPosition(point);
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            map.getOverlays().add(marker);
         }
     }
 
+    /**
+     * Met à jour la position de l'utilisateur sur la carte.
+     * <p>
+     * Ajoute le point au tracé et recentre la carte si l'utilisateur s'éloigne du centre.
+     *
+     * @param pos          Position actuelle de l'utilisateur
+     * @param iconDrawable Icône personnalisée pour le marker utilisateur (peut être null)
+     */
     public void updateUserPosition(GeoPoint pos, Drawable iconDrawable) {
+        // Ajout du point au tracé
         userTrace.addPoint(pos);
 
+        // Création du marker utilisateur si nécessaire
         if (userMarker == null) {
             userMarker = new Marker(map);
             userMarker.setTitle("Vous êtes ici");
             userMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
             if (iconDrawable != null) {
-                Bitmap b = Bitmap.createBitmap(80, 80, Bitmap.Config.ARGB_8888);
-                Canvas c = new Canvas(b);
-                iconDrawable.setBounds(0, 0, c.getWidth(), c.getHeight());
-                iconDrawable.draw(c);
-                userMarker.setIcon(new BitmapDrawable((Resources) map.getResources(), b));
+                Bitmap bitmap = Bitmap.createBitmap(80, 80, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                iconDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                iconDrawable.draw(canvas);
+                userMarker.setIcon(new BitmapDrawable((Resources) map.getResources(), bitmap));
             }
+
             map.getOverlays().add(userMarker);
         }
 
+        // Mise à jour de la position du marker
         userMarker.setPosition(pos);
 
+        // Recentre la carte si l'utilisateur est éloigné du centre
         GeoPoint center = (GeoPoint) map.getMapCenter();
         if (center.distanceToAsDouble(pos) > 30) {
             map.getController().animateTo(pos);
@@ -72,25 +110,28 @@ public class MapManager {
         map.invalidate();
     }
 
-    // --- Nouvelle méthode : calculer l'itinéraire ---
+    /**
+     * Calcule et affiche l'itinéraire entre une liste de points.
+     * <p>
+     * Le tracé est réalisé sur un thread séparé pour ne pas bloquer l'UI.
+     *
+     * @param points Liste de GeoPoint représentant l'itinéraire
+     */
     public void calculerItineraire(List<GeoPoint> points) {
         new Thread(() -> {
             try {
-                OSRMRoadManager rm = new OSRMRoadManager(context, context.getPackageName());
-                rm.setMean(OSRMRoadManager.MEAN_BY_FOOT);
+                OSRMRoadManager roadManager = new OSRMRoadManager(context, context.getPackageName());
+                roadManager.setMean(OSRMRoadManager.MEAN_BY_FOOT);
 
-                Road road = rm.getRoad(new ArrayList<>(points));
-                Polyline line = RoadManager.buildRoadOverlay(road);
-                line.getOutlinePaint().setColor(Color.argb(120, 120, 120, 120));
-                line.getOutlinePaint().setStrokeWidth(15f);
+                Road road = roadManager.getRoad(new ArrayList<>(points));
+                Polyline roadLine = RoadManager.buildRoadOverlay(road);
+                roadLine.getOutlinePaint().setColor(Color.argb(120, 120, 120, 120));
+                roadLine.getOutlinePaint().setStrokeWidth(15f);
 
-                map.post(() -> map.getOverlays().add(0, line));
+                map.post(() -> map.getOverlays().add(0, roadLine));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
     }
 }
-
-
-

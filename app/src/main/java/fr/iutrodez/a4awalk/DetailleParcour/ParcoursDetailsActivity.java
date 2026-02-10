@@ -28,106 +28,97 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.DetailleParcour.VolleySingleton;
-import fr.iutrodez.a4awalk.DetailleParcour.Course;
-import fr.iutrodez.a4awalk.DetailleParcour.Hike;
 
+/**
+ * Activité affichant les détails d'un parcours, avec carte, points de départ/arrivée
+ * et itinéraire complet.
+ */
 public class ParcoursDetailsActivity extends AppCompatActivity {
 
-    private static final String TAG = "ParcoursDetaille";
+    private static final String TAG = "ParcoursDetails";
     private static final String API_COURSE_URL = "http://98.94.8.220:8080/courses/69899eab5a19517b5cfcb121";
     private static final String API_HIKE_BASE_URL = "http://98.94.8.220:8080/hikes/";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MiwiaWF0IjoxNzcwNjI2NjcyLCJleHAiOjE3NzA3MTMwNzJ9.nausJMeBnvdXsahvH48CpGdM5rXuq02bOs5N4EpgHXc";
 
     private MapView map;
-    private List<GeoPoint> pointsParcours;
+    private List<GeoPoint> coursePoints;
 
-    // TextViews de la vue
-    private TextView tvNomParcours, tvDepart, tvArrivee, tvDate, tvRandonnee;
+    private TextView tvNomParcours;
+    private TextView tvDepart;
+    private TextView tvArrivee;
+    private TextView tvDate;
+    private TextView tvRandonnee;
 
-    // Pour stocker temporairement les données du parcours
     private Course currentCourse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ======================================
-        // ⚡ Configuration osmdroid
-        // ======================================
+        setupOsmdroidConfig();
+        setContentView(R.layout.detaille_parcour);
+        bindViews();
+        configureMap();
+
+        loadCourseFromApi();
+    }
+
+    /**
+     * Configure la librairie osmdroid.
+     */
+    private void setupOsmdroidConfig() {
         Configuration.getInstance().load(
                 getApplicationContext(),
                 getSharedPreferences("osmdroid", MODE_PRIVATE)
         );
         Configuration.getInstance().setUserAgentValue("A4AWalkApp");
+    }
 
-        setContentView(R.layout.detaille_parcour);
-
-        // ======================================
-        // RÉFÉRENCES VUES
-        // ======================================
+    /**
+     * Lie les vues XML aux variables Java.
+     */
+    private void bindViews() {
         map = findViewById(R.id.map);
         tvNomParcours = findViewById(R.id.tvNomParcours);
         tvDepart = findViewById(R.id.tvDepart);
         tvArrivee = findViewById(R.id.tvArrivee);
         tvDate = findViewById(R.id.tvDate);
         tvRandonnee = findViewById(R.id.tvRandonnee);
+    }
 
-        // ======================================
-        // CONFIGURATION CARTE
-        // ======================================
+    /**
+     * Configure la carte.
+     */
+    private void configureMap() {
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
         map.setMaxZoomLevel(19.0);
         map.setMinZoomLevel(12.0);
-
-        // ======================================
-        // CHARGEMENT DES DONNÉES DEPUIS L'API
-        // ======================================
-        loadCourseFromApi();
     }
 
     /**
-     * Charge les données du parcours depuis l'API avec Volley
+     * Charge les informations du parcours depuis l'API.
      */
     private void loadCourseFromApi() {
         Log.d(TAG, "🚀 Début de l'appel API Course vers: " + API_COURSE_URL);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
                 API_COURSE_URL,
                 null,
                 response -> {
                     try {
-                        Log.d(TAG, "✅ Réponse Course reçue");
-
-                        Gson gson = new Gson();
-                        Course course = gson.fromJson(response.toString(), Course.class);
-
-                        // Stockage temporaire du parcours
-                        currentCourse = course;
-
-                        // Affichage des données du parcours
-                        displayCourseData(course);
-
-                        // Chargement du nom de la randonnée
-                        loadHikeNameFromApi(course.getHikeId());
-
-                        Log.d(TAG, "✅ Parcours chargé avec succès");
+                        currentCourse = new Gson().fromJson(response.toString(), Course.class);
+                        displayCourseData(currentCourse);
+                        loadHikeNameFromApi(currentCourse.getHikeId());
+                        Log.d(TAG, "Parcours chargé avec succès");
                     } catch (Exception e) {
-                        Log.e(TAG, "❌ Erreur parsing JSON Course", e);
+                        Log.e(TAG, "Erreur parsing JSON Course", e);
                         Toast.makeText(this, "Erreur lors de l'analyse des données du parcours", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    Log.e(TAG, "❌ Erreur API Course: " + error.toString());
-
-                    if (error.networkResponse != null) {
-                        Log.e(TAG, "❌ Code erreur HTTP: " + error.networkResponse.statusCode);
-                    } else {
-                        Log.e(TAG, "❌ Pas de réponse réseau - Vérifiez votre connexion Internet");
-                    }
-
+                    logApiError(error.toString(), error.networkResponse != null ? error.networkResponse.statusCode : null);
                     Toast.makeText(this, "Erreur de connexion à l'API", Toast.LENGTH_LONG).show();
                 }
         ) {
@@ -140,48 +131,35 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
             }
         };
 
-        VolleySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
     /**
-     * Charge le nom de la randonnée depuis l'API
+     * Charge le nom de la randonnée associée depuis l'API.
+     *
+     * @param hikeId Identifiant de la randonnée
      */
     private void loadHikeNameFromApi(int hikeId) {
-        String hikeUrl = API_HIKE_BASE_URL + hikeId;
-        Log.d(TAG, "🚀 Début de l'appel API Hike vers: " + hikeUrl);
+        String url = API_HIKE_BASE_URL + hikeId;
+        Log.d(TAG, "🚀 Début de l'appel API Hike vers: " + url);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
-                hikeUrl,
+                url,
                 null,
                 response -> {
                     try {
-                        Log.d(TAG, "✅ Réponse Hike reçue");
-
-                        Gson gson = new Gson();
-                        Hike hike = gson.fromJson(response.toString(), Hike.class);
-
-                        // Mise à jour du TextView avec le nom de la randonnée
-                        if (hike != null && hike.getLibelle() != null) {
-                            tvRandonnee.setText(hike.getLibelle());
-                            Log.d(TAG, "✅ Nom de la randonnée: " + hike.getLibelle());
-                        } else {
-                            tvRandonnee.setText("Randonnée " + hikeId);
-                        }
-
+                        Hike hike = new Gson().fromJson(response.toString(), Hike.class);
+                        String hikeName = (hike != null && hike.getLibelle() != null) ? hike.getLibelle() : "Randonnée " + hikeId;
+                        tvRandonnee.setText(hikeName);
+                        Log.d(TAG, "Nom de la randonnée: " + hikeName);
                     } catch (Exception e) {
-                        Log.e(TAG, "❌ Erreur parsing JSON Hike", e);
+                        Log.e(TAG, "Erreur parsing JSON Hike", e);
                         tvRandonnee.setText("Randonnée " + hikeId);
                     }
                 },
                 error -> {
-                    Log.e(TAG, "❌ Erreur API Hike: " + error.toString());
-
-                    if (error.networkResponse != null) {
-                        Log.e(TAG, "❌ Code erreur HTTP Hike: " + error.networkResponse.statusCode);
-                    }
-
-                    // En cas d'erreur, on affiche juste l'ID
+                    logApiError(error.toString(), error.networkResponse != null ? error.networkResponse.statusCode : null);
                     tvRandonnee.setText("Randonnée " + hikeId);
                 }
         ) {
@@ -194,106 +172,76 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
             }
         };
 
-        VolleySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
     /**
-     * Affiche les données du parcours reçues de l'API
+     * Affiche les informations du parcours dans la vue.
+     *
+     * @param course Le parcours à afficher
      */
     private void displayCourseData(Course course) {
-        // ======================================
-        // MISE À JOUR DES TEXTVIEWS
-        // ======================================
-
-        // Nom du parcours (utilise l'ID du parcours)
         tvNomParcours.setText("Parcours " + course.getId());
 
-        // Description du point de départ
-        if (course.getDepart() != null) {
-            String departDesc = course.getDepart().getDescription();
-            tvDepart.setText(departDesc != null ? departDesc : "Non défini");
-            Log.d(TAG, "Départ: " + departDesc);
-        }
+        // Départ / Arrivée
+        tvDepart.setText(course.getDepart() != null && course.getDepart().getDescription() != null
+                ? course.getDepart().getDescription()
+                : "Non défini");
 
-        // Description du point d'arrivée
-        if (course.getArrivee() != null) {
-            String arriveeDesc = course.getArrivee().getDescription();
-            tvArrivee.setText(arriveeDesc != null ? arriveeDesc : "Non défini");
-            Log.d(TAG, "Arrivée: " + arriveeDesc);
-        }
+        tvArrivee.setText(course.getArrivee() != null && course.getArrivee().getDescription() != null
+                ? course.getArrivee().getDescription()
+                : "Non défini");
 
-        // Date de réalisation (formatage de la date ISO)
-        if (course.getDateRealisation() != null) {
-            String dateFormatee = formaterDate(course.getDateRealisation());
-            tvDate.setText(dateFormatee);
-            Log.d(TAG, "Date: " + dateFormatee);
-        }
+        // Date
+        tvDate.setText(formaterDate(course.getDateRealisation()));
 
-        // Le nom de la randonnée sera mis à jour par loadHikeNameFromApi()
+        // Randonnée
         tvRandonnee.setText("Chargement...");
 
-        // ======================================
-        // CRÉATION DES GEOPOINTS
-        // ======================================
-        pointsParcours = new ArrayList<>();
-
-        // Vérification que le path existe et n'est pas vide
+        // GeoPoints
+        coursePoints = new ArrayList<>();
         if (course.getPath() != null && !course.getPath().isEmpty()) {
-
-            // Ajout de tous les points du path
-            for (fr.iutrodez.a4awalk.DetailleParcour.Point point : course.getPath()) {
+            for (Point point : course.getPath()) {
                 GeoPoint geoPoint = new GeoPoint(point.getLatitude(), point.getLongitude());
-                pointsParcours.add(geoPoint);
-                Log.d(TAG, "Point ajouté: " + point.getLatitude() + ", " + point.getLongitude());
+                coursePoints.add(geoPoint);
             }
 
-            // Récupération du premier et dernier point pour les markers
-            GeoPoint departGeoPoint = pointsParcours.get(0);
-            GeoPoint arriveeGeoPoint = pointsParcours.get(pointsParcours.size() - 1);
+            GeoPoint departPoint = coursePoints.get(0);
+            GeoPoint arriveePoint = coursePoints.get(coursePoints.size() - 1);
 
-            // ======================================
-            // CENTRAGE CARTE
-            // ======================================
             map.getController().setZoom(14.5);
-            map.getController().setCenter(departGeoPoint);
+            map.getController().setCenter(departPoint);
 
-            // ======================================
-            // AJOUT DES MARKERS Départ / Arrivée
-            // ======================================
-            ajouterMarkersDepartArrivee(departGeoPoint, arriveeGeoPoint);
-
-            // ======================================
-            // TRACÉ DE L'ITINÉRAIRE
-            // ======================================
-            tracerItineraire(pointsParcours);
-
-            Log.d(TAG, "Nombre total de points dans le parcours: " + pointsParcours.size());
+            ajouterMarkersDepartArrivee(departPoint, arriveePoint);
+            tracerItineraire(coursePoints);
         } else {
             Toast.makeText(this, "Aucun point trouvé pour ce parcours", Toast.LENGTH_SHORT).show();
-            Log.w(TAG, "Liste de points (path) vide ou null");
         }
     }
 
     /**
-     * Formate une date ISO 8601 en format DD/MM/YYYY
+     * Formate une date ISO en format DD/MM/YYYY.
+     *
+     * @param dateISO Date au format ISO
+     * @return Date formatée ou valeur brute en cas d'erreur
      */
     private String formaterDate(String dateISO) {
         try {
-            // Format d'entrée: 2026-02-09T08:45:31.991
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.FRANCE);
-            // Format de sortie: 09/02/2026
             SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE);
-
             Date date = inputFormat.parse(dateISO);
             return outputFormat.format(date);
         } catch (ParseException e) {
             Log.e(TAG, "Erreur formatage date", e);
-            return dateISO; // Retourne la date brute en cas d'erreur
+            return dateISO;
         }
     }
 
     /**
-     * Ajoute les markers uniquement pour le départ et l'arrivée
+     * Ajoute des markers pour le départ et l'arrivée.
+     *
+     * @param depart  Point de départ
+     * @param arrivee Point d'arrivée
      */
     private void ajouterMarkersDepartArrivee(GeoPoint depart, GeoPoint arrivee) {
         Marker markerDepart = new Marker(map);
@@ -310,7 +258,9 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * Tracer un itinéraire entre tous les points
+     * Trace l'itinéraire sur la carte.
+     *
+     * @param points Liste de points du parcours
      */
     private void tracerItineraire(List<GeoPoint> points) {
         if (points.size() < 2) return;
@@ -320,9 +270,7 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
                 OSRMRoadManager roadManager = new OSRMRoadManager(this, "A4AWalkApp");
                 roadManager.setMean(OSRMRoadManager.MEAN_BY_FOOT);
 
-                ArrayList<GeoPoint> roadPoints = new ArrayList<>(points);
-                Road road = roadManager.getRoad(roadPoints);
-
+                Road road = roadManager.getRoad(new ArrayList<>(points));
                 Polyline overlay = RoadManager.buildRoadOverlay(road);
                 overlay.setColor(Color.BLUE);
                 overlay.setWidth(12f);
@@ -339,6 +287,21 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
                 );
             }
         }).start();
+    }
+
+    /**
+     * Log une erreur API.
+     *
+     * @param message  Message d'erreur
+     * @param httpCode Code HTTP si disponible
+     */
+    private void logApiError(String message, Integer httpCode) {
+        Log.e(TAG, "Erreur API: " + message);
+        if (httpCode != null) {
+            Log.e(TAG, "Code erreur HTTP: " + httpCode);
+        } else {
+            Log.e(TAG, "Pas de réponse réseau - Vérifiez votre connexion Internet");
+        }
     }
 
     @Override
