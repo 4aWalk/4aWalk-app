@@ -60,6 +60,7 @@ public class SuiviParcours extends AppCompatActivity {
     // ===== UI =====
     private MapView mapView;
     private MaterialButton btnPause;
+    private MaterialButton btnTerminer;
     private TextView tvProchainPoint, tvArrivee;
 
     // ===== Managers =====
@@ -106,6 +107,7 @@ public class SuiviParcours extends AppCompatActivity {
         initParcours();
         initDistanceManager();
         initPauseButton();
+        initTerminerButton();
 
         requestQueue = Volley.newRequestQueue(this);
         startTrackingTimer();
@@ -117,12 +119,11 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== INITIALISATIONS ==================
     // =========================================================
 
-    /**
-     * Initialise les vues de l'activité (MapView, TextView, Button)
-     */
+    /** Initialise les vues de l'activité (MapView, TextView, Button) */
     private void initViews() {
         mapView = findViewById(R.id.mapView);
         btnPause = findViewById(R.id.btnPause);
+        btnTerminer = findViewById(R.id.btnTerminer);
         tvProchainPoint = findViewById(R.id.tvProchainPoint);
         tvArrivee = findViewById(R.id.tvArrivee);
 
@@ -130,18 +131,14 @@ public class SuiviParcours extends AppCompatActivity {
         mapView.setMultiTouchControls(true);
     }
 
-    /**
-     * Initialise les managers pour la carte, le son et la localisation
-     */
+    /** Initialise les managers pour la carte, le son et la localisation */
     private void initManagers() {
         mapManager = new MapManager(mapView, this);
         audioManager = new AudioManager(this, R.raw.notif);
         locationManager = new LocationManager(this);
     }
 
-    /**
-     * Initialise le parcours avec une liste de GeoPoints et la carte
-     */
+    /** Initialise le parcours avec une liste de GeoPoints et la carte */
     private void initParcours() {
         parcoursPoints.add(new GeoPoint(44.360369301617794, 2.5758112393065384));
         parcoursPoints.add(new GeoPoint(44.351077610605785, 2.5740525086171298));
@@ -158,9 +155,7 @@ public class SuiviParcours extends AppCompatActivity {
         }
     }
 
-    /**
-     * Initialise le DistanceManager et ses callbacks pour le suivi du parcours
-     */
+    /** Initialise le DistanceManager et ses callbacks pour le suivi du parcours */
     private void initDistanceManager() {
         distanceManager = new DistanceManager(parcoursPoints);
 
@@ -188,9 +183,7 @@ public class SuiviParcours extends AppCompatActivity {
         });
     }
 
-    /**
-     * Initialise le bouton pause/reprise pour la randonnée
-     */
+    /** Initialise le bouton pause/reprise pour la randonnée */
     private void initPauseButton() {
         btnPause.setOnClickListener(v -> {
             if (!isPaused) pauseRandonnee();
@@ -198,13 +191,16 @@ public class SuiviParcours extends AppCompatActivity {
         });
     }
 
+    /** Initialise le bouton terminer pour la randonnée */
+    private void initTerminerButton() {
+        btnTerminer.setOnClickListener(v -> terminerRandonnee());
+    }
+
     // =========================================================
     // ====================== GESTION PAUSE ====================
     // =========================================================
 
-    /**
-     * Met la randonnée en pause et envoie les positions accumulées à l'API
-     */
+    /** Met la randonnée en pause et envoie les positions accumulées à l'API */
     private void pauseRandonnee() {
         if (lastKnownLocation != null) {
             ajouterPositionBuffer(lastKnownLocation);
@@ -223,9 +219,7 @@ public class SuiviParcours extends AppCompatActivity {
         isPaused = true;
     }
 
-    /**
-     * Reprend la randonnée et le suivi GPS
-     */
+    /** Reprend la randonnée et le suivi GPS */
     private void reprendreRandonnee() {
         // Envoi du statut de reprise à l'API
         envoyerStatutPauseAPI(false);
@@ -235,13 +229,36 @@ public class SuiviParcours extends AppCompatActivity {
         isPaused = false;
     }
 
+    /** Termine la randonnée et envoie les dernières positions à l'API */
+    private void terminerRandonnee() {
+        // Envoie les positions restantes si nécessaire
+        if (lastKnownLocation != null) {
+            ajouterPositionBuffer(lastKnownLocation);
+
+            if (!locationBuffer.isEmpty()) {
+                envoyerPositionsAPI();
+                locationBuffer.clear();
+            }
+        }
+
+        // Envoi du statut de fin à l'API
+        envoyerFinRandoneeAPI();
+
+        // Arrêt de la localisation
+        locationManager.stopLocationUpdates();
+
+        // Désactivation des boutons
+        btnPause.setEnabled(false);
+        btnTerminer.setEnabled(false);
+
+        isPaused = true;
+    }
+
     // =========================================================
     // ====================== LOCALISATION =====================
     // =========================================================
 
-    /**
-     * Vérifie les permissions de localisation et démarre le suivi si autorisé
-     */
+    /** Vérifie les permissions de localisation et démarre le suivi si autorisé */
     private void verifierPermissionsEtDemarrer() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -254,9 +271,7 @@ public class SuiviParcours extends AppCompatActivity {
         }
     }
 
-    /**
-     * Démarre le suivi GPS et met à jour la position de l'utilisateur
-     */
+    /** Démarre le suivi GPS et met à jour la position de l'utilisateur */
     private void startLocation() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
@@ -287,9 +302,7 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== TRACKING TIMER ==================
     // =========================================================
 
-    /**
-     * Démarre un timer qui envoie les positions toutes les 60 secondes
-     */
+    /** Démarre un timer qui envoie les positions toutes les 60 secondes */
     private void startTrackingTimer() {
         trackingRunnable = new Runnable() {
             @Override
@@ -308,9 +321,7 @@ public class SuiviParcours extends AppCompatActivity {
         trackingHandler.post(trackingRunnable);
     }
 
-    /**
-     * Ajoute une position GPS au buffer avant envoi à l'API
-     */
+    /** Ajoute une position GPS au buffer avant envoi à l'API */
     private void ajouterPositionBuffer(Location location) {
         locationBuffer.add(location);
         Toast.makeText(this,
@@ -318,9 +329,7 @@ public class SuiviParcours extends AppCompatActivity {
                 Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Envoie les positions accumulées au serveur via API REST
-     */
+    /** Envoie les positions accumulées au serveur via API REST */
     private void envoyerPositionsAPI() {
         String url = BASE_URL + COURSE_ID;
         JSONArray jsonArray = new JSONArray();
@@ -367,9 +376,7 @@ public class SuiviParcours extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    /**
-     * Envoie le statut de pause/reprise au serveur via API REST
-     */
+    /** Envoie le statut de pause/reprise au serveur via API REST */
     private void envoyerStatutPauseAPI(boolean paused) {
         String url = BASE_URL + COURSE_ID + "/state?paused=" + paused;
 
@@ -393,22 +400,42 @@ public class SuiviParcours extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+    /** Envoie la fin de la randonnée au serveur via API REST */
+    private void envoyerFinRandoneeAPI() {
+        String url = BASE_URL + COURSE_ID + "/finish";
+
+        StringRequest request = new StringRequest(Request.Method.PUT, url,
+                response -> Toast.makeText(this,
+                        "Randonnée terminée ✔",
+                        Toast.LENGTH_LONG).show(),
+                error -> Toast.makeText(this,
+                        "Erreur fin randonnée : " + error.toString(),
+                        Toast.LENGTH_LONG).show()
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + TOKEN);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
     // =========================================================
     // ====================== FORMATAGE ========================
     // =========================================================
 
-    /**
-     * Formatte la distance vers le prochain point pour affichage
-     */
+    /** Formatte la distance vers le prochain point pour affichage */
     private String formatDistanceProchain(float meters) {
         return meters >= 1000
                 ? String.format("Prochain point %.2f km", meters / 1000)
                 : String.format("Prochain point %.0f m", meters);
     }
 
-    /**
-     * Formatte la distance restante vers l'arrivée pour affichage
-     */
+    /** Formatte la distance restante vers l'arrivée pour affichage */
     private String formatDistanceArrivee(float meters) {
         return meters >= 1000
                 ? String.format("Arrivée %.2f km", meters / 1000)
