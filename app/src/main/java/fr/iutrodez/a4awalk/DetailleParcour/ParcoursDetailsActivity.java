@@ -39,10 +39,8 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
     private static final String API_COURSE_URL = "http://98.94.8.220:8080/courses/69899eab5a19517b5cfcb121";
     private static final String API_HIKE_BASE_URL = "http://98.94.8.220:8080/hikes/";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MiwiaWF0IjoxNzcwNjI2NjcyLCJleHAiOjE3NzA3MTMwNzJ9.nausJMeBnvdXsahvH48CpGdM5rXuq02bOs5N4EpgHXc";
-
     private MapView map;
     private List<GeoPoint> coursePoints;
-
     private TextView tvNomParcours;
     private TextView tvDepart;
     private TextView tvArrivee;

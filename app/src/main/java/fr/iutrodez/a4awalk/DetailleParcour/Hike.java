@@ -5,13 +5,8 @@ package fr.iutrodez.a4awalk.DetailleParcour;
  */
 public class Hike {
 
-    /** Identifiant unique de la randonnée */
     private int id;
-
-    /** Nom de la randonnée */
     private String libelle;
-
-    /** Durée de la randonnée en jours */
     private int dureeJours;
 
     /**
