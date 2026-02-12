@@ -9,18 +9,13 @@ import java.util.List;
 public class Course {
 
     private String id;
-
     @SerializedName("hikeId")
     private int hikeId;
-
     @SerializedName("dateRealisation")
     private String dateRealisation;
-
     private Location depart;
     private Location arrivee;
-
     private List<Point> path;
-
     private boolean finished;
     private boolean paused;
 

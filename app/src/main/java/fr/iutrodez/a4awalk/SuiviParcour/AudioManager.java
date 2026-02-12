@@ -10,7 +10,6 @@ import android.media.MediaPlayer;
  */
 public class AudioManager {
 
-    /** MediaPlayer utilisé pour la lecture du son */
     private MediaPlayer mediaPlayer;
 
     /**

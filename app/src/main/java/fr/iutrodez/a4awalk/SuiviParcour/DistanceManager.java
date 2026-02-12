@@ -13,19 +13,10 @@ import java.util.List;
  */
 public class DistanceManager {
 
-    /** Liste des points du parcours */
     private final List<GeoPoint> parcoursPoints;
-
-    /** Index du prochain point à atteindre */
     private int nextPointIndex = 0;
-
-    /** Dernière position GPS reçue */
     private Location lastLocation = null;
-
-    /** Indique si l'alerte d'approche a déjà été déclenchée */
     private boolean alertApproachDone = false;
-
-    /** Listener pour notifier les événements de distance */
     private DistanceListener listener;
 
     /**

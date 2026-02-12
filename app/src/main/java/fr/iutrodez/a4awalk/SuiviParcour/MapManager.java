@@ -26,16 +26,9 @@ import java.util.List;
  */
 public class MapManager {
 
-    /** MapView sur laquelle afficher les éléments */
     private final MapView map;
-
-    /** Contexte de l'application ou activité */
     private final Context context;
-
-    /** Polyline représentant le tracé de l'utilisateur */
     private final Polyline userTrace;
-
-    /** Marker représentant la position de l'utilisateur */
     private Marker userMarker;
 
     /**

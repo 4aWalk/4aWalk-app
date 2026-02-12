@@ -11,13 +11,8 @@ import com.android.volley.toolbox.Volley;
  */
 public class VolleySingleton {
 
-    /** Instance unique du singleton */
     private static VolleySingleton instance;
-
-    /** Queue de requêtes Volley */
     private RequestQueue requestQueue;
-
-    /** Contexte application utilisé pour initialiser Volley */
     private static Context ctx;
 
     /**

@@ -17,13 +17,8 @@ import com.google.android.gms.location.*;
  */
 public class LocationManager {
 
-    /** Client de localisation Google */
     private final FusedLocationProviderClient fusedLocationClient;
-
-    /** Callback pour recevoir les mises à jour de localisation */
     private LocationCallback locationCallback;
-
-    /** Contexte de l'application ou de l'activité */
     private final Context context;
 
     /**
