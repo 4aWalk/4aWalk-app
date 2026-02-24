@@ -17,7 +17,7 @@ import fr.iutrodez.a4awalk.modeles.enums.Morphology;
  */
 public class User implements Person, Parcelable {
 
-    private Long id;
+    private int id;
     private String nom;
     private String prenom;
     private String mail;
@@ -26,9 +26,6 @@ public class User implements Person, Parcelable {
     private int age;
     private Level niveau;
     private Morphology morphologie;
-
-    // Note : On ne transfère généralement pas la liste createdHikes via Parcel
-    // pour éviter les boucles infinies (Hike contient un User qui contient des Hikes...)
     private Set<Hike> createdHikes = new HashSet<>();
 
     // --- Constructeurs ---
@@ -60,11 +57,7 @@ public class User implements Person, Parcelable {
     // --- Implémentation Parcelable ---
 
     protected User(Parcel in) {
-        if (in.readByte() == 0) {
-            id = null;
-        } else {
-            id = in.readLong();
-        }
+        id = in.readInt();
         nom = in.readString();
         prenom = in.readString();
         mail = in.readString();
@@ -72,7 +65,6 @@ public class User implements Person, Parcelable {
         adresse = in.readString();
         age = in.readInt();
 
-        // Lecture des enums via leur nom (String)
         String niveauStr = in.readString();
         niveau = niveauStr != null ? Level.valueOf(niveauStr) : null;
 
@@ -82,12 +74,7 @@ public class User implements Person, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        if (id == null) {
-            dest.writeByte((byte) 0);
-        } else {
-            dest.writeByte((byte) 1);
-            dest.writeLong(id);
-        }
+        dest.writeInt(id);
         dest.writeString(nom);
         dest.writeString(prenom);
         dest.writeString(mail);
@@ -117,7 +104,6 @@ public class User implements Person, Parcelable {
         }
     };
 
-    // --- Logique métier de bas niveau ---
 
     /** Retourne le nom complet formaté */
     public String getFullName() {
@@ -129,8 +115,6 @@ public class User implements Person, Parcelable {
         this.createdHikes.add(hike);
         hike.setCreator(this);
     }
-
-    // --- Implémentation de l'interface Person ---
 
     @Override
     public String getNom() {
@@ -151,8 +135,6 @@ public class User implements Person, Parcelable {
     public Morphology getMorphologie() {
         return this.morphologie;
     }
-
-    // --- Overrides Standards ---
 
     @Override
     public boolean equals(Object o) {
@@ -175,8 +157,8 @@ public class User implements Person, Parcelable {
 
     // --- Getters et Setters ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public String getPrenom() { return prenom; }
     public void setPrenom(String prenom) { this.prenom = prenom; }

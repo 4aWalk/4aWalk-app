@@ -11,5 +11,5 @@ public interface Person {
     Level getNiveau(); // Sportif, Entrainé, Débutant
     Morphology getMorphologie(); // Légère, Moyenne, Forte
 
-    Long getId();
+    int getId();
 }

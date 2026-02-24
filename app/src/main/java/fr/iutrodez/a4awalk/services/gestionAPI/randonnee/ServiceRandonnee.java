@@ -62,14 +62,14 @@ public class ServiceRandonnee {
                 JSONObject randoJson = jsonArray.getJSONObject(i);
 
                 // --- 1. Infos de base de la randonnée ---
-                Long id = randoJson.getLong("id");
+                int id = randoJson.getInt("id");
                 String name = randoJson.getString("libelle");
                 int dureeJours = randoJson.getInt("dureeJours");
 
                 // --- 2. Point de Départ ---
                 JSONObject departObj = randoJson.getJSONObject("depart");
                 PointOfInterest POIDepart = new PointOfInterest(
-                        departObj.getLong("id"),
+                        departObj.getInt("id"),
                         departObj.getString("nom"),
                         departObj.getDouble("latitude"),
                         departObj.getDouble("longitude")
@@ -78,7 +78,7 @@ public class ServiceRandonnee {
                 // --- 3. Point d'Arrivée ---
                 JSONObject arriveeObj = randoJson.getJSONObject("arrivee");
                 PointOfInterest POIArrivee = new PointOfInterest(
-                        arriveeObj.getLong("id"),
+                        arriveeObj.getInt("id"),
                         arriveeObj.getString("nom"),
                         arriveeObj.getDouble("latitude"),
                         arriveeObj.getDouble("longitude")
@@ -89,7 +89,7 @@ public class ServiceRandonnee {
                 for (int j = 0; j < points.length(); j++) {
                     JSONObject point = points.getJSONObject(j);
                     PointOfInterest poi = new PointOfInterest(
-                            point.getLong("id"),
+                            point.getInt("id"),
                             point.getString("nom"),
                             point.getDouble("latitude"),
                             point.getDouble("longitude")
@@ -105,7 +105,7 @@ public class ServiceRandonnee {
                     JSONObject partJson = participantsArray.getJSONObject(j);
                     Participant p = new Participant();
 
-                    p.setId(partJson.getLong("id"));
+                    p.setPId(partJson.getInt("id"));
                     p.setPrenom(partJson.optString("prenom", ""));
                     p.setNom(partJson.optString("nom", ""));
                     p.setAge(partJson.getInt("age"));

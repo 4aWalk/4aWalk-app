@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 public class PointOfInterest implements Parcelable {
 
-    private Long id;
+    private int id;
     private String name;
     private double latitude;
     private double longitude;
@@ -19,7 +19,8 @@ public class PointOfInterest implements Parcelable {
     public PointOfInterest() {}
 
     /** Constructeur rapide pour les points de départ/arrivée */
-    public PointOfInterest(Long id, String name, double latitude, double longitude) {
+    public PointOfInterest(int id, String name, double latitude, double longitude) {
+        this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -28,27 +29,16 @@ public class PointOfInterest implements Parcelable {
     // --- Implémentation Parcelable ---
 
     protected PointOfInterest(Parcel in) {
-        if (in.readByte() == 0) {
-            id = null;
-        } else {
-            id = in.readLong();
-        }
+        // MODIFICATION : Lecture simplifiée de l'int
+        id = in.readInt();
         name = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
-
-        // Note : On ne lit pas 'hike' ici pour éviter les boucles infinies de Parcelable
-        // (La Hike contient déjà le POI, lire la Hike depuis le POI créerait une récursion)
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        if (id == null) {
-            dest.writeByte((byte) 0);
-        } else {
-            dest.writeByte((byte) 1);
-            dest.writeLong(id);
-        }
+        dest.writeInt(id);
         dest.writeString(name);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
@@ -73,8 +63,11 @@ public class PointOfInterest implements Parcelable {
 
     // --- Getters et Setters ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // MODIFICATION : type de retour int
+    public int getId() { return id; }
+
+    // MODIFICATION : paramètre type int
+    public void setId(int id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -84,6 +77,12 @@ public class PointOfInterest implements Parcelable {
 
     public double getLongitude() { return longitude; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public Hike getHike() { return hike; }
+    public void setHike(Hike hike) { this.hike = hike; }
 
     @Override
     public String toString() {

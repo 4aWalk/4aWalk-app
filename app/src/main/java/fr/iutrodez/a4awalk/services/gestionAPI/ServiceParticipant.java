@@ -18,22 +18,20 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServiceParticipant {
 
-    // URL de base avec placeholders : %d (hikeId)
     private final static String URL_BASE_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants";
-    // Pour modification : .../participants/participantId
     private final static String URL_MODIF_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants/%d";
 
     public static Participant creationParticipant(int age, Level choixNiveau,
                                                   Morphology choixMorpho, Integer kcal, Integer eau,
                                                   double capacite) {
-        return new Participant(null, null, age, choixNiveau, choixMorpho, false, kcal, eau, capacite, null);
+        return new Participant(null, null, age, choixNiveau, choixMorpho, false, kcal, eau, capacite, 0);
     }
 
     /**
      * Modifie un participant existant via API (PUT)
      */
     public static void modifierParticipantAPI(Context context, String token, Participant participant, Runnable onSuccess) {
-        if (participant.getId() == null || participant.getIdRando() == null) {
+        if (participant.getId() == 0) {
             Toast.makeText(context, "Erreur : ID manquant pour la modification", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -41,7 +39,6 @@ public class ServiceParticipant {
         JSONObject body = buildParticipantJSON(participant);
         if (body == null) return;
 
-        // Construction de l'URL : /hikes/{idRando}/participants/{idParticipant}
         String url = String.format(URL_MODIF_PARTICIPANT, participant.getIdRando(), participant.getId());
 
         AppelAPI.put(url, token, body, context, new AppelAPI.VolleyObjectCallback() {

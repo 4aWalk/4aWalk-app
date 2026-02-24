@@ -18,11 +18,11 @@ public class TokenManager {
     // Sauvegarder le token
     public void saveToken(String token) {
         editor.putString(KEY_TOKEN, token);
-        editor.apply(); // 'apply' est asynchrone et plus rapide que 'commit'
+        editor.apply();
     }
 
     // Récupérer le token
     public String getToken() {
-        return sharedPreferences.getString(KEY_TOKEN, null); // null est la valeur par défaut
+        return sharedPreferences.getString(KEY_TOKEN, null);
     }
 }

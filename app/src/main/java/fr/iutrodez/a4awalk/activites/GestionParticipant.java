@@ -40,7 +40,7 @@ public class GestionParticipant {
      * @param hikeId L'ID de la randonnée (nécessaire pour modification/création contextuelle)
      */
     public static void afficherDialogParticipant(Context context, int etat, String token,
-                                                 Long hikeId, // <--- NOUVEAU PARAMETRE
+                                                 int hikeId,
                                                  @Nullable Participant participant,
                                                  ParticipantCallback callback) {
 
@@ -82,11 +82,12 @@ public class GestionParticipant {
         dialog.show();
     }
 
-    private static void setupModeCreation(Context context, Dialog dialog, ViewHolder views, String token, Long hikeId, ParticipantCallback callback) {
+    private static void setupModeCreation(Context context, Dialog dialog, ViewHolder views, String token, int hikeId, ParticipantCallback callback) {
         views.btnAction.setText("Ajouter");
         views.btnAction.setVisibility(View.VISIBLE);
+        // On passe 0 pour le participantId car c'est une création
         views.btnAction.setOnClickListener(v ->
-                traiterSoumission(context, dialog, views, token, hikeId, null, callback, false)
+                traiterSoumission(context, dialog, views, token, hikeId, 0, callback, false)
         );
     }
 
@@ -98,7 +99,7 @@ public class GestionParticipant {
         views.cbSacADos.setEnabled(false);
     }
 
-    private static void setupModeModification(Context context, Dialog dialog, ViewHolder views, String token, Long hikeId, Participant participant, ParticipantCallback callback) {
+    private static void setupModeModification(Context context, Dialog dialog, ViewHolder views, String token, int hikeId, Participant participant, ParticipantCallback callback) {
         if (participant == null) return;
 
         remplirChamps(views, participant);
@@ -111,7 +112,7 @@ public class GestionParticipant {
     }
 
     private static void traiterSoumission(Context context, Dialog dialog, ViewHolder views, String token,
-                                          Long hikeId, Long participantId, ParticipantCallback callback, boolean isUpdate) {
+                                          int hikeId, int participantId, ParticipantCallback callback, boolean isUpdate) {
 
         boolean isValidForm = ParticipantValidator.validate(
                 views.etAge, views.etBesoinKcal, views.etBesoinEau, views.etCapacite,
@@ -122,10 +123,10 @@ public class GestionParticipant {
 
         try {
             Participant p = extraireDonneesVues(views);
-            p.setIdRando(hikeId); // <--- ASSIGNATION ID RANDO
+            p.setIdRando(hikeId);
 
             if (isUpdate) {
-                p.setId(participantId);
+                p.setPId(participantId);
                 // Appel API Modification avec gestion d'erreur intégrée dans le service
                 ServiceParticipant.modifierParticipantAPI(context, token, p, () -> {
                     if (callback != null) callback.onActionSuccess(p);
@@ -143,9 +144,6 @@ public class GestionParticipant {
         }
     }
 
-    // ... (Reste des méthodes extraireDonneesVues, remplirChamps, etc. identiques) ...
-    // Assurez-vous simplement que extraireDonneesVues utilise le nouveau constructeur de Participant avec idRando (ou null par défaut)
-
     private static Participant extraireDonneesVues(ViewHolder v) {
         String nom = v.etNom.getText().toString().trim();
         String prenom = v.etPrenom.getText().toString().trim();
@@ -156,15 +154,13 @@ public class GestionParticipant {
                 ? Double.parseDouble(v.etCapacite.getText().toString().replace(",", "."))
                 : 0.0;
 
-        // On passe null à idRando ici, il est set dans traiterSoumission
+        // MODIFICATION : On passe 0 au lieu de null à idRando ici, il est set correctement dans traiterSoumission
         return new Participant(nom, prenom, age,
                 Level.valueOf(v.spinnerNiveau.getSelectedItem().toString()),
                 Morphology.valueOf(v.spinnerMorpho.getSelectedItem().toString()),
-                false, kcal, eau, cap, null);
+                false, kcal, eau, cap, 0);
     }
 
-    // ... (ViewHolder et utilitaires UI inchangés) ...
-    // Je remets ViewHolder pour la compilation
     private static class ViewHolder {
         ImageButton btnClose;
         Button btnVoirSac, btnAction;
