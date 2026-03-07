@@ -5,10 +5,7 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="ProfilActivity">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="UpdateProfilActivity">
+      <SelectionState runConfigName="SuiviParcours">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

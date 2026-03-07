@@ -1,7 +1,9 @@
 package fr.iutrodez.a4awalk.GestionCompte;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -11,13 +13,28 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputEditText;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.Validator;
 import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
+import fr.iutrodez.a4awalk.GestionCompte.Validator.Validator;
 
 public class UpdateProfilActivity extends AppCompatActivity {
+
+    // ===== Constantes API =====
+    private static final String BASE_URL = "http://98.94.8.220:8080/users/";
+    private static final String TOKEN_KEY = "auth_token";
+    private static final String USER_ID_KEY = "user_id";
 
     private Toolbar toolbar;
 
@@ -27,6 +44,9 @@ public class UpdateProfilActivity extends AppCompatActivity {
 
     // Spinners
     private Spinner spinnerNiveau, spinnerMorphologie;
+
+    // Volley
+    private RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +62,11 @@ public class UpdateProfilActivity extends AppCompatActivity {
             }
         }
 
-        // ===== Initialisation des vues =====
+        // ===== Initialisation =====
         initViews();
-
-        // ===== Pré-remplissage depuis ProfilActivity =====
         fillFormWithIntentData();
+
+        requestQueue = Volley.newRequestQueue(this);
 
         // ===== Bouton Retour =====
         Button btnRetour = findViewById(R.id.btn_retour);
@@ -92,18 +112,14 @@ public class UpdateProfilActivity extends AppCompatActivity {
         String niveau = intent.getStringExtra("niveau");
         String morphologie = intent.getStringExtra("morphologie");
 
-        // Champs texte
         etNom.setText(nom != null ? nom : "");
         etPrenom.setText(prenom != null ? prenom : "");
         etAge.setText(age != null ? age : "");
         etAdresse.setText(adresse != null ? adresse : "");
         etEmail.setText(email != null ? email : "");
-
-        // Mot de passe vide pour sécurité
         etMotDePasse.setText("");
         etConfirmerMotDePasse.setText("");
 
-        // Spinners avec sélection dynamique
         setSpinnerSelection(spinnerNiveau, niveau != null ? niveau : "", "niveau");
         setSpinnerSelection(spinnerMorphologie, morphologie != null ? morphologie : "", "morphologie");
     }
@@ -126,25 +142,21 @@ public class UpdateProfilActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        // Trouver la position correspondant à la valeur
         int position = -1;
         for (int i = 0; i < adapter.getCount(); i++) {
-            if (adapter.getItem(i).toString().equalsIgnoreCase(value)) { // <- conversion ici
+            if (adapter.getItem(i).toString().equalsIgnoreCase(value)) {
                 position = i;
                 break;
             }
         }
-
         if (position >= 0) spinner.setSelection(position);
     }
-
 
     // ------------------------------------------------------------------
     // Validation du formulaire
     // ------------------------------------------------------------------
 
     private void validateForm() {
-
         clearErrors();
 
         String nom = getText(etNom);
@@ -167,8 +179,84 @@ public class UpdateProfilActivity extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(this, "Profil mis à jour avec succès", Toast.LENGTH_SHORT).show();
-        // TODO : sauvegarde / appel API
+        envoyerMiseAJourAPI(nom, prenom, age, adresse, email, password, niveau, morphologie);
+    }
+
+    // ------------------------------------------------------------------
+    // Appel API PUT /users/{id}
+    // ------------------------------------------------------------------
+
+    private void envoyerMiseAJourAPI(String nom, String prenom, String age, String adresse,
+                                     String email, String password,
+                                     String niveau, String morphologie) {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String userId = prefs.getString(USER_ID_KEY, null);
+        final String token = prefs.getString(TOKEN_KEY, null);
+
+        if (userId == null || token == null) {
+            Toast.makeText(this, "Session expirée, veuillez vous reconnecter", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String url = BASE_URL + userId;
+
+        JSONObject body = new JSONObject();
+        try {
+            body.put("mail", email);
+            body.put("password", password);
+            body.put("nom", nom);
+            body.put("prenom", prenom);
+            body.put("adresse", adresse);
+            body.put("age", Integer.parseInt(age));
+            body.put("niveau", niveau);
+            body.put("morphologie", morphologie);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de la préparation des données", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String requestBody = body.toString();
+
+        StringRequest request = new StringRequest(Request.Method.PUT, url,
+                response -> {
+                    Toast.makeText(this, "Profil mis à jour avec succès ✔", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(this, ProfilActivity.class));
+                    finish();
+                },
+                error -> {
+                    String message = "Erreur lors de la mise à jour";
+                    if (error.networkResponse != null) {
+                        switch (error.networkResponse.statusCode) {
+                            case 400: message = "Données invalides"; break;
+                            case 401: message = "Non autorisé, veuillez vous reconnecter"; break;
+                            case 409: message = "Cette adresse email est déjà utilisée"; break;
+                        }
+                    }
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public byte[] getBody() {
+                return requestBody.getBytes();
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/json";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
     }
 
     private String getText(TextInputEditText et) {
@@ -176,7 +264,7 @@ public class UpdateProfilActivity extends AppCompatActivity {
     }
 
     // ------------------------------------------------------------------
-    // Gestion des erreurs
+    // Gestion des erreurs de validation
     // ------------------------------------------------------------------
 
     private void showValidationError(ValidationResult result) {
