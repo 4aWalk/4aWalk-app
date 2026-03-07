@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.VolleyError;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,12 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
+import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 
 public class ActiviteGestionRandonnee extends AppCompatActivity {
@@ -174,7 +178,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
             GestionParticipant.afficherDialogParticipant(
                     ActiviteGestionRandonnee.this,
-                    GestionParticipant.ETAT_CONSULTATION,
+                    ModeRandonnee.CONSULTATION,
                     tokenManager.getToken(),
                     currentHike.getId(),
                     p,
@@ -231,21 +235,21 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         btnAjouterParticipant.setOnClickListener(v -> {
             GestionParticipant.afficherDialogParticipant(
                     ActiviteGestionRandonnee.this,
-                    GestionParticipant.ETAT_CREATION,
+                    ModeRandonnee.CREATION,
                     tokenManager.getToken(),
                     currentHike.getId(),
                     null,
-                    new GestionParticipant.ParticipantCallback() {
+                    new ParticipantCallback() { // Utilisation de l'interface importée
                         @Override
                         public void onActionSuccess(Participant newParticipant) {
                             Log.i("Ajout p", "Participant ajouté");
-                            // MODIFICATION: setId prend un int
                             newParticipant.setPId(0);
                             newParticipant.setIdRando(currentHike.getId());
                             listeTemporaireParticipants.add(newParticipant);
                             adapterParticipants.notifyDataSetChanged();
                             updateBtnParticipantState();
                         }
+                        public void onDeleteAction(Participant participantToDelete) {}
                     }
             );
         });
@@ -257,17 +261,13 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                 pToEdit.setIdRando(currentHike.getId());
             }
 
-            int etat = (pToEdit.getId() != 0)
-                    ? GestionParticipant.ETAT_MODIFICATION
-                    : GestionParticipant.ETAT_CREATION;
-
             GestionParticipant.afficherDialogParticipant(
                     ActiviteGestionRandonnee.this,
-                    etat,
+                    ModeRandonnee.MODIFICATION,
                     tokenManager.getToken(),
                     currentHike.getId(),
                     pToEdit,
-                    new GestionParticipant.ParticipantCallback() {
+                    new ParticipantCallback() {
                         @Override
                         public void onActionSuccess(Participant updatedParticipant) {
                             if (pToEdit.getId() != 0) updatedParticipant.setPId(pToEdit.getId());
@@ -275,6 +275,14 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                             Log.i("Modif p", "Participant modifié");
                             listeTemporaireParticipants.set(position, updatedParticipant);
                             adapterParticipants.notifyDataSetChanged();
+                        }
+                        @Override
+                        public void onDeleteAction(Participant participantToDelete) {
+                            listeTemporaireParticipants.remove(participantToDelete);
+                            adapterParticipants.notifyDataSetChanged();
+                            Toast.makeText(ActiviteGestionRandonnee.this, "Participant retiré (validez pour enregistrer)", Toast.LENGTH_SHORT).show();
+                            // Réactive le bouton "Ajouter" si on redescend sous la limite de 3
+                            updateBtnParticipantState();
                         }
                     }
             );
@@ -351,119 +359,74 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                         Toast.makeText(ActiviteGestionRandonnee.this, "Modifications enregistrées", Toast.LENGTH_SHORT).show();
                         fermerAvecResultat(Activity.RESULT_OK, null);
                     }
+
                     @Override
                     public void onError(VolleyError error) {
                         Toast.makeText(ActiviteGestionRandonnee.this, "Erreur MAJ Rando", Toast.LENGTH_SHORT).show();
-                        Log.i("erreur rando",error.toString());
+                        Log.i("erreur rando", error.toString());
                     }
                 });
     }
 
-    // MODIFICATION: hikeId passe de long à int pour correspondre à la classe Hike
     private void traiterMiseAJourParticipants(int hikeId) {
-        AppelAPI.VolleyObjectCallback silentCallback = new AppelAPI.VolleyObjectCallback() {
-            @Override public void onSuccess(JSONObject result) {}
-            @Override public void onError(VolleyError error) {}
-        };
-
-        for (Participant p : listeTemporaireParticipants) {
-            JSONObject body = new JSONObject();
-            try {
-                body.put("nom", p.getNom());
-                body.put("prenom", p.getPrenom());
-                body.put("age", p.getAge());
-                body.put("niveau", p.getNiveau());
-                body.put("morphologie", p.getMorphologie());
-                body.put("besoinKcal", p.getBesoinKcal());
-                body.put("besoinEauLitre", p.getBesoinEauLitre());
-                double cap = (p.getCapaciteEmportMaxKg() != 0.0) ? p.getCapaciteEmportMaxKg() : 0.0;
-                body.put("capaciteEmportMaxKg", cap);
-            } catch (JSONException e) { continue; }
-
-            // MODIFICATION: int au lieu de Long, et vérification == 0
-            int id = p.getId();
-
-            if (id == 0) {
-                AppelAPI.post(BASE_URL + "/hikes/" + hikeId + "/participants", tokenManager.getToken(), body, this, silentCallback);
-            } else {
-                AppelAPI.put(BASE_URL + "/hikes/" + hikeId + "/participants/" + id, tokenManager.getToken(), body, this, silentCallback);
-            }
-        }
-
-        for (Participant pOrigin : participantsOriginaux) {
-            boolean present = false;
-            for (Participant pTemp : listeTemporaireParticipants) {
-                if (pTemp.getId() != 0 && pTemp.getId() == pOrigin.getId()) {
-                    present = true;
-                    break;
-                }
-            }
-            if (!present) {
-                AppelAPI.delete(BASE_URL + "/hikes/" + hikeId + "/participants/" + pOrigin.getId(), tokenManager.getToken(), this, null);
-            }
-        }
+        ServiceParticipant.traiterMAJParticipants(this, hikeId, listeTemporaireParticipants, participantsOriginaux, tokenManager);
     }
 
     private void traiterMiseAJourPOI(int hikeId) {
-        AppelAPI.VolleyObjectCallback silentCallback = new AppelAPI.VolleyObjectCallback() {
+        // Pour postA (attend JSONArray)
+        AppelAPI.VolleyCallback silentCallbackArray = new AppelAPI.VolleyCallback() {
             @Override
-            public void onSuccess(JSONObject result) {
-                Log.d("API_POI", "Mise à jour POI réussie");
+            public void onSuccess(JSONArray result) {
+                Log.d("API_POI", "Mise à jour POI (postA) réussie");
             }
-
             @Override
             public void onError(VolleyError error) {
                 Log.e("API_POI", "Erreur mise à jour POI: " + error.getMessage());
             }
         };
 
+        // Pour delete (attend JSONObject)
+        AppelAPI.VolleyObjectCallback silentCallbackObject = new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                Log.d("API_POI", "Suppression POI réussie");
+            }
+            @Override
+            public void onError(VolleyError error) {
+                Log.e("API_POI", "Erreur suppression POI: " + error.getMessage());
+            }
+        };
+        JSONArray pois = new JSONArray();
+
+// 1. On prépare le tableau avec tous les nouveaux POI
         for (PointOfInterest poi : listeTemporairePOI) {
-            // MODIFICATION: int au lieu de Long et vérification == 0
-            int id = poi.getId();
-            if (id == 0) {
-                JSONObject body = new JSONObject();
-                try {
-                    body.put("name", poi.getName());
-                    body.put("latitude", poi.getLatitude());
-                    body.put("longitude", poi.getLongitude());
-                    body.put("description", (poi.getName() != null) ? poi.getName() : "POI");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    continue;
-                }
-                Log.i("POI", body.toString());
-                if (!poiOriginaux.contains(poi)) {
-                    AppelAPI.post(BASE_URL + "/hikes/" + hikeId + "/poi",
-                            tokenManager.getToken(),
-                            body,
-                            getApplicationContext(),
-                            silentCallback);
-                }
+            JSONObject body = new JSONObject();
+            try {
+                body.put("nom", poi.getName());
+                body.put("latitude", poi.getLatitude());
+                body.put("longitude", poi.getLongitude());
+                body.put("description", (poi.getName() != null) ? poi.getName() : "POI");
+
+                // On l'ajoute à notre tableau JSON
+                pois.put(body);
+                Log.i("Nouveau POI ajouté au tableau", poi.getName());
+
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
 
-        for (PointOfInterest poiOrigin : poiOriginaux) {
-            boolean present = false;
+// 2. On vérifie que le tableau n'est pas vide avant de faire la requête
+        if (pois.length() > 0) {
+            Log.i("POI", "Envoi de " + pois.length() + " POIs à l'API : " + pois.toString());
 
-            for (PointOfInterest poiTemp : listeTemporairePOI) {
-                Log.i("TEMP", poiTemp.getName() + " : " + poiTemp.getId());
-                // MODIFICATION: Comparaison directe d'entiers avec ==
-                if (poiTemp.getId() != 0 && poiOrigin.getId() != 0 && poiTemp.getId() == poiOrigin.getId()) {
-                    Log.i("TEMP", String.valueOf(poiTemp.getId()));
-                    present = true;
-                    break;
-                }
-            }
-            Log.i("ORIGIN", poiOrigin.getName() + " : " + poiOrigin.getId());
-
-            if (!present) {
-                Log.i("DELETE", "Envoi demande suppression pour POI ID: " + poiOrigin.getId());
-
-                AppelAPI.delete(BASE_URL + "/hikes/" + hikeId + "/poi/" + poiOrigin.getId(),
-                        tokenManager.getToken(),
-                        getApplicationContext(),
-                        silentCallback);
-            }
+            AppelAPI.putA(BASE_URL + "/hikes/" + hikeId + "/pois",
+                    tokenManager.getToken(),
+                    pois,
+                    getApplicationContext(),
+                    silentCallbackArray);
+        } else {
+            Log.i("POI", "Aucun nouveau POI à envoyer à l'API.");
         }
     }
 
@@ -484,11 +447,13 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         if (hike.getOptionalPoints() != null) listeTemporairePOI.addAll(hike.getOptionalPoints());
         adapterPOI.notifyDataSetChanged();
         for(PointOfInterest poi: listeTemporairePOI) {
-            // MODIFICATION: String.valueOf pour afficher l'int
             Log.i("poiHike", String.valueOf(poi.getId()));
         }
         listeTemporaireParticipants.clear();
         if (hike.getParticipants() != null) listeTemporaireParticipants.addAll(hike.getParticipants());
+        for (Participant p : listeTemporaireParticipants) {
+            Log.i("Participant", p.toString());
+        }
         adapterParticipants.notifyDataSetChanged();
 
         updateBtnParticipantState();

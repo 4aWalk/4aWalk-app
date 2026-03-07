@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionP.Activity.Validator;
+package fr.iutrodez.a4awalk.utils;
 
 import android.widget.EditText;
 import android.widget.Spinner;

@@ -7,16 +7,22 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
+import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServiceParticipant {
+
+    private final static String BASE_URL = "http://98.94.8.220:8080";
 
     private final static String URL_BASE_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants";
     private final static String URL_MODIF_PARTICIPANT = "http://98.94.8.220:8080/hikes/%d/participants/%d";
@@ -51,6 +57,32 @@ public class ServiceParticipant {
             @Override
             public void onError(VolleyError error) {
                 Toast.makeText(context, "Erreur lors de la modification", Toast.LENGTH_SHORT).show();
+                error.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Supprime un participant existant via API (DELETE)
+     */
+    public static void supprimerParticipantAPI(Context context, String token, int hikeId, int participantId, Runnable onSuccess) {
+        if (participantId == 0) {
+            Toast.makeText(context, "Erreur : ID manquant pour la suppression", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // On utilise la même constante d'URL car le format est identique : /hikes/{hikeId}/participants/{participantId}
+        String url = String.format(URL_MODIF_PARTICIPANT, hikeId, participantId);
+
+        AppelAPI.delete(url, token, context, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                if (onSuccess != null) onSuccess.run();
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(context, "Erreur lors de la suppression API", Toast.LENGTH_SHORT).show();
                 error.printStackTrace();
             }
         });
@@ -105,10 +137,59 @@ public class ServiceParticipant {
             public void onSuccess(JSONObject result) {
                 if (success != null) success.onResponse(result);
             }
+
             @Override
             public void onError(VolleyError volleyError) {
                 if (error != null) error.onErrorResponse(volleyError);
             }
         });
+
+
+    }
+
+    public static void traiterMAJParticipants(Context contexte, int hikeId, ArrayList<Participant> listeTemporaireParticipants, ArrayList<Participant> participantsOriginaux, TokenManager tokenManager) {
+        AppelAPI.VolleyObjectCallback silentCallback = new AppelAPI.VolleyObjectCallback() {
+            @Override public void onSuccess(JSONObject result) {}
+            @Override public void onError(VolleyError error) {}
+        };
+
+        for (Participant p1 : listeTemporaireParticipants) {
+            JSONObject body = new JSONObject();
+            try {
+                body.put("nom", p1.getNom());
+                body.put("prenom", p1.getPrenom());
+                body.put("age", p1.getAge());
+                body.put("niveau", p1.getNiveau());
+                body.put("morphologie", p1.getMorphologie());
+                body.put("besoinKcal", p1.getBesoinKcal());
+                body.put("besoinEauLitre", p1.getBesoinEauLitre());
+                double cap = (p1.getCapaciteEmportMaxKg() != 0.0) ? p1.getCapaciteEmportMaxKg() : 0.0;
+                body.put("capaciteEmportMaxKg", cap);
+            } catch (JSONException e) { continue; }
+
+            int id = p1.getId();
+
+            if (id == 0) {
+                AppelAPI.post(BASE_URL + "/hikes/" + hikeId + "/participants", tokenManager.getToken(), body, contexte, silentCallback);
+            } else {
+                AppelAPI.put(BASE_URL + "/hikes/" + hikeId + "/participants/" + id, tokenManager.getToken(), body, contexte, silentCallback);
+            }
+        }
+
+        for (Participant pOrigin : participantsOriginaux) {
+            boolean present = false;
+            for (Participant pTemp : listeTemporaireParticipants) {
+                if (pTemp.getId() != 0 && pTemp.getId() == pOrigin.getId()) {
+                    present = true;
+                    break;
+                }
+            }
+            if (!present) {
+                Log.i("Participant supprimé", pOrigin.getId() + pOrigin.getPrenom());
+                ServiceParticipant.supprimerParticipantAPI(contexte, tokenManager.getToken(), hikeId, pOrigin.getId(), () -> {
+                    Log.i("SUPPRESSION", "Participant " + pOrigin.getId() + " supprimé avec succès.");
+                });
+            }
+        }
     }
 }

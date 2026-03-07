@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,8 +15,6 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServicePOI {
 
-    // IMPORTANT : Mets ici l'adresse IP correcte de ton API
-    // Pour l'émulateur Android, localhost est souvent 10.0.2.2
     private static final String URL_CREATION_POI = "http://IP:Port/hikes/%d/poi";
 
     public static void ajoutPOI(Context context, String token, PointOfInterest poi, Long idRandonnee) {
@@ -34,7 +33,6 @@ public class ServicePOI {
             public void onSuccess(JSONObject result) {
                 // Succès
                 Log.i("API_POI", "POI ajouté avec succès : " + poi.getName());
-                // Optionnel : Tu peux parser le résultat ici si l'API renvoie le POI créé avec son ID
             }
 
             @Override

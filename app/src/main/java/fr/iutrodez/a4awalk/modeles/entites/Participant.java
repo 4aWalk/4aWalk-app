@@ -172,7 +172,7 @@ public class Participant implements Person, Parcelable {
 
     @Override
     public int getId() {
-        return 0;
+        return this.id;
     }
 
     public void setPId(int id) {

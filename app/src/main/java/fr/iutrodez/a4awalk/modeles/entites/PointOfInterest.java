@@ -29,7 +29,6 @@ public class PointOfInterest implements Parcelable {
     // --- Implémentation Parcelable ---
 
     protected PointOfInterest(Parcel in) {
-        // MODIFICATION : Lecture simplifiée de l'int
         id = in.readInt();
         name = in.readString();
         latitude = in.readDouble();
@@ -63,10 +62,8 @@ public class PointOfInterest implements Parcelable {
 
     // --- Getters et Setters ---
 
-    // MODIFICATION : type de retour int
     public int getId() { return id; }
 
-    // MODIFICATION : paramètre type int
     public void setId(int id) { this.id = id; }
 
     public String getName() { return name; }

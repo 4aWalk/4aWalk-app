@@ -134,7 +134,7 @@
 
     <Button
         android:id="@+id/btnAjouter"
-        android:text="@string/ajouterP"
+        android:text="@string/btnAjouter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -147,4 +147,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:backgroundTint="@color/grey"/>
+
+    <Button
+        android:id="@+id/btnSupprimer"
+        android:text="@string/btnSupprimer"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/red"/>
 </LinearLayout>

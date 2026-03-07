@@ -2,25 +2,10 @@ package fr.iutrodez.a4awalk.GestionP.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.Dialog;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import org.json.JSONObject;
 
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.GestionP.Activity.Request.ParticipantRequest;
-import fr.iutrodez.a4awalk.GestionP.Activity.Validator.ParticipantValidator;
 
 public class PopUpParticipantActivity extends AppCompatActivity {
 

@@ -132,6 +132,7 @@ public class ServiceRandonnee {
 
                     // Ajout à la liste
                     listeParticipants.add(p);
+                    Log.i("Participants", p.getId() +" : " + p.getPrenom());
                 }
 
                 // --- 5. Création de l'objet Hike ---

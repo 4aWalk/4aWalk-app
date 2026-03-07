@@ -22,6 +22,7 @@ public class AppelAPI {
 
     public interface VolleyCallback {
         void onSuccess(JSONArray result);
+
         void onError(VolleyError error);
     }
 
@@ -58,6 +59,23 @@ public class AppelAPI {
                         e.printStackTrace();
                     }
                 },
+                callback::onError
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return getAuthHeaders(token);
+            }
+        };
+        getFileRequete(contexte).add(requeteVolley);
+    }
+
+    /**
+     * Méthode PUT (Mise à jour d'une ressource)
+     * Structure identique au POST : Body requis, retour attendu JSONObject
+     */
+    public static void putA(String url, String token, JSONArray body, Context contexte, final VolleyCallback callback) {
+        JsonArrayRequest requeteVolley = new JsonArrayRequest(Request.Method.PUT, url, body,
+                callback::onSuccess,
                 callback::onError
         ) {
             @Override

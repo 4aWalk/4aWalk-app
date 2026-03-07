@@ -54,17 +54,19 @@
     <string name="erreur_acces">Accès refusé</string>
     <string name="erreur_ressource">Ressource non trouvée</string>
 
-    <string name="titrePopup">Participant 1</string>
+    <string name="titrePopup">Participant</string>
     <string name="age">Âge</string>
     <string name="besoinKCAL">Besoin kcal/jour</string>
     <string name="besoinEAU">Besoin en eau (L)</string>
     <string name="sac">Possède un sac à dos</string>
     <string name="capacite">Capacité (kg) du sac</string>
-    <string name="ajouterP">Ajouter le participant</string>
     <string name="btnSac">Voir le sac à dos</string>
 
     <string name="btnAnnuler">Annuler</string>
     <string name="btnValider">Valider</string>
+    <string name="btnAjouter">Ajouter</string>
+    <string name="btnSupprimer">Supprimer</string>
+    <string name="btnModifier">Modifier</string>
     <string name="nom">Nom</string>
     <string name="prenom">Prenom</string>
     <string name="bouton_modifier_randonnee">Modifier la randonnée</string>
