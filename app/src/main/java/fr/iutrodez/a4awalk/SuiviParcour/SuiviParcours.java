@@ -405,10 +405,11 @@ public class SuiviParcours extends AppCompatActivity {
     }
 
     /**
-     * Envoie le statut de pause/reprise au serveur via API REST
+     * Envoie le changement de statut (pause ou reprise) au serveur via API REST.
+     * Le serveur gère automatiquement le toggle pause/reprise.
      */
     private void envoyerStatutPauseAPI(boolean paused) {
-        String url = BASE_URL + COURSE_ID + "/state?paused=" + paused;
+        String url = BASE_URL + COURSE_ID + "/state";
 
         StringRequest request = new StringRequest(Request.Method.PUT, url,
                 response -> Toast.makeText(this,
