@@ -33,6 +33,7 @@ public class UpdateProfilActivity extends AppCompatActivity {
 
     // ===== Constantes API =====
     private static final String BASE_URL = "http://98.94.8.220:8080/users/";
+    private static final String ME_URL   = "http://98.94.8.220:8080/users/me";
     private static final String TOKEN_KEY = "auth_token";
     private static final String USER_ID_KEY = "user_id";
 
@@ -64,9 +65,11 @@ public class UpdateProfilActivity extends AppCompatActivity {
 
         // ===== Initialisation =====
         initViews();
-        fillFormWithIntentData();
 
         requestQueue = Volley.newRequestQueue(this);
+
+        // On charge les données depuis l'API, puis on remplit le formulaire
+        chargerDonneesUtilisateur();
 
         // ===== Bouton Retour =====
         Button btnRetour = findViewById(R.id.btn_retour);
@@ -98,30 +101,65 @@ public class UpdateProfilActivity extends AppCompatActivity {
     }
 
     // ------------------------------------------------------------------
-    // Pré-remplissage depuis l'Intent
+    // Récupération des données utilisateur via GET /users/me
     // ------------------------------------------------------------------
 
-    private void fillFormWithIntentData() {
-        Intent intent = getIntent();
+    private void chargerDonneesUtilisateur() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final String token = prefs.getString(TOKEN_KEY, null);
 
-        String nom = intent.getStringExtra("nom");
-        String prenom = intent.getStringExtra("prenom");
-        String age = intent.getStringExtra("age");
-        String adresse = intent.getStringExtra("adresse");
-        String email = intent.getStringExtra("email");
-        String niveau = intent.getStringExtra("niveau");
-        String morphologie = intent.getStringExtra("morphologie");
+        if (token == null) {
+            Toast.makeText(this, "Session expirée, veuillez vous reconnecter", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        etNom.setText(nom != null ? nom : "");
-        etPrenom.setText(prenom != null ? prenom : "");
-        etAge.setText(age != null ? age : "");
-        etAdresse.setText(adresse != null ? adresse : "");
-        etEmail.setText(email != null ? email : "");
+        StringRequest request = new StringRequest(Request.Method.GET, ME_URL,
+                response -> {
+                    try {
+                        JSONObject user = new JSONObject(response);
+                        remplirFormulaire(user);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Erreur lors de la lecture des données", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    String message = "Impossible de charger le profil";
+                    if (error.networkResponse != null) {
+                        switch (error.networkResponse.statusCode) {
+                            case 401: message = "Non autorisé, veuillez vous reconnecter"; break;
+                            case 404: message = "Utilisateur introuvable"; break;
+                        }
+                    }
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
+    }
+
+    // ------------------------------------------------------------------
+    // Remplissage du formulaire à partir de la réponse JSON
+    // ------------------------------------------------------------------
+
+    private void remplirFormulaire(JSONObject user) throws JSONException {
+        etNom.setText(user.optString("nom", ""));
+        etPrenom.setText(user.optString("prenom", ""));
+        etAge.setText(user.optInt("age", 0) != 0 ? String.valueOf(user.optInt("age")) : "");
+        etAdresse.setText(user.optString("adresse", ""));
+        etEmail.setText(user.optString("mail", ""));
         etMotDePasse.setText("");
         etConfirmerMotDePasse.setText("");
 
-        setSpinnerSelection(spinnerNiveau, niveau != null ? niveau : "", "niveau");
-        setSpinnerSelection(spinnerMorphologie, morphologie != null ? morphologie : "", "morphologie");
+        setSpinnerSelection(spinnerNiveau, user.optString("niveau", ""), "niveau");
+        setSpinnerSelection(spinnerMorphologie, user.optString("morphologie", ""), "morphologie");
     }
 
     // ------------------------------------------------------------------
