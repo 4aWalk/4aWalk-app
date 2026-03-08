@@ -1,15 +1,21 @@
 package fr.iutrodez.a4awalk.DetailleParcour;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
+
 import org.osmdroid.bonuspack.routing.OSRMRoadManager;
 import org.osmdroid.bonuspack.routing.Road;
 import org.osmdroid.bonuspack.routing.RoadManager;
@@ -19,6 +25,7 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,18 +34,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import fr.iutrodez.a4awalk.R;
 
-/**
- * Activité affichant les détails d'un parcours, avec carte, points de départ/arrivée
- * et itinéraire complet.
- */
+import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.SuiviParcour.SuiviParcours;
+
 public class ParcoursDetailsActivity extends AppCompatActivity {
 
     private static final String TAG = "ParcoursDetails";
     private static final String API_COURSE_URL = "http://98.94.8.220:8080/courses/69899eab5a19517b5cfcb121";
     private static final String API_HIKE_BASE_URL = "http://98.94.8.220:8080/hikes/";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MiwiaWF0IjoxNzcwNjI2NjcyLCJleHAiOjE3NzA3MTMwNzJ9.nausJMeBnvdXsahvH48CpGdM5rXuq02bOs5N4EpgHXc";
+
     private MapView map;
     private List<GeoPoint> coursePoints;
     private TextView tvNomParcours;
@@ -46,6 +52,7 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
     private TextView tvArrivee;
     private TextView tvDate;
     private TextView tvRandonnee;
+    private Button btnReprendre;
 
     private Course currentCourse;
 
@@ -82,6 +89,7 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
         tvArrivee = findViewById(R.id.tvArrivee);
         tvDate = findViewById(R.id.tvDate);
         tvRandonnee = findViewById(R.id.tvRandonnee);
+        btnReprendre = findViewById(R.id.btnReprendre);
     }
 
     /**
@@ -98,7 +106,7 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
      * Charge les informations du parcours depuis l'API.
      */
     private void loadCourseFromApi() {
-        Log.d(TAG, "🚀 Début de l'appel API Course vers: " + API_COURSE_URL);
+        Log.d(TAG, "Début de l'appel API Course vers: " + API_COURSE_URL);
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -134,12 +142,10 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
 
     /**
      * Charge le nom de la randonnée associée depuis l'API.
-     *
-     * @param hikeId Identifiant de la randonnée
      */
     private void loadHikeNameFromApi(int hikeId) {
         String url = API_HIKE_BASE_URL + hikeId;
-        Log.d(TAG, "🚀 Début de l'appel API Hike vers: " + url);
+        Log.d(TAG, "Début de l'appel API Hike vers: " + url);
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -148,7 +154,9 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
                 response -> {
                     try {
                         Hike hike = new Gson().fromJson(response.toString(), Hike.class);
-                        String hikeName = (hike != null && hike.getLibelle() != null) ? hike.getLibelle() : "Randonnée " + hikeId;
+                        String hikeName = (hike != null && hike.getLibelle() != null)
+                                ? hike.getLibelle()
+                                : "Randonnée " + hikeId;
                         tvRandonnee.setText(hikeName);
                         Log.d(TAG, "Nom de la randonnée: " + hikeName);
                     } catch (Exception e) {
@@ -175,13 +183,10 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
 
     /**
      * Affiche les informations du parcours dans la vue.
-     *
-     * @param course Le parcours à afficher
      */
     private void displayCourseData(Course course) {
         tvNomParcours.setText("Parcours " + course.getId());
 
-        // Départ / Arrivée
         tvDepart.setText(course.getDepart() != null && course.getDepart().getDescription() != null
                 ? course.getDepart().getDescription()
                 : "Non défini");
@@ -190,18 +195,26 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
                 ? course.getArrivee().getDescription()
                 : "Non défini");
 
-        // Date
         tvDate.setText(formaterDate(course.getDateRealisation()));
-
-        // Randonnée
         tvRandonnee.setText("Chargement...");
+
+        // ===== Bouton Reprendre =====
+        if (course.isPaused() && !course.isFinished()) {
+            btnReprendre.setVisibility(View.VISIBLE);
+            btnReprendre.setOnClickListener(v -> {
+                Intent intent = new Intent(this, SuiviParcours.class);
+                intent.putExtra("courseId", course.getId());
+                startActivity(intent);
+            });
+        } else {
+            btnReprendre.setVisibility(View.GONE);
+        }
 
         // GeoPoints
         coursePoints = new ArrayList<>();
         if (course.getPath() != null && !course.getPath().isEmpty()) {
             for (Point point : course.getPath()) {
-                GeoPoint geoPoint = new GeoPoint(point.getLatitude(), point.getLongitude());
-                coursePoints.add(geoPoint);
+                coursePoints.add(new GeoPoint(point.getLatitude(), point.getLongitude()));
             }
 
             GeoPoint departPoint = coursePoints.get(0);
@@ -219,9 +232,6 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
 
     /**
      * Formate une date ISO en format DD/MM/YYYY.
-     *
-     * @param dateISO Date au format ISO
-     * @return Date formatée ou valeur brute en cas d'erreur
      */
     private String formaterDate(String dateISO) {
         try {
@@ -237,9 +247,6 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
 
     /**
      * Ajoute des markers pour le départ et l'arrivée.
-     *
-     * @param depart  Point de départ
-     * @param arrivee Point d'arrivée
      */
     private void ajouterMarkersDepartArrivee(GeoPoint depart, GeoPoint arrivee) {
         Marker markerDepart = new Marker(map);
@@ -257,8 +264,6 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
 
     /**
      * Trace l'itinéraire sur la carte.
-     *
-     * @param points Liste de points du parcours
      */
     private void tracerItineraire(List<GeoPoint> points) {
         if (points.size() < 2) return;
@@ -289,9 +294,6 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
 
     /**
      * Log une erreur API.
-     *
-     * @param message  Message d'erreur
-     * @param httpCode Code HTTP si disponible
      */
     private void logApiError(String message, Integer httpCode) {
         Log.e(TAG, "Erreur API: " + message);

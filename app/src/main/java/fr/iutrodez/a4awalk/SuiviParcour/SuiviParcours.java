@@ -37,25 +37,16 @@ import java.util.Map;
 
 import fr.iutrodez.a4awalk.R;
 
-/**
- * Activité pour le suivi en temps réel d'un parcours.
- * <p>
- * Cette activité gère :
- * <ul>
- *     <li>L'affichage de la carte avec OpenStreetMap (OSMDroid)</li>
- *     <li>Le suivi GPS de l'utilisateur</li>
- *     <li>La mise à jour des distances vers le prochain point et l'arrivée</li>
- *     <li>La validation des points et alertes d'approche</li>
- *     <li>L'envoi périodique des positions vers une API REST</li>
- * </ul>
- */
 public class SuiviParcours extends AppCompatActivity {
 
     // ===== Constantes API =====
-    private static final String COURSE_ID = "6989e2f5a5b0b8078ee29a24";
+    private static final String COURSE_ID_FALLBACK = "6989e2f5a5b0b8078ee29a24";
     private static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MiwiaWF0IjoxNzcwODg2MTcwLCJleHAiOjE3NzA5NzI1NzB9.ZhJWOvc0xvnphoQ45c0r3t4mYtIswgTgza0YaRdQpFw";
     private static final String BASE_URL = "http://98.94.8.220:8080/courses/";
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
+
+    // ===== ID du parcours courant (depuis Intent ou fallback) =====
+    private String currentCourseId;
 
     // ===== UI =====
     private MapView mapView;
@@ -81,17 +72,6 @@ public class SuiviParcours extends AppCompatActivity {
     private Location lastKnownLocation;
     private LocationCallback locationCallback;
 
-    // =========================================================
-    // ====================== ON CREATE =========================
-    // =========================================================
-
-    /**
-     * Méthode appelée lors de la création de l'activité.
-     * Initialise la carte, les managers, le parcours, le DistanceManager,
-     * le bouton pause et le timer de tracking.
-     *
-     * @param savedInstanceState état précédent de l'activité
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +81,12 @@ public class SuiviParcours extends AppCompatActivity {
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
         setContentView(R.layout.main_activity);
+
+        // ===== Récupération du courseId depuis l'Intent =====
+        String intentCourseId = getIntent().getStringExtra("courseId");
+        currentCourseId = (intentCourseId != null && !intentCourseId.isEmpty())
+                ? intentCourseId
+                : COURSE_ID_FALLBACK;
 
         initViews();
         initManagers();
@@ -115,13 +101,6 @@ public class SuiviParcours extends AppCompatActivity {
         verifierPermissionsEtDemarrer();
     }
 
-    // =========================================================
-    // ====================== INITIALISATIONS ==================
-    // =========================================================
-
-    /**
-     * Initialise les vues de l'activité (MapView, TextView, Button)
-     */
     private void initViews() {
         mapView = findViewById(R.id.mapView);
         btnPause = findViewById(R.id.btnPause);
@@ -133,18 +112,12 @@ public class SuiviParcours extends AppCompatActivity {
         mapView.setMultiTouchControls(true);
     }
 
-    /**
-     * Initialise les managers pour la carte, le son et la localisation
-     */
     private void initManagers() {
         mapManager = new MapManager(mapView, this);
         audioManager = new AudioManager(this, R.raw.notif);
         locationManager = new LocationManager(this);
     }
 
-    /**
-     * Initialise le parcours avec une liste de GeoPoints et la carte
-     */
     private void initParcours() {
         parcoursPoints.add(new GeoPoint(44.360369301617794, 2.5758112393065384));
         parcoursPoints.add(new GeoPoint(44.351077610605785, 2.5740525086171298));
@@ -161,9 +134,6 @@ public class SuiviParcours extends AppCompatActivity {
         }
     }
 
-    /**
-     * Initialise le DistanceManager et ses callbacks pour le suivi du parcours
-     */
     private void initDistanceManager() {
         distanceManager = new DistanceManager(parcoursPoints);
 
@@ -191,9 +161,6 @@ public class SuiviParcours extends AppCompatActivity {
         });
     }
 
-    /**
-     * Initialise le bouton pause/reprise pour la randonnée
-     */
     private void initPauseButton() {
         btnPause.setOnClickListener(v -> {
             if (!isPaused) pauseRandonnee();
@@ -201,9 +168,6 @@ public class SuiviParcours extends AppCompatActivity {
         });
     }
 
-    /**
-     * Initialise le bouton terminer pour la randonnée
-     */
     private void initTerminerButton() {
         btnTerminer.setOnClickListener(v -> terminerRandonnee());
     }
@@ -212,63 +176,41 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== GESTION PAUSE ====================
     // =========================================================
 
-    /**
-     * Met la randonnée en pause et envoie les positions accumulées à l'API
-     */
     private void pauseRandonnee() {
         if (lastKnownLocation != null) {
             ajouterPositionBuffer(lastKnownLocation);
-
             if (!locationBuffer.isEmpty()) {
                 envoyerPositionsAPI();
                 locationBuffer.clear();
             }
         }
 
-        // Envoi du statut de pause à l'API
         envoyerStatutPauseAPI(true);
-
         locationManager.stopLocationUpdates();
         btnPause.setText("Reprendre la randonnée");
         isPaused = true;
     }
 
-    /**
-     * Reprend la randonnée et le suivi GPS
-     */
     private void reprendreRandonnee() {
-        // Envoi du statut de reprise à l'API
         envoyerStatutPauseAPI(false);
-
         startLocation();
         btnPause.setText("Mettre en pause");
         isPaused = false;
     }
 
-    /**
-     * Termine la randonnée et envoie les dernières positions à l'API
-     */
     private void terminerRandonnee() {
-        // Envoie les positions restantes si nécessaire
         if (lastKnownLocation != null) {
             ajouterPositionBuffer(lastKnownLocation);
-
             if (!locationBuffer.isEmpty()) {
                 envoyerPositionsAPI();
                 locationBuffer.clear();
             }
         }
 
-        // Envoi du statut de fin à l'API
         envoyerFinRandoneeAPI();
-
-        // Arrêt de la localisation
         locationManager.stopLocationUpdates();
-
-        // Désactivation des boutons
         btnPause.setEnabled(false);
         btnTerminer.setEnabled(false);
-
         isPaused = true;
     }
 
@@ -276,13 +218,9 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== LOCALISATION =====================
     // =========================================================
 
-    /**
-     * Vérifie les permissions de localisation et démarre le suivi si autorisé
-     */
     private void verifierPermissionsEtDemarrer() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST);
@@ -291,9 +229,6 @@ public class SuiviParcours extends AppCompatActivity {
         }
     }
 
-    /**
-     * Démarre le suivi GPS et met à jour la position de l'utilisateur
-     */
     private void startLocation() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
@@ -303,13 +238,10 @@ public class SuiviParcours extends AppCompatActivity {
                 @Override
                 public void onLocationResult(LocationResult result) {
                     if (result == null) return;
-
                     for (Location loc : result.getLocations()) {
                         lastKnownLocation = loc;
-
                         GeoPoint userPos = new GeoPoint(loc.getLatitude(), loc.getLongitude());
                         Drawable icon = ContextCompat.getDrawable(SuiviParcours.this, R.drawable.ic_pin_user);
-
                         mapManager.updateUserPosition(userPos, icon);
                         distanceManager.updateLocation(loc);
                     }
@@ -324,16 +256,12 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== TRACKING TIMER ==================
     // =========================================================
 
-    /**
-     * Démarre un timer qui envoie les positions toutes les 60 secondes
-     */
     private void startTrackingTimer() {
         trackingRunnable = new Runnable() {
             @Override
             public void run() {
                 if (!isPaused && lastKnownLocation != null) {
                     ajouterPositionBuffer(lastKnownLocation);
-
                     if (locationBuffer.size() >= 10) {
                         envoyerPositionsAPI();
                         locationBuffer.clear();
@@ -345,9 +273,6 @@ public class SuiviParcours extends AppCompatActivity {
         trackingHandler.post(trackingRunnable);
     }
 
-    /**
-     * Ajoute une position GPS au buffer avant envoi à l'API
-     */
     private void ajouterPositionBuffer(Location location) {
         locationBuffer.add(location);
         Toast.makeText(this,
@@ -355,11 +280,12 @@ public class SuiviParcours extends AppCompatActivity {
                 Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Envoie les positions accumulées au serveur via API REST
-     */
+    // =========================================================
+    // ====================== APPELS API =======================
+    // =========================================================
+
     private void envoyerPositionsAPI() {
-        String url = BASE_URL + COURSE_ID;
+        String url = BASE_URL + currentCourseId;
         JSONArray jsonArray = new JSONArray();
 
         try {
@@ -404,12 +330,8 @@ public class SuiviParcours extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    /**
-     * Envoie le changement de statut (pause ou reprise) au serveur via API REST.
-     * Le serveur gère automatiquement le toggle pause/reprise.
-     */
     private void envoyerStatutPauseAPI(boolean paused) {
-        String url = BASE_URL + COURSE_ID + "/state";
+        String url = BASE_URL + currentCourseId + "/state";
 
         StringRequest request = new StringRequest(Request.Method.PUT, url,
                 response -> Toast.makeText(this,
@@ -431,11 +353,8 @@ public class SuiviParcours extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    /**
-     * Envoie la fin de la randonnée au serveur via API REST
-     */
     private void envoyerFinRandoneeAPI() {
-        String url = BASE_URL + COURSE_ID + "/finish";
+        String url = BASE_URL + currentCourseId + "/finish";
 
         StringRequest request = new StringRequest(Request.Method.PUT, url,
                 response -> Toast.makeText(this,
@@ -461,18 +380,12 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== FORMATAGE ========================
     // =========================================================
 
-    /**
-     * Formatte la distance vers le prochain point pour affichage
-     */
     private String formatDistanceProchain(float meters) {
         return meters >= 1000
                 ? String.format("Prochain point %.2f km", meters / 1000)
                 : String.format("Prochain point %.0f m", meters);
     }
 
-    /**
-     * Formatte la distance restante vers l'arrivée pour affichage
-     */
     private String formatDistanceArrivee(float meters) {
         return meters >= 1000
                 ? String.format("Arrivée %.2f km", meters / 1000)
@@ -483,29 +396,17 @@ public class SuiviParcours extends AppCompatActivity {
     // ====================== CALLBACKS ========================
     // =========================================================
 
-    /**
-     * Callback pour la demande de permissions de localisation.
-     *
-     * @param requestCode  code de la requête
-     * @param permissions  tableau des permissions demandées
-     * @param grantResults résultats de l'autorisation
-     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         if (requestCode == LOCATION_PERMISSION_REQUEST &&
                 grantResults.length > 0 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startLocation();
         }
     }
-
-    // =========================================================
-    // ====================== CYCLE VIE ========================
-    // =========================================================
 
     @Override
     protected void onPause() {
@@ -518,7 +419,6 @@ public class SuiviParcours extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         mapView.onResume();
-
         if (!isPaused) startLocation();
     }
 

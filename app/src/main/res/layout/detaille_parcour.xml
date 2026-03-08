@@ -174,7 +174,20 @@
 
     <View android:layout_height="12dp" android:layout_width="match_parent"/>
 
-    <!-- BOUTON SUPPRIMER UNIQUEMENT -->
+    <!-- BOUTON REPRENDRE (visible uniquement si parcours en pause) -->
+    <Button
+        android:id="@+id/btnReprendre"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Reprendre"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:backgroundTint="#4CAF50"
+        android:visibility="gone"/>
+
+    <View android:layout_height="8dp" android:layout_width="match_parent"/>
+
+    <!-- BOUTON SUPPRIMER -->
     <Button
         android:id="@+id/btnSupprimer"
         android:layout_width="match_parent"
@@ -183,4 +196,5 @@
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:backgroundTint="#F44336"/>
+
 </LinearLayout>
