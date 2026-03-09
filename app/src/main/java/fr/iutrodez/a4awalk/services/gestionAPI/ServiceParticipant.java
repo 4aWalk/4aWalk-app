@@ -47,6 +47,8 @@ public class ServiceParticipant {
             body.put("besoinEauLitre", participant.getBesoinEauLitre());
             if (participant.getCapaciteEmportMaxKg() != 0.0) {
                 body.put("capaciteEmportMaxKg", participant.getCapaciteEmportMaxKg());
+            } else {
+                body.put("capaciteEmportMaxKg", 0);
             }
             return body;
         } catch (Exception e) {
@@ -66,8 +68,10 @@ public class ServiceParticipant {
 
             int id = p1.getId();
             if (id == 0) {
+                Log.i("Création", p1.toString() + p1.getId() + ", " + p1.getNiveau() + ", " + p1.getMorphologie() + ", " + p1.getBesoinEauLitre() + ", " +  p1.getBesoinKcal() + ", " + p1.getCapaciteEmportMaxKg());
                 AppelAPI.post(BASE_URL + "/hikes/" + hikeId + "/participants", tokenManager.getToken(), body, contexte, silentCallback);
             } else {
+                Log.i("modif", p1.toString());
                 AppelAPI.put(BASE_URL + "/hikes/" + hikeId + "/participants/" + id, tokenManager.getToken(), body, contexte, silentCallback);
             }
         }

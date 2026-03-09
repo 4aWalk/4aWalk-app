@@ -197,7 +197,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
 
         btnAjouterPOI.setOnClickListener(v -> gererDialogPOI(-1, false));
 
-        listePoints.setOnItemClickListener((parent, view, position, id) -> gererDialogPOI(position, true));
+        listePoints.setOnItemClickListener((parent, view, position, id) -> gererDialogPOI(position, false));
 
         listePoints.setOnItemLongClickListener((parent, view, position, id) -> {
             listeTemporairePOI.remove(position);
