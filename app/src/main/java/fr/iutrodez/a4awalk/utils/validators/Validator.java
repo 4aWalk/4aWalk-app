@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.modeles.chepas;
+package fr.iutrodez.a4awalk.utils.validators;
 
 import android.util.Patterns;
 

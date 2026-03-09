@@ -17,15 +17,13 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import fr.iutrodez.a4awalk.GestionP.Activity.SacActivity;
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
-import fr.iutrodez.a4awalk.utils.ParticipantValidator;
+import fr.iutrodez.a4awalk.utils.validators.ParticipantValidator;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
-import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 
 public class GestionParticipant {
 

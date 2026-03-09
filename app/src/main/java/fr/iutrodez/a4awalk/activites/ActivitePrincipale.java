@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import fr.iutrodez.a4awalk.modeles.entites.LoginRequest;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceConnexion;
-import fr.iutrodez.a4awalk.modeles.chepas.LoginValidator;
+import fr.iutrodez.a4awalk.utils.validators.LoginValidator;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;

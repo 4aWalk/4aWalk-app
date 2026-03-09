@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.utils;
+package fr.iutrodez.a4awalk.utils.validators;
 
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -29,8 +29,8 @@ public class ParticipantValidator {
             etAge.requestFocus();
             return false;
         }
-        if (age <= 0 || age > 100) {
-            etAge.setError("L'âge doit être entre 1 et 100");
+        if (age <= 9 || age >= 100) {
+            etAge.setError("L'âge doit être entre 10 et 99");
             etAge.requestFocus();
             return false;
         }
@@ -50,8 +50,8 @@ public class ParticipantValidator {
             etBesoinKcal.requestFocus();
             return false;
         }
-        if (kcal <= 0 || kcal > 10000) {
-            etBesoinKcal.setError("Le besoin calorique doit être inférieur à 10000 kcal");
+        if (kcal <= 1700 || kcal > 10000) {
+            etBesoinKcal.setError("Le besoin calorique doit être entre 1700 et 10000 kcal");
             etBesoinKcal.requestFocus();
             return false;
         }
@@ -71,8 +71,8 @@ public class ParticipantValidator {
             etBesoinEau.requestFocus();
             return false;
         }
-        if (eau <= 0 || eau > 8) {
-            etBesoinEau.setError("Le besoin en eau doit être inférieur à 8 litres");
+        if (eau <= 1 || eau > 8) {
+            etBesoinEau.setError("Le besoin en eau doit être entre 1 et 8 litres");
             etBesoinEau.requestFocus();
             return false;
         }
@@ -94,7 +94,7 @@ public class ParticipantValidator {
                 return false;
             }
             if (capacite <= 0 || capacite > 30) {
-                etCapacite.setError("Le sac à dos doit peser moins de 30 kg");
+                etCapacite.setError("Le sac à dos doit peser entre 0 et 35 kg");
                 etCapacite.requestFocus();
                 return false;
             }

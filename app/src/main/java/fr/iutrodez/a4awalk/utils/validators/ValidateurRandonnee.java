@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.utils; // Adapte le package selon ton arborescence
+package fr.iutrodez.a4awalk.utils.validators; // Adapte le package selon ton arborescence
 
 import android.text.TextUtils;
 

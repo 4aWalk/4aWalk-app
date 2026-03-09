@@ -15,7 +15,7 @@ import java.util.List;
 
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceInscription;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
-import fr.iutrodez.a4awalk.modeles.chepas.Validator;
+import fr.iutrodez.a4awalk.utils.validators.Validator;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.Level;

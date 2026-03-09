@@ -33,6 +33,7 @@ import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
+import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
 
 public class ActiviteGestionRandonnee extends AppCompatActivity {
 
@@ -365,23 +366,10 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             inputNom.setEnabled(false); inputLat.setEnabled(false); inputLon.setEnabled(false);
             builder.setPositiveButton("Fermer", null);
         } else {
-            builder.setPositiveButton("Valider", (dialog, which) -> {
-                try {
-                    String nom = inputNom.getText().toString();
-                    double lat = Double.parseDouble(inputLat.getText().toString());
-                    double lon = Double.parseDouble(inputLon.getText().toString());
-
-                    if (poi != null) {
-                        poi.setName(nom); poi.setLatitude(lat); poi.setLongitude(lon);
-                    } else {
-                        listeTemporairePOI.add(new PointOfInterest(0, nom, lat, lon));
-                    }
-                    adapterPOI.notifyDataSetChanged();
-                } catch (NumberFormatException e) {
-                    Toast.makeText(this, "Format incorrect pour latitude/longitude", Toast.LENGTH_SHORT).show();
-                }
-            });
+            // On définit le bouton Valider à null ici pour éviter la fermeture automatique
+            builder.setPositiveButton("Valider", null);
             builder.setNegativeButton("Annuler", null);
+
             if (!isCreation) {
                 builder.setNeutralButton("Supprimer", (dialog, which) -> {
                     listeTemporairePOI.remove(position);
@@ -389,8 +377,42 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                 });
             }
         }
+
         builder.setView(view);
-        builder.show();
+
+        // On crée et on affiche l'AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // On surcharge le comportement du bouton "Valider" APRÈS l'affichage (seulement si on n'est pas en lecture seule)
+        if (!isReadOnly) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String nom = inputNom.getText().toString();
+                String latStr = inputLat.getText().toString();
+                String lonStr = inputLon.getText().toString();
+
+                // Appel de notre nouvelle classe de validation
+                PoiValidator.ValidationResult result = PoiValidator.valider(nom, latStr, lonStr);
+
+                if (result.isValid()) {
+                    // Succès : on met à jour ou on ajoute le POI
+                    if (poi != null) {
+                        poi.setName(nom);
+                        poi.setLatitude(result.getLatitude());
+                        poi.setLongitude(result.getLongitude());
+                    } else {
+                        listeTemporairePOI.add(new PointOfInterest(0, nom, result.getLatitude(), result.getLongitude()));
+                    }
+                    adapterPOI.notifyDataSetChanged();
+
+                    // On ferme la boîte de dialogue manuellement puisque tout est bon
+                    dialog.dismiss();
+                } else {
+                    // Échec : on affiche le message d'erreur et on laisse la boîte de dialogue ouverte
+                    Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
     }
 
     private void fermerAvecResultat(int resultCode, String message) {
