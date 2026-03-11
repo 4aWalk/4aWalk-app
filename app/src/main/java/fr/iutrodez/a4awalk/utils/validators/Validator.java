@@ -1,10 +1,15 @@
 package fr.iutrodez.a4awalk.utils.validators;
 
 import android.util.Patterns;
+import java.util.regex.Pattern;
 
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
 
 public class Validator {
+
+    // Regex pour le mot de passe : min 8 caractères, 1 majuscule, 1 caractère spécial
+    private static final String PASSWORD_REGEX = "^(?=.*[A-Z])(?=.*[!@#$%^&*()]).{8,}$";
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile(PASSWORD_REGEX);
 
     public static ValidationResult validate(
             String nom,
@@ -13,11 +18,12 @@ public class Validator {
             String adresse,
             String email,
             String password,
-            String confirmPassword,  // <-- ajouté
+            String confirmPassword,
             String niveau,
             String morphologie
     ) {
 
+        // ---- Champs obligatoires ----
         if (isEmpty(nom))
             return new ValidationResult(false, "nom", "Veuillez entrer votre nom", 0);
 
@@ -39,32 +45,39 @@ public class Validator {
         if (isEmpty(confirmPassword))
             return new ValidationResult(false, "confirmPassword", "Veuillez confirmer le mot de passe", 0);
 
+        // ---- Vérification email ----
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches())
             return new ValidationResult(false, "email", "Email invalide", 0);
 
+        // ---- Vérification âge ----
         int age;
         try {
             age = Integer.parseInt(ageStr);
         } catch (NumberFormatException e) {
             return new ValidationResult(false, "age", "L'âge doit être un nombre", 0);
         }
-
         if (age < 1 || age > 120)
             return new ValidationResult(false, "age", "Âge invalide", 0);
 
-        if (password.length() < 6)
-            return new ValidationResult(false, "password", "Mot de passe trop court", 0);
+        // ---- Vérification mot de passe (regex) ----
+        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+            return new ValidationResult(false, "password",
+                    "Le mot de passe doit contenir au moins 8 caractères, une majuscule et un caractère spécial", 0);
+        }
 
-        // 🔥 VERIFICATION MOT DE PASSE
+        // ---- Vérification que mot de passe et confirmation sont identiques ----
         if (!password.equals(confirmPassword))
-            return new ValidationResult(false, "confirmPassword", "Les mots de passe ne correspondent pas", 0);
+            return new ValidationResult(false, "confirmPassword",
+                    "Les mots de passe ne correspondent pas", 0);
 
+        // ---- Vérification Spinners ----
         if (isSpinnerInvalidN(niveau))
             return new ValidationResult(false, "niveau", "Veuillez choisir un niveau", 0);
 
         if (isSpinnerInvalidM(morphologie))
             return new ValidationResult(false, "morphologie", "Veuillez choisir une morphologie", 0);
 
+        // ---- Tout est valide ----
         return new ValidationResult(true, null, null, age);
     }
 

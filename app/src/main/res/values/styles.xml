@@ -1,0 +1,5 @@
+<resources>
+    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorControlNormal">#FFFFFF</item>
+    </style>
+</resources>
