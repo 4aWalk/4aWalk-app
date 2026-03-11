@@ -95,13 +95,7 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
     }
 
     private void affichageInfosParcours() {
-        adaptateur = new ItemParcoursAdapter(listeParcours, course -> {
-            Intent intent = new Intent(getActivity(), ParcoursDetailsActivity.class);
-            intent.putExtra("ID_PAGE", 1);
-            intent.putExtra("PARCOURS_OBJECT", course);
-            startActivity(intent);
-        });
-        parcoursRecyclerView.setAdapter(adaptateur);
+        
     }
 
 
