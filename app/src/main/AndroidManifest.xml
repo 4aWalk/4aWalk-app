@@ -21,7 +21,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".DetailleParcour.ParcoursDetailsActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,6 +34,20 @@
             android:exported="true"
             android:screenOrientation="portrait">
         </activity>
+
+        <activity
+            android:name=".GestionCompte.InscriptionActivity"
+            android:exported="false" />
+        <activity
+        android:name=".GestionCompte.HeaderActivity"
+        android:exported="true" />
+        <activity
+            android:name=".GestionCompte.ProfilActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".GestionCompte.UpdateProfilActivity"
+            android:exported="true" />
     </application>
 
 </manifest>
