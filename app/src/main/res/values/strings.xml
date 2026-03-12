@@ -32,6 +32,7 @@
     <string name="btnInscrire">S inscrire</string>
 
     <string name="recherche_rando">Rechercher une randonnée</string>
+    <string name="recherche_parcours">Rechercher un parcours</string>
     <string name="onglet_parcours">Parcours</string>
     <string name="onglet_randonnees">Randonnées</string>
     <string name="hike_name">Nom:</string>
@@ -44,6 +45,7 @@
     <string name="equipment">Equipement: </string>
     <string name="data_error_message">Récupération des données impossibles. Veuillez réessayer</string>
     <string name="no_hikes_message">Vous ne possédez aucune randonnée.</string>
+    <string name="no_course_message">Vous ne possédez aucun parcours.</string>
     <string name="create_button_text">Valider</string>
     <string name="longitude">longitude</string>
     <string name="latitude">latitude</string>
@@ -71,5 +73,7 @@
     <string name="prenom">Prenom</string>
     <string name="bouton_modifier_randonnee">Modifier la randonnée</string>
     <string name="bouton_ajouter_randonnee">Ajouter la randonnée</string>
+    <string name="randonne_placeholder">Randonné 1</string>
+    <string name="parcours_placeholder">Parcours 1</string>
 
 </resources>
