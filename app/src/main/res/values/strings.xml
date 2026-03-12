@@ -62,6 +62,7 @@
     <string name="besoinEAU">Besoin en eau (L)</string>
     <string name="sac">Possède un sac à dos</string>
     <string name="capacite">Capacité (kg) du sac</string>
+    <string name="ajouterP">Ajouter le participant</string>
     <string name="btnSac">Voir le sac à dos</string>
 
     <string name="btnAnnuler">Annuler</string>
