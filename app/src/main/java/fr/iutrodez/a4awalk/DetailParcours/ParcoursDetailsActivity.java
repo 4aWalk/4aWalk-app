@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.DetailleParcour;
+package fr.iutrodez.a4awalk.DetailParcours;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -61,7 +61,7 @@ public class ParcoursDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setupOsmdroidConfig();
-        setContentView(R.layout.detaille_parcour);
+        setContentView(R.layout.details_parcours);
         bindViews();
         configureMap();
 

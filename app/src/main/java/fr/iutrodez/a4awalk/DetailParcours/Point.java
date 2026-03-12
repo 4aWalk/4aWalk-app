@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.DetailleParcour;
+package fr.iutrodez.a4awalk.DetailParcours;
 
 /**
  * Représente un point géographique d'un parcours avec latitude et longitude.

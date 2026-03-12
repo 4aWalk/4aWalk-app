@@ -7,6 +7,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,8 +51,8 @@ public class SuiviParcours extends AppCompatActivity {
 
     // ===== UI =====
     private MapView mapView;
-    private MaterialButton btnPause;
-    private MaterialButton btnTerminer;
+    private Button btnPause;
+    private Button btnTerminer;
     private TextView tvProchainPoint, tvArrivee;
 
     // ===== Managers =====
@@ -80,7 +81,7 @@ public class SuiviParcours extends AppCompatActivity {
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.details_parcours);
 
         // ===== Récupération du courseId depuis l'Intent =====
         String intentCourseId = getIntent().getStringExtra("courseId");
@@ -102,10 +103,10 @@ public class SuiviParcours extends AppCompatActivity {
     }
 
     private void initViews() {
-        mapView = findViewById(R.id.mapView);
-        btnPause = findViewById(R.id.btnPause);
-        btnTerminer = findViewById(R.id.btnTerminer);
-        tvProchainPoint = findViewById(R.id.tvProchainPoint);
+        mapView = findViewById(R.id.map);
+        btnPause = findViewById(R.id.btnReprendre);
+        btnTerminer = findViewById(R.id.btnReprendre);
+        tvProchainPoint = findViewById(R.id.tvArrivee); // TODO fix it
         tvArrivee = findViewById(R.id.tvArrivee);
 
         mapView.setBuiltInZoomControls(true);

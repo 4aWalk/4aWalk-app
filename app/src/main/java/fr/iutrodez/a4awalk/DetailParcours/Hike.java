@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.DetailleParcour;
+package fr.iutrodez.a4awalk.DetailParcours;
 
 /**
  * Représente une randonnée (Hike) avec son identifiant, son nom et sa durée en jours.

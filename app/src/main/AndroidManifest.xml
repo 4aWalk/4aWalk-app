@@ -43,23 +43,19 @@
             android:name=".activites.ActiviteInscription"
             android:exported="false" />
         <activity
-        android:name=".GestionCompte.HeaderActivity"
+        android:name=".activites.HeaderActivity"
         android:exported="true" />
         <activity
-            android:name=".GestionCompte.ProfilActivity"
+            android:name=".activites.ProfilActivity"
             android:exported="true" />
 
         <activity
-            android:name=".GestionCompte.UpdateProfilActivity"
+            android:name=".activites.UpdateProfilActivity"
             android:exported="true" />
 
         <activity android:name=".activites.ActiviteListes"/>
 
         <activity android:name=".activites.ActiviteGestionRandonnee"/>
-
-        <activity
-            android:name=".GestionP.Activity.PopUpParticipantActivity"
-            android:exported="true"/>
 
         <activity
             android:name=".activites.SacActivity"

@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.DetailleParcour;
+package fr.iutrodez.a4awalk.DetailParcours;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.DetailleParcour;
+package fr.iutrodez.a4awalk.DetailParcours;
 
 /**
  * Représente un point de départ ou d'arrivée avec coordonnées et description.

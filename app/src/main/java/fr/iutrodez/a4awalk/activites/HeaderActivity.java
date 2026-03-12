@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte;
+package fr.iutrodez.a4awalk.activites;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,7 +18,7 @@ public class HeaderActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.header);
 
         // Initialiser le toolbar
         toolbar = findViewById(R.id.toolbar);

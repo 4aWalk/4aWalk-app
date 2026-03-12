@@ -1,4 +1,4 @@
-package fr.iutrodez.a4awalk.GestionCompte;
+package fr.iutrodez.a4awalk.activites;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -26,8 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.ValidationResult;
-import fr.iutrodez.a4awalk.GestionCompte.Validator.Validator;
+import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
+import fr.iutrodez.a4awalk.utils.validators.Validator;;
 
 public class UpdateProfilActivity extends AppCompatActivity {
 
