@@ -69,4 +69,5 @@ public class ServicePOI {
             return null;
         }
     }
+
 }

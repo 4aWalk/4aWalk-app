@@ -18,6 +18,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.VolleyError;
+
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,10 +33,12 @@ import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
+import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
+import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
 import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
 import fr.iutrodez.a4awalk.utils.validators.ValidateurRandonnee;
 
@@ -47,7 +53,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private ListView listePoints, listeParticipants;
     private Spinner nbJours;
     private ImageButton btnAjouterPOI, btnAjouterParticipant;
-    private Button validateButton;
+    private Button validateButton, btnSupprimer;
     private LinearLayout containerPoi, containerParticipants;
 
     private ArrayList<PointOfInterest> listeTemporairePOI = new ArrayList<>();
@@ -70,9 +76,9 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         configurerToolbar();
 
         tokenManager = new TokenManager(this);
-        initElementsGraphiques();
         recupererDonneesUtilisateur();
         recupererHikeIntent();
+        initElementsGraphiques();
 
         int pageID = getIntent().getIntExtra("ID_PAGE", 0);
 
@@ -122,6 +128,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         btnAjouterPOI = findViewById(R.id.btn_add_poi);
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
         validateButton = findViewById(R.id.validate_button);
+        btnSupprimer = findViewById(R.id.btn_delete_hike);
 
         List<Integer> jours = new ArrayList<>();
         for (int i = 1; i <= 3; i++) jours.add(i);
@@ -178,6 +185,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             poiOriginaux.addAll(listeTemporairePOI);
             modificationRandonnee();
         });
+        btnSupprimer.setVisibility(View.VISIBLE);
+        btnSupprimer.setOnClickListener(v -> afficherConfirmationSuppression());
     }
 
     private void creationRandonnee() {
@@ -271,7 +280,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             try {
                 duree = Integer.parseInt(nbJours.getSelectedItem().toString());
             } catch (NumberFormatException e) {
-                duree = 1;
+                // empty body
             }
         }
 
@@ -298,7 +307,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         String nomArrivee = "Arrivée : " + nom;
         String descArrivee = "Point d'arrivée de la randonnée";
 
-        // 6. Appel de l'API avec les données formatées
+        // Appel de l'API avec les données formatées
         ServiceCreationRandonnee.creerRandonnee(
                 this,
                 tokenManager.getToken(),
@@ -372,10 +381,13 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listeTemporairePOI.clear();
         if (hike.getOptionalPoints() != null) listeTemporairePOI.addAll(hike.getOptionalPoints());
         adapterPOI.notifyDataSetChanged();
+        Log.i("idRando", hike.getId() + "");
+        Log.i("POIS", hike.getOptionalPoints().toString());
 
         listeTemporaireParticipants.clear();
         if (hike.getParticipants() != null) listeTemporaireParticipants.addAll(hike.getParticipants());
         adapterParticipants.notifyDataSetChanged();
+        Log.i("Participants", hike.getParticipants().toString());
 
         updateBtnParticipantState();
     }
@@ -458,6 +470,37 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 }
             });
         }
+    }
+
+    private void afficherConfirmationSuppression() {
+        String nomRando = currentHike != null && currentHike.getLibelle() != null ? currentHike.getLibelle() : "cette randonnée";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirmation de suppression")
+                .setMessage("Etes-vous sur de supprimer la randonnée " + nomRando + " ?")
+                .setPositiveButton("Oui", (dialog, which) -> supprimerRandonnee())
+                .setNegativeButton("Non", null)
+                .show();
+    }
+
+    private void supprimerRandonnee() {
+        ServiceRandonnee.supprimerRandonnee(this, tokenManager.getToken(), currentHike.getId(), new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée supprimée avec succès", Toast.LENGTH_SHORT).show();
+                fermerAvecResultat(Activity.RESULT_OK, null);
+            }
+            @Override
+            public void onError(VolleyError error) {
+                // AJOUT DES VÉRIFICATIONS DE SÉCURITÉ ICI (error != null && error.networkResponse != null)
+                if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
+                    Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée supprimée avec succès", Toast.LENGTH_SHORT).show();
+                    fermerAvecResultat(Activity.RESULT_OK, null);
+                } else {
+                    Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la suppression de la randonnée", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void fermerAvecResultat(int resultCode, String message) {

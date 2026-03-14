@@ -3,6 +3,8 @@ package fr.iutrodez.a4awalk.modeles.entites;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.NonNull;
+
 import fr.iutrodez.a4awalk.modeles.Person;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
@@ -157,12 +159,11 @@ public class Participant implements Person, Parcelable {
     }
 
     public boolean getCreator() { return creator; }
-    public void setCreator(boolean isCreator) { this.creator = isCreator; }
     public int getBesoinKcal() { return besoinKcal; }
     public void setBesoinKcal(int besoinKcal) { this.besoinKcal = besoinKcal; }
 
     public double getBesoinEauLitre() { return besoinEauLitre; }
-    public void setBesoinEauLitre(int besoinEauLitre) { this.besoinEauLitre = besoinEauLitre; }
+    public void setBesoinEauLitre(double besoinEauLitre) { this.besoinEauLitre = besoinEauLitre; }
 
     public double getCapaciteEmportMaxKg() { return capaciteEmportMaxKg; }
     public void setCapaciteEmportMaxKg(double capaciteEmportMaxKg) { this.capaciteEmportMaxKg = capaciteEmportMaxKg; }
@@ -173,5 +174,11 @@ public class Participant implements Person, Parcelable {
         if (backpack != null && backpack.getOwner() != this) {
             backpack.setOwner(this);
         }
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return prenom + " " + nom + " (" + age + " ans)";
     }
 }

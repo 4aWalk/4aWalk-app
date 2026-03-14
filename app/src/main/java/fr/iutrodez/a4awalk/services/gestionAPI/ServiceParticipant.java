@@ -20,19 +20,10 @@ public class ServiceParticipant {
     private final static String URL_BASE_PARTICIPANT = BASE_URL + "/hikes/%d/participants";
     private final static String URL_MODIF_PARTICIPANT = BASE_URL + "/hikes/%d/participants/%d";
 
-    public static void supprimerParticipantAPI(Context context, String token, int hikeId, int participantId, Runnable onSuccess) {
+    public static void supprimerParticipantAPI(Context context, String token, int hikeId, int participantId, AppelAPI.VolleyObjectCallback callback) {
         if (participantId == 0) return;
         String url = String.format(URL_MODIF_PARTICIPANT, hikeId, participantId);
-        AppelAPI.delete(url, token, context, new AppelAPI.VolleyObjectCallback() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                if (onSuccess != null) onSuccess.run();
-            }
-            @Override
-            public void onError(VolleyError error) {
-                error.printStackTrace();
-            }
-        });
+        AppelAPI.delete(url, token, context, callback);
     }
 
     private static JSONObject buildParticipantJSON(Participant participant) {
@@ -57,6 +48,7 @@ public class ServiceParticipant {
     }
 
     public static void traiterMAJParticipants(Context contexte, int hikeId, ArrayList<Participant> listeTemporaireParticipants, ArrayList<Participant> participantsOriginaux, TokenManager tokenManager) {
+        // Création du callback silencieux (gère onSuccess et onError pour éviter l'erreur de compilation)
         AppelAPI.VolleyObjectCallback silentCallback = new AppelAPI.VolleyObjectCallback() {
             @Override public void onSuccess(JSONObject result) {}
             @Override public void onError(VolleyError error) {}
@@ -83,9 +75,10 @@ public class ServiceParticipant {
                     present = true; break;
                 }
             }
-            if (!present) {
-                supprimerParticipantAPI(contexte, tokenManager.getToken(), hikeId, pOrigin.getId(), () -> {});
+            if (!present && !pOrigin.getCreator()) {
+                supprimerParticipantAPI(contexte, tokenManager.getToken(), hikeId, pOrigin.getId(), silentCallback);
             }
         }
     }
+
 }

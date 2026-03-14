@@ -8,12 +8,12 @@ public class ValidateurRandonnee {
      * Vérifie la validité des données de base d'une randonnée.
      *
      * @param nom       Le libellé de la randonnée
-     * @param depLatStr Latitude de départ (String brut)
-     * @param depLonStr Longitude de départ (String brut)
-     * @param arrLatStr Latitude d'arrivée (String brut)
-     * @param arrLonStr Longitude d'arrivée (String brut)
+     * @param depLatStr Latitude de départ
+     * @param depLonStr Longitude de départ
+     * @param arrLatStr Latitude d'arrivée
+     * @param arrLonStr Longitude d'arrivée
      * @param duree     La durée en jours
-     * @return null si tout est valide, sinon un message d'erreur (String).
+     * @return null si tout est valide, sinon un message d'erreur.
      */
     public static String verifierDonnees(String nom, String depLatStr, String depLonStr,
                                          String arrLatStr, String arrLonStr, int duree) {
@@ -54,7 +54,7 @@ public class ValidateurRandonnee {
     private static boolean estCoordonneeValide(String coord, double min, double max) {
         if (TextUtils.isEmpty(coord)) return false;
         try {
-            double val = Double.parseDouble(coord.replace(",", ".")); // Gère virgule ou point
+            double val = Double.parseDouble(coord.replace(",", "."));
             return val >= min && val <= max;
         } catch (NumberFormatException e) {
             return false;

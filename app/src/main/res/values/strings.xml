@@ -76,5 +76,7 @@
     <string name="bouton_ajouter_randonnee">Ajouter la randonnée</string>
     <string name="randonne_placeholder">Randonné 1</string>
     <string name="parcours_placeholder">Parcours 1</string>
+    <string name="ajouter_un_participant">Ajouter un participant</string>
+    <string name="ajouter_un_point">Ajouter un point</string>
 
 </resources>

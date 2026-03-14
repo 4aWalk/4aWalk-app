@@ -151,7 +151,7 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
             ServiceRandonnee.recupererDetailsRandonnee(requireContext(), tokenManager.getToken(), hikeResume.getId(), user, new ServiceRandonnee.RandoDetailCallback() {
                 @Override
                 public void onSuccess(Hike hikeDetailComplet) {
-                    // 3. Succès : On lance l'activité avec l'objet complet
+                    // Lancement de l'activité avec l'objet complet
                     Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
                     intent.putExtra("ID_PAGE", 1); // Mode Consultation/Modification
                     intent.putExtra("HIKE_OBJECT", hikeDetailComplet); // Objet complet

@@ -133,6 +133,22 @@ public class ServiceRandonnee {
             }
             hike.setParticipants(participants);
 
+            // --- Parsing points d'intérêt (Gère le cas Liste et le cas Détail) ---
+            ArrayList<PointOfInterest> pois = new ArrayList<>();
+            JSONArray poisJson = response.optJSONArray("points");
+
+            if (poisJson != null && poisJson.length() > 0) {
+                for (int i = 0; i < poisJson.length(); i++) {
+                    pois.add(parsePOI(poisJson.getJSONObject(i)));
+                }
+            } else if (nbParticipantsCompteur > 0) {
+                for (int i = 0; i < nbParticipantsCompteur; i++) {
+                    pois.add(new PointOfInterest());
+                }
+            }
+            hike.setOptionalPoints(pois);
+
+
             // --- Food Catalogue ---
             JSONArray foodJson = response.optJSONArray("foodCatalogue");
             List<FoodProduct> foodList = new ArrayList<>();
@@ -200,6 +216,9 @@ public class ServiceRandonnee {
         p.setPrenom(obj.optString("prenom", ""));
         p.setNom(obj.optString("nom", ""));
         p.setAge(obj.optInt("age", 0));
+        p.setBesoinKcal(obj.optInt("besoinKcal", 0));
+        p.setBesoinEauLitre(obj.optDouble("besoinEauLitre", 0.0));
+        p.setCapaciteEmportMaxKg(obj.optDouble("capaciteEmportMaxKg", 0.0));
 
         try {
             p.setNiveau(Level.valueOf(obj.optString("niveau", "DEBUTANT")));
@@ -209,5 +228,10 @@ public class ServiceRandonnee {
             p.setMorphologie(Morphology.MOYENNE);
         }
         return p;
+    }
+
+    public static void supprimerRandonnee(Context context, String token, int hikeId, AppelAPI.VolleyObjectCallback callback) {
+        String url = URL_RANDO_DETAIL + hikeId;
+        AppelAPI.delete(url, token, context, callback);
     }
 }

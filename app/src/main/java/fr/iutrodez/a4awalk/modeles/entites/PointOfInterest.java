@@ -86,4 +86,9 @@ public class PointOfInterest implements Parcelable {
 
     public int getSequence() { return sequence; }
     public void setSequence(int order) { this.sequence = order; }
+
+    @Override
+    public String toString() {
+        return getNom();
+    }
 }

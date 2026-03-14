@@ -150,7 +150,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_add"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Ajouter un point"
+                    android:contentDescription="@string/ajouter_un_point"
                     app:tint="@color/black"
                     android:layout_gravity="center_horizontal"/>
             </LinearLayout>
@@ -181,7 +181,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_add"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Ajouter un participant"
+                    android:contentDescription="@string/ajouter_un_participant"
                     app:tint="@color/black"
                     android:layout_gravity="center_horizontal"/>
             </LinearLayout>
@@ -193,6 +193,15 @@
                 android:text="@string/create_button_text"
                 android:layout_marginTop="30dp"
                 android:backgroundTint="@color/vert"/>
+            <Button
+                android:id="@+id/btn_delete_hike"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btnSupprimer"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#D32F2F"
+                android:textColor="@color/red"
+                android:visibility="gone"/>
 
         </LinearLayout>
     </ScrollView>
