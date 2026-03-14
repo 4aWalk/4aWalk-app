@@ -36,4 +36,5 @@ public class ParcoursViewHolder extends RecyclerView.ViewHolder {
             nomRandonnee.setText("Randonnée inconnue");
         }
     }
+
 }

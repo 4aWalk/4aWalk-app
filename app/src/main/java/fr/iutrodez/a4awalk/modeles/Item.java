@@ -1,5 +1,7 @@
 package fr.iutrodez.a4awalk.modeles;
 
+import android.os.Parcel;
+
 /**
  * Interface définissant le contrat pour tout objet pouvant être transporté
  * dans un sac à dos (Backpack).

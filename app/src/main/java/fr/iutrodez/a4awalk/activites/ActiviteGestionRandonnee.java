@@ -35,7 +35,7 @@ import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonne
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
 import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
 
-public class ActiviteGestionRandonnee extends AppCompatActivity {
+public class ActiviteGestionRandonnee extends HeaderActivity {
 
     private static final int MODE_CONSULTATION = 1;
     private static final int MODE_CREATION = 2;
@@ -65,6 +65,8 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activite_details_randonnee);
+
+        configurerToolbar();
 
         tokenManager = new TokenManager(this);
         initElementsGraphiques();

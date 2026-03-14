@@ -48,22 +48,30 @@ public class Participant implements Person, Parcelable {
     // --- Implémentation Parcelable ---
 
     protected Participant(Parcel in) {
-        // MODIFICATION : Lecture simplifiée pour les types primitifs
         id = in.readInt();
         idRando = in.readInt();
         nom = in.readString();
         prenom = in.readString();
         age = in.readInt();
 
+        // Lecture sécurisée des Enums
         String niveauStr = in.readString();
-        niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : null;
+        try {
+            niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : Level.DEBUTANT;
+        } catch (IllegalArgumentException e) {
+            niveau = Level.DEBUTANT;
+        }
 
         String morphoStr = in.readString();
-        morphologie = (morphoStr != null) ? Morphology.valueOf(morphoStr) : null;
+        try {
+            morphologie = (morphoStr != null) ? Morphology.valueOf(morphoStr) : Morphology.MOYENNE;
+        } catch (IllegalArgumentException e) {
+            morphologie = Morphology.MOYENNE;
+        }
 
         creator = in.readByte() != 0;
         besoinKcal = in.readInt();
-        besoinEauLitre = in.readInt();
+        besoinEauLitre = in.readDouble();       // Vérifiez que c'est bien readDouble
         capaciteEmportMaxKg = in.readDouble();
     }
 

@@ -57,19 +57,15 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialisation du lanceur. C'est ici que la magie opère pour l'actualisation.
+        // Initialisation du lanceur
         randoResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        Log.d("REFRESH", "Retour d'activité avec succès (Création ou Modif). Actualisation...");
-
-                        // Petit feedback utilisateur
+                        Log.d("REFRESH", "Retour d'activité avec succès. Actualisation...");
                         if (getContext() != null) {
                             Toast.makeText(getContext(), "Liste actualisée", Toast.LENGTH_SHORT).show();
                         }
-
-                        // Rechargement des données API
                         if (tokenManager != null) {
                             initialiseListeRandos(tokenManager.getToken());
                         }
@@ -83,7 +79,6 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                              Bundle savedInstanceState) {
         View vueDuFragment = inflater.inflate(R.layout.fragment_liste_randonnees, container, false);
 
-        // Récupération du User depuis les arguments
         if (getArguments() != null) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 user = getArguments().getParcelable("USER_DATA", User.class);
@@ -100,26 +95,21 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
 
         randoRecyclerView.setLayoutManager(new LinearLayoutManager(vueDuFragment.getContext()));
 
-        // Premier chargement de la liste
+        // Premier chargement
         initialiseListeRandos(tokenManager.getToken());
 
-        // Bouton Flottant (Ajout)
+        // Bouton Flottant
         fab = vueDuFragment.findViewById(R.id.fab_add_hike);
         fab.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
             intent.putExtra("ID_PAGE", 2); // Mode Création
             intent.putExtra("USER_DATA", user);
-
-            // On lance avec le launcher pour capter le résultat de la création
             randoResultLauncher.launch(intent);
         });
 
         return vueDuFragment;
     }
 
-    /**
-     * Utilise le ServiceRandonnee pour charger les données
-     */
     public void initialiseListeRandos(String token) {
         if (getContext() == null) return;
 
@@ -135,8 +125,6 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                 } else {
                     randoRecyclerView.setVisibility(View.VISIBLE);
                     messageView.setVisibility(View.GONE);
-
-                    // Mise à jour de l'affichage
                     affichageInfosRando();
                 }
             }
@@ -152,17 +140,33 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     }
 
     private void affichageInfosRando() {
-        // Configuration de l'adaptateur
-        // Le listener (lambda) correspond au clic sur un item de la liste (pour modification)
-        adaptateur = new ItemRandoAdapter(listeRandos, hike -> {
-            Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
-            intent.putExtra("ID_PAGE", 1); // Mode Consultation/Modification
-            intent.putExtra("HIKE_OBJECT", hike); // On passe l'objet complet
-            intent.putExtra("USER_DATA", user);
+        adaptateur = new ItemRandoAdapter(listeRandos, hikeResume -> {
 
-            // IMPORTANT : On utilise le launcher ici aussi !
-            // Ainsi, si l'utilisateur modifie la rando et revient, le launcher capte le RESULT_OK
-            randoResultLauncher.launch(intent);
+            // 1. Indiquer à l'utilisateur qu'on charge les détails
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Chargement des détails...", Toast.LENGTH_SHORT).show();
+            }
+
+            // 2. Appel ciblé pour récupérer l'objet complet de CETTE randonnée
+            ServiceRandonnee.recupererDetailsRandonnee(requireContext(), tokenManager.getToken(), hikeResume.getId(), user, new ServiceRandonnee.RandoDetailCallback() {
+                @Override
+                public void onSuccess(Hike hikeDetailComplet) {
+                    // 3. Succès : On lance l'activité avec l'objet complet
+                    Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
+                    intent.putExtra("ID_PAGE", 1); // Mode Consultation/Modification
+                    intent.putExtra("HIKE_OBJECT", hikeDetailComplet); // Objet complet
+                    intent.putExtra("USER_DATA", user);
+
+                    randoResultLauncher.launch(intent);
+                }
+
+                @Override
+                public void onError(VolleyError error) {
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Impossible de charger les détails", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
 
         randoRecyclerView.setAdapter(adaptateur);

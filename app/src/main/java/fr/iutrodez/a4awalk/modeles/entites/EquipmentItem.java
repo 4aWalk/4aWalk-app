@@ -1,5 +1,8 @@
 package fr.iutrodez.a4awalk.modeles.entites;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import fr.iutrodez.a4awalk.modeles.Item;
 import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 
@@ -7,7 +10,7 @@ import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
  * Représente un équipement (matériel indispensable comme une tente, un duvet, etc.).
  * Implémente l'interface Item pour la logique de calcul de charge.
  */
-public class EquipmentItem implements Item {
+public class EquipmentItem implements Item, Parcelable {
 
     private Long id;
 
@@ -41,6 +44,35 @@ public class EquipmentItem implements Item {
         this.type = type;
         this.masseAVide = masseAVide;
     }
+
+    protected EquipmentItem(Parcel in) {
+        if (in.readByte() == 0) id = null; else id = in.readLong();
+        nom = in.readString();
+        description = in.readString();
+        if (in.readByte() == 0) masseGrammes = null; else masseGrammes = in.readDouble();
+        nbItem = in.readInt();
+        String typeStr = in.readString();
+        type = typeStr != null ? TypeEquipment.valueOf(typeStr) : null;
+        masseAVide = in.readDouble();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (id == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeLong(id); }
+        dest.writeString(nom);
+        dest.writeString(description);
+        if (masseGrammes == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(masseGrammes); }
+        dest.writeInt(nbItem);
+        dest.writeString(type != null ? type.name() : null);
+        dest.writeDouble(masseAVide);
+    }
+
+    public static final Creator<EquipmentItem> CREATOR = new Creator<EquipmentItem>() {
+        @Override public EquipmentItem createFromParcel(Parcel in) { return new EquipmentItem(in); }
+        @Override public EquipmentItem[] newArray(int size) { return new EquipmentItem[size]; }
+    };
+
+    @Override public int describeContents() { return 0; }
 
     // Override de l'interface
 

@@ -1,5 +1,8 @@
 package fr.iutrodez.a4awalk.modeles.entites;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import fr.iutrodez.a4awalk.modeles.Item;
 
 /**
@@ -7,7 +10,7 @@ import fr.iutrodez.a4awalk.modeles.Item;
  * Implémente l'interface Item pour s'intégrer dans le calcul de charge du sac.
  * (Correspond à l'UC 2.1.4.4 - Caractéristiques nutritionnelles)
  */
-public class FoodProduct implements Item {
+public class FoodProduct implements Item, Parcelable {
 
     private Long id;
 
@@ -42,6 +45,38 @@ public class FoodProduct implements Item {
         this.prixEuro = prixEuro;
         this.nbItem = nbItem;
     }
+
+    protected FoodProduct(Parcel in) {
+        if (in.readByte() == 0) id = null; else id = in.readLong();
+        nom = in.readString();
+        description = in.readString();
+        if (in.readByte() == 0) masseGrammes = null; else masseGrammes = in.readDouble();
+        appellationCourante = in.readString();
+        conditionnement = in.readString();
+        if (in.readByte() == 0) apportNutritionnelKcal = null; else apportNutritionnelKcal = in.readDouble();
+        if (in.readByte() == 0) prixEuro = null; else prixEuro = in.readDouble();
+        nbItem = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (id == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeLong(id); }
+        dest.writeString(nom);
+        dest.writeString(description);
+        if (masseGrammes == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(masseGrammes); }
+        dest.writeString(appellationCourante);
+        dest.writeString(conditionnement);
+        if (apportNutritionnelKcal == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(apportNutritionnelKcal); }
+        if (prixEuro == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(prixEuro); }
+        dest.writeInt(nbItem);
+    }
+
+    public static final Creator<FoodProduct> CREATOR = new Creator<FoodProduct>() {
+        @Override public FoodProduct createFromParcel(Parcel in) { return new FoodProduct(in); }
+        @Override public FoodProduct[] newArray(int size) { return new FoodProduct[size]; }
+    };
+
+    @Override public int describeContents() { return 0; }
 
     // Override de l'interface
 

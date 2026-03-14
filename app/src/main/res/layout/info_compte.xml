@@ -7,7 +7,12 @@
     android:background="#E8DCC4">
 
     <!-- Inclusion du header -->
-    <include layout="@layout/header" />
+    <include
+        android:id="@+id/mon_header"
+        layout="@layout/header"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Contenu principal -->
     <ScrollView

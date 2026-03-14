@@ -36,6 +36,8 @@ public class PointOfInterest implements Parcelable {
         nom = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
+        description = in.readString();
+        sequence = in.readInt();
     }
 
     @Override
@@ -44,6 +46,8 @@ public class PointOfInterest implements Parcelable {
         dest.writeString(nom);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
+        dest.writeString(description);
+        dest.writeInt(sequence);
     }
 
     public static final Creator<PointOfInterest> CREATOR = new Creator<PointOfInterest>() {

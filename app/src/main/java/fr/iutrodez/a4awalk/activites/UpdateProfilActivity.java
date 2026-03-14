@@ -29,7 +29,7 @@ import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
 import fr.iutrodez.a4awalk.utils.validators.Validator;;
 
-public class UpdateProfilActivity extends AppCompatActivity {
+public class UpdateProfilActivity extends HeaderActivity {
 
     // ===== Constantes API =====
     private static final String BASE_URL = "http://98.94.8.220:8080/users/";
@@ -54,14 +54,7 @@ public class UpdateProfilActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.modification_compte);
 
-        // ===== Toolbar =====
-        toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setDisplayShowTitleEnabled(false);
-            }
-        }
+        configurerToolbar();
 
         // ===== Initialisation =====
         initViews();

@@ -41,6 +41,21 @@ public class Hike implements Parcelable {
 
     // --- Implémentation Parcelable ---
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(libelle);
+        dest.writeParcelable(depart, flags);
+        dest.writeParcelable(arrivee, flags);
+        dest.writeInt(dureeJours);
+        dest.writeParcelable(creator, flags);
+        dest.writeTypedList(participants);
+        dest.writeTypedList(optionalPoints);
+        dest.writeTypedList(foodCatalogue);
+        dest.writeTypedList(equipmentCatalogue);
+        dest.writeByte((byte) (optimize ? 1 : 0));
+    }
+
     protected Hike(Parcel in) {
         id = in.readInt();
         libelle = in.readString();
@@ -48,28 +63,11 @@ public class Hike implements Parcelable {
         arrivee = in.readParcelable(PointOfInterest.class.getClassLoader());
         dureeJours = in.readInt();
         creator = in.readParcelable(User.class.getClassLoader());
-
         participants = in.createTypedArrayList(Participant.CREATOR);
-
-        List<PointOfInterest> poiList = new ArrayList<>();
-        in.readList(poiList, PointOfInterest.class.getClassLoader());
-        optionalPoints = new ArrayList<>(poiList);
-        optimize = in.readBoolean();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        // MODIFICATION : Écriture simplifiée de l'int
-        dest.writeInt(id);
-        dest.writeString(libelle);
-        dest.writeParcelable(depart, flags);
-        dest.writeParcelable(arrivee, flags);
-        dest.writeInt(dureeJours);
-        dest.writeParcelable(creator, flags);
-
-        dest.writeTypedList(participants);
-        dest.writeList(new ArrayList<>(optionalPoints));
-        dest.writeBoolean(optimize);
+        optionalPoints = in.createTypedArrayList(PointOfInterest.CREATOR);
+        foodCatalogue = in.createTypedArrayList(FoodProduct.CREATOR);
+        equipmentCatalogue = in.createTypedArrayList(EquipmentItem.CREATOR);
+        optimize = in.readByte() != 0;
     }
 
     @Override

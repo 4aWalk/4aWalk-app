@@ -15,11 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.VolleyError;
 
 import java.util.ArrayList;
+import java.util.HashMap; // N'oublie pas cet import
 
-import fr.iutrodez.a4awalk.activites.ActiviteGestionRandonnee;
-import fr.iutrodez.a4awalk.adaptateurs.ItemRandoAdapter;
-import fr.iutrodez.a4awalk.modeles.entites.Course;
+import fr.iutrodez.a4awalk.activites.ParcoursDetailsActivity; // L'import de la nouvelle activité
 import fr.iutrodez.a4awalk.adaptateurs.ItemParcoursAdapter;
+import fr.iutrodez.a4awalk.modeles.entites.Course;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
@@ -37,12 +37,13 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
     public static FragmentListeParcours newInstance() {
         return new FragmentListeParcours();
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View vueDuFragment = inflater.inflate(R.layout.fragment_liste_parcours, container, false);
 
-        // Initialisation User factice
+        // Initialisation User
         intentionRecu = requireActivity().getIntent();
         user = intentionRecu.getParcelableExtra("USER_DATA");
         listeParcours = new ArrayList<>();
@@ -70,18 +71,35 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
         ServiceParcours.recupererParcoursUtilisateur(requireContext(), token, new ServiceParcours.ParcoursCallback() {
             @Override
             public void onSuccess(ArrayList<Course> parcours) {
-                // Mise à jour de la liste locale
                 listeParcours = parcours;
 
                 // Gestion de l'affichage vide/plein
-                if (listeParcours.isEmpty()) {
+                if (listeParcours == null || listeParcours.isEmpty()) {
                     parcoursRecyclerView.setVisibility(View.GONE);
                     messageView.setVisibility(View.VISIBLE);
                     messageView.setText(R.string.no_course_message);
-                    Log.i("INFO", "Aucune parcours disponible");
+                    Log.i("INFO", "Aucun parcours disponible");
                 } else {
                     parcoursRecyclerView.setVisibility(View.VISIBLE);
                     messageView.setVisibility(View.GONE);
+
+                    HashMap<Long, String> dictionnaireRandos = new HashMap<>();
+
+                    adaptateur = new ItemParcoursAdapter(listeParcours, dictionnaireRandos, new ItemParcoursAdapter.OnParcoursClickListener() {
+                        @Override
+                        public void onRandoClick(Course route) {
+                            // C'est ici que l'on déclenche l'ouverture de l'activité de détails
+                            Intent intent = new Intent(requireActivity(), ParcoursDetailsActivity.class);
+
+                            // On sécurise en passant l'ID en String (car ton modèle Course a un ID en String)
+                            intent.putExtra("COURSE_ID", route.getId());
+
+                            startActivity(intent);
+                        }
+                    });
+
+                    // On attache l'adaptateur au RecyclerView pour afficher les données !
+                    parcoursRecyclerView.setAdapter(adaptateur);
                 }
             }
 
@@ -92,11 +110,6 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
             }
         });
     }
-
-    private void affichageInfosParcours() {
-        
-    }
-
 
     @Override
     public void onClick(View v) {

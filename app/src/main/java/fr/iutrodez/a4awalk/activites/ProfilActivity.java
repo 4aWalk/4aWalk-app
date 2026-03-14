@@ -12,7 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import fr.iutrodez.a4awalk.R;
 
-public class ProfilActivity extends AppCompatActivity {
+public class ProfilActivity extends HeaderActivity {
 
     protected Toolbar toolbar;
 
@@ -20,6 +20,8 @@ public class ProfilActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.info_compte);
+
+        configurerToolbar();
 
         // Initialiser le toolbar
         toolbar = findViewById(R.id.toolbar);
@@ -83,19 +85,10 @@ public class ProfilActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(android.view.MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_account) {
+        if (item.getItemId() == R.id.action_account) {
             Toast.makeText(this, "Vous êtes déjà sur votre profil", Toast.LENGTH_SHORT).show();
             return true;
         }
-
-        if (id == R.id.action_logout) {
-            Toast.makeText(this, "Déconnexion", Toast.LENGTH_SHORT).show();
-            finish();
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 }
