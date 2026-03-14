@@ -156,7 +156,7 @@ public class ServiceRandonnee {
                 for (int i = 0; i < foodJson.length(); i++) {
                     JSONObject f = foodJson.getJSONObject(i);
                     FoodProduct fp = new FoodProduct();
-                    fp.setId(f.getLong("id"));
+                    fp.setId(f.getInt("id"));
                     fp.setNom(f.getString("nom"));
                     fp.setMasseGrammes(f.optDouble("masseGrammes", 0.0));
                     fp.setNbItem(f.optInt("nbItem", 0));
@@ -179,7 +179,7 @@ public class ServiceRandonnee {
                             for (int i = 0; i < itemsArray.length(); i++) {
                                 JSONObject e = itemsArray.getJSONObject(i);
                                 EquipmentItem item = new EquipmentItem();
-                                item.setId(e.getLong("id"));
+                                item.setId(e.getInt("id"));
                                 item.setNom(e.getString("nom"));
                                 item.setType(TypeEquipment.valueOf(e.optString("type", "AUTRE")));
                                 item.setNbItem(e.optInt("nbItem", 0));

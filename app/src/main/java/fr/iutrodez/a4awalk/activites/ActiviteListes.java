@@ -1,6 +1,5 @@
 package fr.iutrodez.a4awalk.activites;
 
-// Attention : on retire l'import de AppCompatActivity s'il n'est plus utilisé directement
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.Intent;

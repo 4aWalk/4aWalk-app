@@ -60,6 +60,8 @@
         <activity
             android:name=".activites.SacActivity"
             android:exported="true"/>
+
+        <activity android:name=".activites.ActiviteGestionFoodProducts"/>
     </application>
 
 </manifest>

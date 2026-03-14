@@ -78,5 +78,9 @@
     <string name="parcours_placeholder">Parcours 1</string>
     <string name="ajouter_un_participant">Ajouter un participant</string>
     <string name="ajouter_un_point">Ajouter un point</string>
+    <string name="optimiser">Optimiser</string>
+    <string name="gestion_compte">Gestion du compte</string>
+    <string name="deconnexion">Déconnexion</string>
+    <string name="items">Items</string>
 
 </resources>

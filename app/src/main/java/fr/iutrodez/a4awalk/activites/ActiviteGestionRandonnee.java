@@ -34,6 +34,7 @@ import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceOptimisation;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
@@ -53,7 +54,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private ListView listePoints, listeParticipants;
     private Spinner nbJours;
     private ImageButton btnAjouterPOI, btnAjouterParticipant;
-    private Button validateButton, btnSupprimer;
+    private Button validateButton, btnSupprimer, btnOptimizeHike;
     private LinearLayout containerPoi, containerParticipants;
 
     private ArrayList<PointOfInterest> listeTemporairePOI = new ArrayList<>();
@@ -124,6 +125,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         containerPoi = findViewById(R.id.container_poi);
         containerParticipants = findViewById(R.id.container_participants);
+        btnOptimizeHike = findViewById(R.id.btn_optimize_hike);
 
         btnAjouterPOI = findViewById(R.id.btn_add_poi);
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
@@ -185,6 +187,10 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             poiOriginaux.addAll(listeTemporairePOI);
             modificationRandonnee();
         });
+
+        btnOptimizeHike.setVisibility(View.VISIBLE);
+        btnOptimizeHike.setOnClickListener(v -> lancerOptimisation());
+
         btnSupprimer.setVisibility(View.VISIBLE);
         btnSupprimer.setOnClickListener(v -> afficherConfirmationSuppression());
     }
@@ -205,6 +211,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         btnAjouterParticipant.setVisibility(View.VISIBLE);
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
+        btnOptimizeHike.setVisibility(View.GONE);
+        btnSupprimer.setVisibility(View.GONE);
 
         updateBtnParticipantState();
 
@@ -470,6 +478,27 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 }
             });
         }
+    }
+
+    private void lancerOptimisation() {
+        if (currentHike == null || currentHike.getId() == 0) {
+            Toast.makeText(this, "Impossible d'optimiser une randonnée non enregistrée.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Optimisation en cours...", Toast.LENGTH_SHORT).show();
+
+        ServiceOptimisation.optimiserRandonnee(this, tokenManager.getToken(), currentHike.getId(), new ServiceOptimisation.OptimisationCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée optimisée avec succès !", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(ActiviteGestionRandonnee.this, "Échec de l'optimisation : " + message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void afficherConfirmationSuppression() {

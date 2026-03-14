@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
@@ -115,7 +116,7 @@ public class GestionParticipant {
         views.btnSupprimer.setVisibility(View.GONE);
         views.btnVoirSac.setVisibility(View.GONE);
         views.btnAction.setOnClickListener(v ->
-                traiterSoumission(context, dialog, views, token, hikeId, 0, callback, false)
+                traiterSoumission(context, dialog, views, hikeId, 0, callback, false)
         );
     }
 
@@ -138,7 +139,7 @@ public class GestionParticipant {
         views.btnSupprimer.setVisibility(View.VISIBLE);
 
         views.btnAction.setOnClickListener(v ->
-                traiterSoumission(context, dialog, views, token, hikeId, participant.getId(), callback, true)
+                traiterSoumission(context, dialog, views, hikeId, participant.getId(), callback, true)
         );
 
         // Action de suppression
@@ -150,7 +151,7 @@ public class GestionParticipant {
         });
     }
 
-    private static void traiterSoumission(Context context, Dialog dialog, ParticipantViewHolder views, String token,
+    private static void traiterSoumission(Context context, Dialog dialog, ParticipantViewHolder views,
                                           int hikeId, int participantId, ParticipantCallback callback, boolean isUpdate) {
 
         boolean isValidForm = ParticipantValidator.validate(
@@ -177,6 +178,7 @@ public class GestionParticipant {
             }
 
         } catch (NumberFormatException e) {
+            Log.e("erreur", e.getMessage());
             Toast.makeText(context, "Erreur de format numérique", Toast.LENGTH_SHORT).show();
         }
     }
@@ -186,7 +188,7 @@ public class GestionParticipant {
         String prenom = v.etPrenom.getText().toString().trim();
         int age = v.etAge.getText().toString().trim().isEmpty() ? 0 : Integer.parseInt(v.etAge.getText().toString().trim());
         int kcal = v.etBesoinKcal.getText().toString().trim().isEmpty() ? 0 : Integer.parseInt(v.etBesoinKcal.getText().toString().trim());
-        int eau = v.etBesoinEau.getText().toString().trim().isEmpty() ? 0 : Integer.parseInt(v.etBesoinEau.getText().toString().trim());
+        double eau = v.etBesoinEau.getText().toString().trim().isEmpty() ? 0 : Double.parseDouble(v.etBesoinEau.getText().toString().trim());
         double cap = v.cbSacADos.isChecked() && !v.etCapacite.getText().toString().trim().isEmpty()
                 ? Double.parseDouble(v.etCapacite.getText().toString().trim().replace(",", "."))
                 : 0.0;

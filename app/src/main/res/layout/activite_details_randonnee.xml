@@ -185,7 +185,40 @@
                     app:tint="@color/black"
                     android:layout_gravity="center_horizontal"/>
             </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Produits Alimentaires"
+                        android:textStyle="bold"
+                        android:textSize="18sp" />
+
+                    <ImageButton
+                        android:id="@+id/btn_ajouter_food_product"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@android:drawable/ic_input_add"
+                        android:contentDescription="Ajouter un produit"
+                        android:visibility="gone" /> </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_food_products"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
             <Button
                 android:id="@+id/validate_button"
                 android:layout_width="match_parent"
@@ -194,13 +227,20 @@
                 android:layout_marginTop="30dp"
                 android:backgroundTint="@color/vert"/>
             <Button
+                android:id="@+id/btn_optimize_hike"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/optimiser"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/orange"
+                android:visibility="gone"/>
+            <Button
                 android:id="@+id/btn_delete_hike"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/btnSupprimer"
                 android:layout_marginTop="10dp"
                 android:backgroundTint="#D32F2F"
-                android:textColor="@color/red"
                 android:visibility="gone"/>
 
         </LinearLayout>

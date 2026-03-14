@@ -5,13 +5,19 @@
     <item
         android:id="@+id/action_account"
         android:icon="@android:drawable/ic_menu_manage"
-        android:title="Gestion du compte"
+        android:title="@string/gestion_compte"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_items"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:title="@string/items"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_logout"
         android:icon="@android:drawable/ic_menu_close_clear_cancel"
-        android:title="Déconnexion"
+        android:title="@string/deconnexion"
         app:showAsAction="never" />
 
 </menu>

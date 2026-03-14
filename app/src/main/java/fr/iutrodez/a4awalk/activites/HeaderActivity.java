@@ -67,6 +67,11 @@ public abstract class HeaderActivity extends AppCompatActivity {
             return true;
         }
 
+        if (id == R.id.action_items) {
+            startActivity(new Intent(this, ActiviteGestionFoodProducts.class)); // Modifie si besoin
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 }

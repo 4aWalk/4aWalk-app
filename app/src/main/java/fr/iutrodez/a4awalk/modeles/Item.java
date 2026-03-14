@@ -9,12 +9,12 @@ import android.os.Parcel;
  */
 public interface Item {
 
-    Long getId();
+    int getId();
     String getNom();
     double getMasseGrammes();
     int getNbItem();
 
-    void setId(Long id);
+    void setId(int id);
     void setNom(String nom);
     void setMasseGrammes(double masseGrammes);
     void setNbItem(int nbItem);

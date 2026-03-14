@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nouveau Produit Alimentaire"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText android:id="@+id/et_fp_nom" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nom" />
+        <EditText android:id="@+id/et_fp_masse" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Masse (g)" android:inputType="numberDecimal" />
+        <EditText android:id="@+id/et_fp_appellation" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Appellation courante" />
+        <EditText android:id="@+id/et_fp_conditionnement" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Conditionnement" />
+        <EditText android:id="@+id/et_fp_kcal" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Apport (Kcal)" android:inputType="numberDecimal" />
+        <EditText android:id="@+id/et_fp_prix" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Prix (€)" android:inputType="numberDecimal" />
+        <EditText android:id="@+id/et_fp_quantite" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Quantité (Nb Items)" android:inputType="number" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
+
+            <Button android:id="@+id/btn_fp_annuler" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Annuler" />
+            <Button android:id="@+id/btn_fp_valider" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Ajouter" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -12,7 +12,7 @@ import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
  */
 public class EquipmentItem implements Item, Parcelable {
 
-    private Long id;
+    private int id;
 
     private String nom;
 
@@ -46,11 +46,15 @@ public class EquipmentItem implements Item, Parcelable {
     }
 
     protected EquipmentItem(Parcel in) {
-        if (in.readByte() == 0) id = null; else id = in.readLong();
+        // Lecture de l'ID en tant que int primitif
+        id = in.readInt();
+
         nom = in.readString();
         description = in.readString();
+
         if (in.readByte() == 0) masseGrammes = null; else masseGrammes = in.readDouble();
         nbItem = in.readInt();
+
         String typeStr = in.readString();
         type = typeStr != null ? TypeEquipment.valueOf(typeStr) : null;
         masseAVide = in.readDouble();
@@ -58,9 +62,12 @@ public class EquipmentItem implements Item, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        if (id == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeLong(id); }
+        // Écriture de l'ID en tant que int
+        dest.writeInt(id);
+
         dest.writeString(nom);
         dest.writeString(description);
+
         if (masseGrammes == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(masseGrammes); }
         dest.writeInt(nbItem);
         dest.writeString(type != null ? type.name() : null);
@@ -76,20 +83,22 @@ public class EquipmentItem implements Item, Parcelable {
 
     // Override de l'interface
 
-    @Override
-    public Long getId() { return id; }
+    // Modification pour renvoyer un int
+    public int getId() { return id; }
 
     @Override
     public String getNom() { return nom; }
 
     @Override
-    public double getMasseGrammes() { return masseGrammes; }
+    public double getMasseGrammes() {
+        return masseGrammes != null ? masseGrammes : 0.0;
+    }
 
     @Override
     public int getNbItem() { return nbItem; }
 
-    @Override
-    public void setId(Long id) { this.id = id; }
+    // Modification pour recevoir un int
+    public void setId(int id) { this.id = id; }
 
     @Override
     public void setNom(String nom) { this.nom = nom; }
@@ -112,6 +121,9 @@ public class EquipmentItem implements Item, Parcelable {
     public double getMasseAVide() { return masseAVide; }
     public void setMasseAVide(double masseAVide) {this.masseAVide = masseAVide;}
 
-    public double getTotalMasses() { return this.masseGrammes - this.masseAVide * this.nbItem; }
-    public double getTotalMassesKg() {return this.getTotalMasses() / 1000;}
+    public double getTotalMasses() {
+        return getMasseGrammes() - (this.masseAVide * this.nbItem);
+    }
+
+    public double getTotalMassesKg() { return this.getTotalMasses() / 1000; }
 }

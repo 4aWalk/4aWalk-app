@@ -10,7 +10,7 @@ import fr.iutrodez.a4awalk.modeles.entites.User;
 
 public class AdaptateurDesFragments extends FragmentStateAdapter {
     private static final int NB_FRAGMENT = 2;
-    private User user; // Stockage local du user
+    private User user;
 
     public AdaptateurDesFragments(FragmentActivity activite, User user) {
         super(activite);
