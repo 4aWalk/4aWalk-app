@@ -104,7 +104,7 @@ public class ServicePOITest {
     private PointOfInterest construirePoiValide(String nom,
                                                 double latitude,
                                                 double longitude) {
-        return new PointOfInterest(1, nom, latitude, longitude);
+        return new PointOfInterest(1, nom, latitude, longitude,null, -1);
     }
 
     /**

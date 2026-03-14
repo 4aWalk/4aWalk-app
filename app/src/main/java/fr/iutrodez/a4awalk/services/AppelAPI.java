@@ -102,6 +102,37 @@ public class AppelAPI {
     }
 
     /**
+     * Effectue une requête GET et attend un objet JSON en réponse.
+     *
+     * @param url      URL de l'endpoint
+     * @param token    Token d'authentification Bearer
+     * @param contexte Contexte Android
+     * @param callback Callback appelé en cas de succès ou d'erreur
+     */
+    public static void get(String url, String token, Context contexte,
+                           final VolleyObjectCallback callback) {
+        JsonObjectRequest requeteVolley = new JsonObjectRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    try {
+                        if (callback != null) callback.onSuccess(response);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    if (callback != null) callback.onError(error);
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return getAuthHeaders(token);
+            }
+        };
+        getFileRequete(contexte).add(requeteVolley);
+    }
+
+    /**
      * Effectue une requête POST avec un objet JSON et attend un objet JSON en réponse.
      *
      * @param url      URL de l'endpoint

@@ -166,7 +166,7 @@ public class GestionParticipant {
 
             // Si c'est une mise à jour, on conserve l'ID existant
             if (isUpdate) {
-                p.setPId(participantId);
+                p.setId(participantId);
             }
 
             // On se contente de renvoyer le participant à l'activité via le callback.

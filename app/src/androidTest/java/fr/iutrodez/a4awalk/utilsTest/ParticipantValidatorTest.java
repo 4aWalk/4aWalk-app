@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.iutrodez.a4awalk.utils.ParticipantValidator;
+import fr.iutrodez.a4awalk.utils.validators.ParticipantValidator;
 
 /**
  * Classe de test instrumentée pour {@link ParticipantValidator}.

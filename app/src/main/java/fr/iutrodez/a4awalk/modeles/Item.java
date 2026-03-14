@@ -7,26 +7,13 @@ package fr.iutrodez.a4awalk.modeles;
  */
 public interface Item {
 
-    /**
-     * @return Le nom ou la désignation de l'objet.
-     */
+    Long getId();
     String getNom();
-
-    /**
-     * @return Une description détaillée de l'objet.
-     */
-    String getDescription();
-
-    /**
-     * @return La masse de l'objet exprimée en grammes.
-     */
     double getMasseGrammes();
+    int getNbItem();
 
-    /**
-     * Méthode par défaut pour obtenir le poids en kilogrammes.
-     * Utile pour les calculs de charge totale du sac.
-     */
-    default double getMasseKg() {
-        return getMasseGrammes() / 1000.0;
-    }
+    void setId(Long id);
+    void setNom(String nom);
+    void setMasseGrammes(double masseGrammes);
+    void setNbItem(int nbItem);
 }

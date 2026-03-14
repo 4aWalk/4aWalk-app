@@ -111,7 +111,7 @@ public class ServiceParticipantTest {
                 Level.DEBUTANT, Morphology.MOYENNE,
                 false, 2000, 2, 15.0, HIKE_ID_VALIDE
         );
-        participant.setPId(id);
+        participant.setId(id);
         return participant;
     }
 
@@ -466,7 +466,7 @@ public class ServiceParticipantTest {
                 Level.DEBUTANT, Morphology.MOYENNE,
                 false, 2000, 2, 0.0, HIKE_ID_VALIDE
         );
-        participant.setPId(1);
+        participant.setId(1);
 
         // When — on construit le JSON via réflexion
         java.lang.reflect.Method method = ServiceParticipant.class
@@ -497,7 +497,7 @@ public class ServiceParticipantTest {
     public void testBuildParticipantJSON_NiveauNull_RetourneNull() throws Exception {
         // Given — un participant avec un niveau null
         Participant participant = new Participant();
-        participant.setPId(1);
+        participant.setId(1);
         participant.setNom("Martin");
         participant.setPrenom("Alice");
         participant.setAge(30);
@@ -695,7 +695,7 @@ public class ServiceParticipantTest {
         CountDownLatch verrou = new CountDownLatch(1);
         ArrayList<Participant> temporaires = new ArrayList<>();
         Participant participantInvalide = new Participant();
-        participantInvalide.setPId(0);
+        participantInvalide.setId(0);
         participantInvalide.setNom("Test");
         participantInvalide.setNiveau(null);
         participantInvalide.setMorphologie(null);

@@ -34,10 +34,9 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
     private User user;
     private Intent intentionRecu;
 
-    public static FragmentListeRandonnees newInstance() {
-        return new FragmentListeRandonnees();
+    public static FragmentListeParcours newInstance() {
+        return new FragmentListeParcours();
     }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

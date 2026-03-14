@@ -44,7 +44,7 @@ public class RandoViewHolder extends RecyclerView.ViewHolder{
      */
     public void bind(Hike hike){
         libelleRando.setText(hike.getLibelle());
-        nbParticipantsRando.setText(hike.participantSize() + " participants");
+        nbParticipantsRando.setText(hike.getParticipants().size() + " participants");
         nbJoursRando.setText(String.valueOf(hike.getDureeJours()) + " jours");
     }
 }

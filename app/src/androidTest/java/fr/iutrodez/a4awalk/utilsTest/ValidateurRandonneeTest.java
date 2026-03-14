@@ -9,7 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import fr.iutrodez.a4awalk.utils.ValidateurRandonnee;
+import fr.iutrodez.a4awalk.utils.validators.ValidateurRandonnee;
 
 /**
  * Classe de tests unitaires pour {@link ValidateurRandonnee}.

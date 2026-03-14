@@ -5,9 +5,6 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import fr.iutrodez.a4awalk.modeles.erreurs.HikeException;
 
 /**
  * Représente une randonnée planifiée.
@@ -21,20 +18,25 @@ public class Hike implements Parcelable {
     private PointOfInterest arrivee;
     private int dureeJours;
     private User creator;
-
     private ArrayList<Participant> participants = new ArrayList<>();
     private List<PointOfInterest> optionalPoints = new ArrayList<>();
+
+    private List<FoodProduct> foodCatalogue = new ArrayList<>();
+    private List<EquipmentItem> equipmentCatalogue = new ArrayList<>();
+
+    private boolean optimize;
 
     // --- Constructeurs ---
     public Hike() {}
 
-    public Hike(int id, String libelle, PointOfInterest depart, PointOfInterest arrivee, int dureeJours, User creator) {
+    public Hike(int id, String libelle, PointOfInterest depart, PointOfInterest arrivee, int dureeJours, User creator, boolean optimize) {
         this.id = id;
         this.libelle = libelle;
         this.depart = depart;
         this.arrivee = arrivee;
         setDureeJours(dureeJours);
         this.creator = creator;
+        this.optimize = optimize;
     }
 
     // --- Implémentation Parcelable ---
@@ -52,6 +54,7 @@ public class Hike implements Parcelable {
         List<PointOfInterest> poiList = new ArrayList<>();
         in.readList(poiList, PointOfInterest.class.getClassLoader());
         optionalPoints = new ArrayList<>(poiList);
+        optimize = in.readBoolean();
     }
 
     @Override
@@ -66,6 +69,7 @@ public class Hike implements Parcelable {
 
         dest.writeTypedList(participants);
         dest.writeList(new ArrayList<>(optionalPoints));
+        dest.writeBoolean(optimize);
     }
 
     @Override
@@ -85,55 +89,7 @@ public class Hike implements Parcelable {
         }
     };
 
-    // --- Logique métier (Entity Logic) ---
-
-    public void addParticipant(Participant participant) throws HikeException {
-        if (participant == null) {
-            throw new HikeException("Le participant ne peut pas être nul.");
-        }
-        if (this.participants.contains(participant)) {
-            throw new HikeException("Ce participant est déjà inscrit à cette randonnée.");
-        }
-        this.participants.add(participant);
-    }
-
-    public void removeParticipant(Participant participant) throws HikeException {
-        if (!this.participants.remove(participant)) {
-            throw new HikeException("Le participant n'a pas été trouvé dans cette randonnée.");
-        }
-    }
-
-    public void addPointOfInterest(PointOfInterest poi) {
-        this.optionalPoints.add(poi);
-    }
-
-    // --- Overrides Standards ---
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Hike hike = (Hike) o;
-        // MODIFICATION : Comparaison directe (==) car id est un type primitif
-        return id == hike.id || Objects.equals(libelle, hike.libelle);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, libelle);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Hike[id=%d, libelle='%s', participants=%d]",
-                id, libelle, participants.size());
-    }
-
-    // --- Getters et Setters ---
-
-    // MODIFICATION : type de retour int
     public int getId() { return id; }
-    // MODIFICATION : paramètre type int
     public void setId(int id) { this.id = id; }
 
     public String getLibelle() { return libelle; }
@@ -146,27 +102,24 @@ public class Hike implements Parcelable {
     public void setArrivee(PointOfInterest arrivee) { this.arrivee = arrivee; }
 
     public int getDureeJours() { return dureeJours; }
-
-    public void setDureeJours(int dureeJours) {
-        if (dureeJours < 1 || dureeJours > 3) {
-            throw new IllegalArgumentException("La durée doit être comprise entre 1 et 3 jours.");
-        }
-        this.dureeJours = dureeJours;
-    }
+    public void setDureeJours(int dureeJours) { this.dureeJours = dureeJours; }
 
     public User getCreator() { return creator; }
     public void setCreator(User creator) { this.creator = creator; }
 
     public ArrayList<Participant> getParticipants() { return participants; }
-
     public void setParticipants(ArrayList<Participant> participants) { this.participants = participants; }
-
-    public void setParticipants(java.util.Set<Participant> participantsSet) {
-        this.participants = new ArrayList<>(participantsSet);
-    }
-
-    public int participantSize() { return this.participants.size(); }
 
     public List<PointOfInterest> getOptionalPoints() { return optionalPoints; }
     public void setOptionalPoints(List<PointOfInterest> optionalPoints) { this.optionalPoints = optionalPoints; }
+
+    public List<FoodProduct> getFoodCatalogue() { return foodCatalogue; }
+    public void setFoodCatalogue(List<FoodProduct> foodCatalogue) { this.foodCatalogue = foodCatalogue; }
+
+    public List<EquipmentItem> getEquipmentGroups() { return equipmentCatalogue; }
+    public void setEquipmentGroups(List<EquipmentItem> equipmentGroups) {
+        this.equipmentCatalogue = equipmentGroups;
+    }
+    public boolean getOptimize() { return optimize; }
+    public void setOptimize(boolean optimize) { this.optimize = optimize; }
 }

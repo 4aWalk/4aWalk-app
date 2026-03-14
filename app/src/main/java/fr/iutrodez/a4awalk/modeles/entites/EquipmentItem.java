@@ -1,8 +1,7 @@
 package fr.iutrodez.a4awalk.modeles.entites;
 
-import java.util.Objects;
-
 import fr.iutrodez.a4awalk.modeles.Item;
+import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 
 /**
  * Représente un équipement (matériel indispensable comme une tente, un duvet, etc.).
@@ -18,77 +17,69 @@ public class EquipmentItem implements Item {
 
     private Double masseGrammes;
 
-    /** * Critère spécifique (UC 2.1.4.1) :
-     * Définit si cet équipement permet au participant de se reposer (ex: tente, sac de couchage).
-     */
-    private boolean permetRepos;
+    private int nbItem;
+
+    private TypeEquipment type;
+
+    private double masseAVide;
+
 
     // --- Constructeurs ---
 
     public EquipmentItem() {}
 
-    public EquipmentItem(String nom, String description, double masseGrammes, boolean permetRepos) {
+    public EquipmentItem(String nom,
+                         String description,
+                         double masseGrammes,
+                         int nbItem,
+                         TypeEquipment type,
+                         double masseAVide) {
         this.nom = nom;
         this.description = description;
         this.masseGrammes = masseGrammes;
-        this.permetRepos = permetRepos;
+        this.nbItem = nbItem;
+        this.type = type;
+        this.masseAVide = masseAVide;
     }
 
-    // --- Méthodes de l'interface Item & Logique métier ---
+    // Override de l'interface
 
     @Override
-    public String getNom() {
-        return nom;
-    }
+    public Long getId() { return id; }
 
     @Override
-    public String getDescription() {
-        return description;
-    }
+    public String getNom() { return nom; }
 
     @Override
-    public double getMasseGrammes() {
-        return masseGrammes;
-    }
-
-    /** * Retourne la masse convertie en Kilogrammes pour le calcul du sac à dos.
-     */
-    public double getWeightKg() {
-        return this.masseGrammes / 1000.0;
-    }
-
-    // --- Overrides Standards ---
+    public double getMasseGrammes() { return masseGrammes; }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EquipmentItem that = (EquipmentItem) o;
-        // Si l'ID est présent, on l'utilise, sinon on compare par nom (clé naturelle)
-        return Objects.equals(id, that.id) || Objects.equals(nom, that.nom);
-    }
+    public int getNbItem() { return nbItem; }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id, nom);
-    }
+    public void setId(Long id) { this.id = id; }
 
     @Override
-    public String toString() {
-        return String.format("%s (%.1fg) [%s]", nom, masseGrammes, permetRepos ? "Repos" : "Utilitaire");
-    }
+    public void setNom(String nom) { this.nom = nom; }
+
+    @Override
+    public void setMasseGrammes(double masseGrammes) { this.masseGrammes = masseGrammes; }
+
+    @Override
+    public void setNbItem(int nbItem) { this.nbItem = nbItem; }
+
 
     // --- Getters et Setters ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public void setNom(String nom) { this.nom = nom; }
-
+    public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public void setMasseGrammes(double masseGrammes) { this.masseGrammes = masseGrammes; }
+    public TypeEquipment getType() { return type; }
+    public void setType(TypeEquipment type){ this.type = type;}
 
-    public boolean isPermetRepos() { return permetRepos; }
-    public void setPermetRepos(boolean permetRepos) { this.permetRepos = permetRepos; }
+    public double getMasseAVide() { return masseAVide; }
+    public void setMasseAVide(double masseAVide) {this.masseAVide = masseAVide;}
+
+    public double getTotalMasses() { return this.masseGrammes - this.masseAVide * this.nbItem; }
+    public double getTotalMassesKg() {return this.getTotalMasses() / 1000;}
 }

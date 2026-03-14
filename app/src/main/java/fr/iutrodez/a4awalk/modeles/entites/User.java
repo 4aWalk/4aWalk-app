@@ -3,10 +3,6 @@ package fr.iutrodez.a4awalk.modeles.entites;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
 import fr.iutrodez.a4awalk.modeles.Person;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
@@ -26,7 +22,6 @@ public class User implements Person, Parcelable {
     private int age;
     private Level niveau;
     private Morphology morphologie;
-    private Set<Hike> createdHikes = new HashSet<>();
 
     // --- Constructeurs ---
     public User() {}
@@ -104,22 +99,17 @@ public class User implements Person, Parcelable {
         }
     };
 
-
-    /** Retourne le nom complet formaté */
-    public String getFullName() {
-        return prenom + " " + nom.toUpperCase();
-    }
-
-    /** Ajoute une randonnée créée et assure la cohérence du lien */
-    public void addCreatedHike(Hike hike) {
-        this.createdHikes.add(hike);
-        hike.setCreator(this);
-    }
+    // --- Implémentation de l'interface ---
 
     @Override
-    public String getNom() {
-        return this.nom;
-    }
+    public String getPrenom() { return prenom; }
+    @Override
+    public void setPrenom(String prenom) { this.prenom = prenom; }
+
+    @Override
+    public String getNom() {return this.nom;}
+    @Override
+    public void setNom(String nom) { this.nom = nom; }
 
     @Override
     public int getAge() {
@@ -127,9 +117,15 @@ public class User implements Person, Parcelable {
     }
 
     @Override
+    public void setAge(int age) { this.age = age; }
+
+    @Override
     public Level getNiveau() {
         return this.niveau;
     }
+
+    @Override
+    public void setNiveau(Level niveau) { this.niveau = niveau; }
 
     @Override
     public Morphology getMorphologie() {
@@ -137,33 +133,13 @@ public class User implements Person, Parcelable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        // L'email est unique en base, c'est notre identifiant métier le plus fiable
-        return Objects.equals(mail, user.mail);
-    }
+    public void setMorphologie(Morphology morphologie) { this.morphologie = morphologie; }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(mail);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("User[id=%d, mail='%s', nom='%s']", id, mail, nom);
-    }
 
     // --- Getters et Setters ---
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-
-    public String getPrenom() { return prenom; }
-    public void setPrenom(String prenom) { this.prenom = prenom; }
-
-    public void setNom(String nom) { this.nom = nom; }
 
     public String getMail() { return mail; }
     public void setMail(String mail) { this.mail = mail; }
@@ -173,14 +149,4 @@ public class User implements Person, Parcelable {
 
     public String getAdresse() { return adresse; }
     public void setAdresse(String adresse) { this.adresse = adresse; }
-
-    public void setAge(int age) { this.age = age; }
-
-    public void setNiveau(Level niveau) { this.niveau = niveau; }
-
-    public void setMorphologie(Morphology morphologie) { this.morphologie = morphologie; }
-
-    public Set<Hike> getCreatedHikes() { return createdHikes; }
-    public void setCreatedHikes(Set<Hike> createdHikes) { this.createdHikes = createdHikes; }
-
 }

@@ -211,7 +211,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             GestionParticipant.afficherDialogParticipant(this, ModeRandonnee.CREATION, tokenManager.getToken(), currentHike.getId(), null, new ParticipantCallback() {
                 @Override
                 public void onActionSuccess(Participant newParticipant) {
-                    newParticipant.setPId(0);
+                    newParticipant.setId(0);
                     newParticipant.setIdRando(currentHike.getId());
                     listeTemporaireParticipants.add(newParticipant);
                     adapterParticipants.notifyDataSetChanged();
@@ -228,7 +228,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
             GestionParticipant.afficherDialogParticipant(this, ModeRandonnee.MODIFICATION, tokenManager.getToken(), currentHike.getId(), pToEdit, new ParticipantCallback() {
                 @Override
                 public void onActionSuccess(Participant updatedParticipant) {
-                    if (pToEdit.getId() != 0) updatedParticipant.setPId(pToEdit.getId());
+                    if (pToEdit.getId() != 0) updatedParticipant.setId(pToEdit.getId());
                     updatedParticipant.setIdRando(currentHike.getId());
                     listeTemporaireParticipants.set(position, updatedParticipant);
                     adapterParticipants.notifyDataSetChanged();
@@ -357,7 +357,7 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
         final EditText inputLon = view.findViewById(R.id.edit_poi_lon);
 
         if (poi != null) {
-            inputNom.setText(poi.getName());
+            inputNom.setText(poi.getNom());
             inputLat.setText(String.valueOf(poi.getLatitude()));
             inputLon.setText(String.valueOf(poi.getLongitude()));
         }
@@ -397,11 +397,11 @@ public class ActiviteGestionRandonnee extends AppCompatActivity {
                 if (result.isValid()) {
                     // Succès : on met à jour ou on ajoute le POI
                     if (poi != null) {
-                        poi.setName(nom);
+                        poi.setNom(nom);
                         poi.setLatitude(result.getLatitude());
                         poi.setLongitude(result.getLongitude());
                     } else {
-                        listeTemporairePOI.add(new PointOfInterest(0, nom, result.getLatitude(), result.getLongitude()));
+                        listeTemporairePOI.add(new PointOfInterest(0, nom, result.getLatitude(), result.getLongitude(),null,0));
                     }
                     adapterPOI.notifyDataSetChanged();
 

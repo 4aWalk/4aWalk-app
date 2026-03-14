@@ -1,8 +1,5 @@
 package fr.iutrodez.a4awalk.modeles.entites;
 
-
-import java.util.Objects;
-
 import fr.iutrodez.a4awalk.modeles.Item;
 
 /**
@@ -21,88 +18,58 @@ public class FoodProduct implements Item {
     private Double masseGrammes;
 
     private String appellationCourante;
+
     private String conditionnement;
 
     private Double apportNutritionnelKcal;
 
     private Double prixEuro;
 
+    private int nbItem;
+
+
     // --- Constructeurs ---
 
     public FoodProduct() {}
 
-    public FoodProduct(String nom, String description, double masseGrammes, String appellationCourante,
-                       String conditionnement, double apportNutritionnelKcal, double prixEuro) {
+    public FoodProduct(String nom, double masseGrammes, String appellationCourante,
+                       String conditionnement, double apportNutritionnelKcal, double prixEuro, int nbItem) {
         this.nom = nom;
-        this.description = description;
         this.masseGrammes = masseGrammes;
         this.appellationCourante = appellationCourante;
         this.conditionnement = conditionnement;
         this.apportNutritionnelKcal = apportNutritionnelKcal;
         this.prixEuro = prixEuro;
+        this.nbItem = nbItem;
     }
 
-    // --- Méthodes de l'interface Item & Logique métier ---
+    // Override de l'interface
 
     @Override
-    public String getNom() {
-        return nom;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public double getMasseGrammes() {
-        return masseGrammes;
-    }
-
-    /** Retourne la masse en Kg pour le calcul global du sac */
-    public double getWeightKg() {
-        return this.masseGrammes / 1000.0;
-    }
-
-    /** * Calcule le ratio Kcal/Gramme.
-     * Plus ce chiffre est élevé, plus l'aliment est efficace pour la randonnée.
-     */
-    public double getEnergyDensity() {
-        if (masseGrammes <= 0) return 0;
-        return apportNutritionnelKcal / masseGrammes;
-    }
-
-    // --- Overrides Standards ---
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FoodProduct that = (FoodProduct) o;
-        return Objects.equals(id, that.id) || Objects.equals(nom, that.nom);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, nom);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s [%s] (%.0f Kcal, %.2f€)",
-                nom, conditionnement, apportNutritionnelKcal, prixEuro);
-    }
-
-    // --- Getters et Setters ---
-
     public Long getId() { return id; }
+
+    @Override
+    public String getNom() { return nom; }
+
+    @Override
+    public double getMasseGrammes() { return masseGrammes; }
+
+    @Override
+    public int getNbItem() { return nbItem; }
+
+    @Override
     public void setId(Long id) { this.id = id; }
 
+    @Override
     public void setNom(String nom) { this.nom = nom; }
 
-    public void setDescription(String description) { this.description = description; }
-
+    @Override
     public void setMasseGrammes(double masseGrammes) { this.masseGrammes = masseGrammes; }
+
+    @Override
+    public void setNbItem(int nbItem) { this.nbItem = nbItem; }
+
+    // --- Getters et Setters ---
 
     public String getAppellationCourante() { return appellationCourante; }
     public void setAppellationCourante(String appellationCourante) { this.appellationCourante = appellationCourante; }
@@ -110,9 +77,17 @@ public class FoodProduct implements Item {
     public String getConditionnement() { return conditionnement; }
     public void setConditionnement(String conditionnement) { this.conditionnement = conditionnement; }
 
-    public double getApportNutritionnelKcal() { return apportNutritionnelKcal; }
-    public void setApportNutritionnelKcal(double apportNutritionnelKcal) { this.apportNutritionnelKcal = apportNutritionnelKcal; }
+    public double getApportNutritionnelKcal() { return apportNutritionnelKcal;}
+    public void setApportNutritionnelKcal(double apportNutritionnelKcal) {
+        this.apportNutritionnelKcal = apportNutritionnelKcal;
+    }
 
     public double getPrixEuro() { return prixEuro; }
     public void setPrixEuro(double prixEuro) { this.prixEuro = prixEuro; }
+
+    public int getTotalMasses() { return (int) (this.masseGrammes * this.nbItem); }
+
+    public double getTotalMassesKg(){ return this.masseGrammes * this.nbItem / 1000; }
+
+    public int getTotalKcals() { return (int) (this.apportNutritionnelKcal * this.nbItem); }
 }

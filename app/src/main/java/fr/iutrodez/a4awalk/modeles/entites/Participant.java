@@ -3,10 +3,6 @@ package fr.iutrodez.a4awalk.modeles.entites;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import androidx.annotation.NonNull;
-
-import java.util.Objects;
-
 import fr.iutrodez.a4awalk.modeles.Person;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
@@ -19,17 +15,16 @@ public class Participant implements Person, Parcelable {
 
     private int id;
     private int idRando;
-
     private String nom;
     private String prenom;
 
     private int age;
     private Level niveau;
     private Morphology morphologie;
-    private boolean creator = false;
-    private int besoinKcal = 0;
-    private int besoinEauLitre = 0;
-    private double capaciteEmportMaxKg = 0.0;
+    private boolean creator;
+    private int besoinKcal;
+    private double besoinEauLitre;
+    private double capaciteEmportMaxKg;
     private Backpack backpack;
 
     // --- Constructeurs ---
@@ -37,7 +32,7 @@ public class Participant implements Person, Parcelable {
     }
 
     public Participant(String nom, String prenom, int age, Level niveau, Morphology morphologie, boolean creator,
-                       int besoinKcal, int besoinEauLitre, double capaciteEmportMaxKg, int idRando) {
+                       int besoinKcal, double besoinEauLitre, double capaciteEmportMaxKg, int idRando) {
         this.nom = nom;
         this.prenom = prenom;
         this.age = age;
@@ -84,7 +79,7 @@ public class Participant implements Person, Parcelable {
         dest.writeString(morphologie != null ? morphologie.name() : null);
         dest.writeByte((byte) (creator ? 1 : 0));
         dest.writeInt(besoinKcal);
-        dest.writeInt(besoinEauLitre);
+        dest.writeDouble(besoinEauLitre);
         dest.writeDouble(capaciteEmportMaxKg);
     }
 
@@ -105,60 +100,25 @@ public class Participant implements Person, Parcelable {
         return 0;
     }
 
-    // --- Logique métier ---
-
-    public boolean isOverloaded() {
-        if (this.backpack == null) return false;
-        return this.backpack.getTotalMassKg() > this.capaciteEmportMaxKg;
-    }
-
-    // --- Overrides Equals & HashCode ---
+    // --- Override interface ---
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Participant that = (Participant) o;
-        // MODIFICATION : comparaison == pour type primitif
-        return id == that.id;
-    }
+    public String getPrenom() { return prenom; }
+    @Override
+    public void setPrenom(String prenom) { this.prenom = prenom; }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @NonNull
+    public String getNom() {return this.nom;}
     @Override
-    public String toString() {
-        String fullName = "";
-        if (prenom != null && !prenom.isEmpty()) fullName += prenom + " ";
-        if (nom != null && !nom.isEmpty()) fullName += nom;
-
-        if (fullName.trim().isEmpty()) {
-            fullName = "Nouveau participant";
-        } else {
-            fullName = fullName.trim();
-        }
-
-        String details = "";
-        if (age > 0) details += age + " ans";
-        if (niveau != null) details += (details.isEmpty() ? "" : " - ") + niveau;
-
-        return fullName + " (" + details + ")";
-    }
-
-    // --- Implémentation de l'interface Person ---
-
-    @Override
-    public String getNom() {
-        return this.nom;
-    }
+    public void setNom(String nom) { this.nom = nom; }
 
     @Override
     public int getAge() {
-        return age;
+        return this.age;
     }
+
+    @Override
+    public void setAge(int age) { this.age = age; }
 
     @Override
     public Level getNiveau() {
@@ -166,89 +126,44 @@ public class Participant implements Person, Parcelable {
     }
 
     @Override
+    public void setNiveau(Level niveau) { this.niveau = niveau; }
+
+    @Override
     public Morphology getMorphologie() {
         return this.morphologie;
     }
 
     @Override
-    public int getId() {
-        return this.id;
-    }
+    public void setMorphologie(Morphology morphologie) { this.morphologie = morphologie; }
 
-    public void setPId(int id) {
-        this.id = id;
-    }
+    // --- Getters et Setters ---
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public int getIdRando() {
         return idRando;
     }
-
     public void setIdRando(int idRando) {
         this.idRando = idRando;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
+    public boolean getCreator() { return creator; }
+    public void setCreator(boolean isCreator) { this.creator = isCreator; }
+    public int getBesoinKcal() { return besoinKcal; }
+    public void setBesoinKcal(int besoinKcal) { this.besoinKcal = besoinKcal; }
 
-    public String getPrenom() {
-        return prenom;
-    }
+    public double getBesoinEauLitre() { return besoinEauLitre; }
+    public void setBesoinEauLitre(int besoinEauLitre) { this.besoinEauLitre = besoinEauLitre; }
 
-    public void setPrenom(String prenom) {
-        this.prenom = prenom;
-    }
+    public double getCapaciteEmportMaxKg() { return capaciteEmportMaxKg; }
+    public void setCapaciteEmportMaxKg(double capaciteEmportMaxKg) { this.capaciteEmportMaxKg = capaciteEmportMaxKg; }
 
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public void setNiveau(Level niveau) {
-        this.niveau = niveau;
-    }
-
-    public void setMorphologie(Morphology morphologie) {
-        this.morphologie = morphologie;
-    }
-
-    public boolean getCreator() {
-        return creator;
-    }
-
-    public void setCreator(boolean isCreator) {
-        this.creator = isCreator;
-    }
-
-    public int getBesoinKcal() {
-        return besoinKcal;
-    }
-
-    public void setBesoinKcal(int besoinKcal) {
-        this.besoinKcal = besoinKcal;
-    }
-
-    public int getBesoinEauLitre() {
-        return besoinEauLitre;
-    }
-
-    public void setBesoinEauLitre(int besoinEauLitre) {
-        // Correction de la petite erreur d'origine (this.besoinEauLitre = besoinEauLitre au lieu de = besoin)
-        this.besoinEauLitre = besoinEauLitre;
-    }
-
-    public double getCapaciteEmportMaxKg() {
-        return this.capaciteEmportMaxKg;
-    }
-
-    public void setCapaciteEmportMaxKg(double capacite) {
-        this.capaciteEmportMaxKg = capacite;
-    }
-
-    public Backpack getBackpack() {
-        return backpack;
-    }
-
+    public Backpack getBackpack() { return backpack; }
     public void setBackpack(Backpack backpack) {
         this.backpack = backpack;
+        if (backpack != null && backpack.getOwner() != this) {
+            backpack.setOwner(this);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package fr.iutrodez.a4awalk.modeles.entites;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Set;
  */
 public class Backpack {
 
-    private Long id;
+    private int id;
 
     /** Poids total réel porté en Kg (Somme des équipements et de la nourriture) */
     private double totalMassKg;
@@ -35,57 +34,10 @@ public class Backpack {
         this.owner = owner;
     }
 
-    // --- Logique métier de bas niveau (Entity Logic) ---
-
-    /**
-     * Recalcule le poids total du sac à partir des masses de chaque item.
-     * Cette méthode doit être appelée après chaque modification du contenu.
-     */
-    public void updateAndGetTotalMass() {
-        double mass = 0.0;
-
-        if (equipmentItems != null) {
-            mass += equipmentItems.stream()
-                    .mapToDouble(EquipmentItem::getWeightKg)
-                    .sum();
-        }
-
-        if (foodItems != null) {
-            mass += foodItems.stream()
-                    .mapToDouble(FoodProduct::getWeightKg)
-                    .sum();
-        }
-
-        this.totalMassKg = mass;
-    }
-
-    /** Vide intégralement le contenu du sac */
-    public void clearContent() {
-        this.foodItems.clear();
-        this.equipmentItems.clear();
-        this.totalMassKg = 0.0;
-    }
-
-    // --- Overrides Standards ---
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Backpack backpack = (Backpack) o;
-        // L'égalité est basée sur l'ID technique ou sur le propriétaire unique
-        return Objects.equals(id, backpack.id) || Objects.equals(owner, backpack.owner);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, owner);
-    }
-
     // --- Getters et Setters ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public double getTotalMassKg() { return totalMassKg; }
     public void setTotalMassKg(double totalMassKg) { this.totalMassKg = totalMassKg; }

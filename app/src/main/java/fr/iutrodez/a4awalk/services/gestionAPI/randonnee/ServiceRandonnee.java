@@ -55,13 +55,17 @@ public class ServiceRandonnee {
                 JSONObject departObj = randoJson.getJSONObject("depart");
                 PointOfInterest POIDepart = new PointOfInterest(
                         departObj.getInt("id"), departObj.getString("nom"),
-                        departObj.getDouble("latitude"), departObj.getDouble("longitude")
+                        departObj.getDouble("latitude"), departObj.getDouble("longitude"),
+                        departObj.getString("description"),
+                        departObj.getInt("sequence")
                 );
 
                 JSONObject arriveeObj = randoJson.getJSONObject("arrivee");
                 PointOfInterest POIArrivee = new PointOfInterest(
                         arriveeObj.getInt("id"), arriveeObj.getString("nom"),
-                        arriveeObj.getDouble("latitude"), arriveeObj.getDouble("longitude")
+                        arriveeObj.getDouble("latitude"), arriveeObj.getDouble("longitude"),
+                        arriveeObj.getString("description"),
+                        departObj.getInt("sequence")
                 );
 
                 ArrayList<PointOfInterest> listePoi = new ArrayList<>();
@@ -70,7 +74,9 @@ public class ServiceRandonnee {
                     JSONObject point = points.getJSONObject(j);
                     listePoi.add(new PointOfInterest(
                             point.getInt("id"), point.getString("nom"),
-                            point.getDouble("latitude"), point.getDouble("longitude")
+                            point.getDouble("latitude"), point.getDouble("longitude"),
+                            point.getString("description"),
+                            point.getInt("sequence")
                     ));
                 }
 
@@ -79,7 +85,7 @@ public class ServiceRandonnee {
                 for (int j = 0; j < participantsArray.length(); j++) {
                     JSONObject partJson = participantsArray.getJSONObject(j);
                     Participant p = new Participant();
-                    p.setPId(partJson.getInt("id"));
+                    p.setId(partJson.getInt("id"));
                     p.setPrenom(partJson.optString("prenom", ""));
                     p.setNom(partJson.optString("nom", ""));
                     p.setAge(partJson.getInt("age"));
@@ -103,7 +109,9 @@ public class ServiceRandonnee {
                     listeParticipants.add(p);
                 }
 
-                Hike hike = new Hike(id, name, POIDepart, POIArrivee, dureeJours, currentUser);
+                boolean optimize = randoJson.getBoolean("optimize");
+
+                Hike hike = new Hike(id, name, POIDepart, POIArrivee, dureeJours, currentUser, optimize);
                 hike.setParticipants(listeParticipants);
                 hike.setOptionalPoints(listePoi);
                 liste.add(hike);

@@ -6,10 +6,11 @@ import android.os.Parcelable;
 public class PointOfInterest implements Parcelable {
 
     private int id;
-    private String name;
+    private String nom;
     private double latitude;
     private double longitude;
     private String description;
+    private int sequence;
 
     /** La randonnée associée à ce point d'intérêt */
     private Hike hike;
@@ -19,18 +20,20 @@ public class PointOfInterest implements Parcelable {
     public PointOfInterest() {}
 
     /** Constructeur rapide pour les points de départ/arrivée */
-    public PointOfInterest(int id, String name, double latitude, double longitude) {
+    public PointOfInterest(int id, String nom, double latitude, double longitude, String description, int sequence) {
         this.id = id;
-        this.name = name;
+        this.nom = nom;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.description = description;
+        this.sequence = sequence;
     }
 
     // --- Implémentation Parcelable ---
 
     protected PointOfInterest(Parcel in) {
         id = in.readInt();
-        name = in.readString();
+        nom = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
     }
@@ -38,7 +41,7 @@ public class PointOfInterest implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(id);
-        dest.writeString(name);
+        dest.writeString(nom);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
     }
@@ -63,11 +66,10 @@ public class PointOfInterest implements Parcelable {
     // --- Getters et Setters ---
 
     public int getId() { return id; }
-
     public void setId(int id) { this.id = id; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
 
     public double getLatitude() { return latitude; }
     public void setLatitude(double latitude) { this.latitude = latitude; }
@@ -78,11 +80,6 @@ public class PointOfInterest implements Parcelable {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public Hike getHike() { return hike; }
-    public void setHike(Hike hike) { this.hike = hike; }
-
-    @Override
-    public String toString() {
-        return this.name != null ? this.name : "Point sans nom";
-    }
+    public int getSequence() { return sequence; }
+    public void setSequence(int order) { this.sequence = order; }
 }

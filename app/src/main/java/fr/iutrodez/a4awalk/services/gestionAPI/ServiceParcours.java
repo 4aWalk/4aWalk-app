@@ -13,7 +13,6 @@ import java.util.List;
 import fr.iutrodez.a4awalk.modeles.entites.Course;
 import fr.iutrodez.a4awalk.modeles.entites.GeoCoordinate;
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
-import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServiceParcours {
@@ -118,10 +117,12 @@ public class ServiceParcours {
      */
     private static PointOfInterest parsePOI(JSONObject poiJson) throws JSONException {
         return new PointOfInterest(
-                poiJson.getLong("id"), // ou (long) poiJson.getInt("id") selon ton API
-                poiJson.getString("name"), // Attention: ton JSON "Hike" avait "name", vérifie si ici c'est "name" ou "nom"
+                poiJson.getInt("id"),
+                poiJson.getString("name"),
                 poiJson.getDouble("latitude"),
-                poiJson.getDouble("longitude")
+                poiJson.getDouble("longitude"),
+                poiJson.getString("description"),
+                poiJson.getInt("order")
         );
     }
 }

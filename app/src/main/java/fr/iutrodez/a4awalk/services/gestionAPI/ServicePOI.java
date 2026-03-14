@@ -59,10 +59,10 @@ public class ServicePOI {
     private static JSONObject createPOIJson(PointOfInterest poi) {
         try {
             JSONObject json = new JSONObject();
-            json.put("nom", poi.getName());
+            json.put("nom", poi.getNom());
             json.put("latitude", poi.getLatitude());
             json.put("longitude", poi.getLongitude());
-            json.put("description", (poi.getName() != null) ? poi.getName() : "POI");
+            json.put("description", (poi.getNom() != null) ? poi.getNom() : "POI");
             return json;
         } catch (JSONException e) {
             e.printStackTrace();
