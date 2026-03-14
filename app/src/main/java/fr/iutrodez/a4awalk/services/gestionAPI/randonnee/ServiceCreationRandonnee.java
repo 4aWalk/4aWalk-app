@@ -29,37 +29,36 @@ public class ServiceCreationRandonnee {
     /**
      * Point d'entrée principal pour créer une randonnée complète
      */
-    public static void validerRandonneeComplete(Context context, String token, String nom, int duree,
+    public static void creerRandonnee(Context context, String token, String nom, int duree,
+                                                String nomD, String descriptionD, double latitudeD, double longitudeD,
+                                                String nomA, String descriptionA, double latitudeA, double longitudeA,
                                                 FullCreationCallback callback){
 
-        // Appel interne pour créer la randonnée
-        creerRandonnee(context, token, nom, duree, new AppelAPI.VolleyObjectCallback() {
-            @Override
-            public void onSuccess(JSONObject result) throws JSONException {
-                // On récupère l'ID de la rando créée (clé "id" selon ton API)
-                long hikeId = result.getLong("id");
-                Log.i("1", "Création randonnée n°" + hikeId);
+            JSONObject body = construireJsonRandonnee(nom, duree,
+                    nomD, descriptionD, latitudeD, longitudeD,
+                    nomA, descriptionA, latitudeA, longitudeA);
 
-                // On informe l'activité que le processus est lancé avec succès
-                callback.onSuccess(hikeId);
-            }
+            AppelAPI.post(URL_CREATION, token, body, context, new AppelAPI.VolleyObjectCallback() {
+                @Override
+                public void onSuccess(JSONObject result) throws JSONException {
+                    // On récupère l'ID de la rando créée (clé "id" selon ton API)
+                    long hikeId = result.getLong("id");
+                    Log.i("1", "Création randonnée n°" + hikeId);
 
-            @Override
-            public void onError(com.android.volley.VolleyError error) {
-                callback.onError("Erreur lors de la création de la randonnée : " + error.getMessage());
-            }
-        });
-    }
+                    // On informe l'activité que le processus est lancé avec succès
+                    callback.onSuccess(hikeId);
+                }
 
-    private static void creerRandonnee(Context context, String token, String nom, int duree,
-                                       AppelAPI.VolleyObjectCallback callback) {
+                @Override
+                public void onError(com.android.volley.VolleyError error) {
+                    callback.onError("Erreur lors de la création de la randonnée : " + error.getMessage());
+                }
+            });
+        };
 
-        JSONObject body = construireJsonRandonnee(nom, duree);
-
-        AppelAPI.post(URL_CREATION, token, body, context, callback);
-    }
-
-    private static JSONObject construireJsonRandonnee(String libelle, int duree) {
+    private static JSONObject construireJsonRandonnee(String libelle, int duree,
+                                                      String nomD, String descriptionD, double latitudeD, double longitudeD,
+                                                      String nomA, String descriptionA, double latitudeA, double longitudeA) {
         JSONObject json = new JSONObject();
         try {
 
@@ -68,11 +67,17 @@ public class ServiceCreationRandonnee {
 
             // IDs techniques requis par l'API pour la structure initiale
             JSONObject depart = new JSONObject();
-            depart.put("id", 1);
+            depart.put("nom", nomD);
+            depart.put("description", descriptionD);
+            depart.put("latitude", latitudeD);
+            depart.put("longitude", longitudeD);
             json.put("depart", depart);
 
             JSONObject arrivee = new JSONObject();
-            arrivee.put("id", 2);
+            arrivee.put("nom", nomA);
+            arrivee.put("description", descriptionA);
+            arrivee.put("latitude", latitudeA);
+            arrivee.put("longitude", longitudeA);
             json.put("arrivee", arrivee);
 
             return json;

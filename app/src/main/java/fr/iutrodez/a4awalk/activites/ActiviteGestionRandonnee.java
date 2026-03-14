@@ -34,6 +34,7 @@ import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
 import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
+import fr.iutrodez.a4awalk.utils.validators.ValidateurRandonnee;
 
 public class ActiviteGestionRandonnee extends HeaderActivity {
 
@@ -258,24 +259,66 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     }
 
     private void traiterCreation() {
-        String nom = libelle.getText().toString();
-        if (nom.isEmpty()) {
-            libelle.setError("Requis");
+        // 1. Récupération des données brutes de l'interface
+        String nom = libelle.getText().toString().trim();
+        String latDStr = departLat.getText().toString().trim();
+        String lonDStr = departLon.getText().toString().trim();
+        String latAStr = arriveeLat.getText().toString().trim();
+        String lonAStr = arriveeLon.getText().toString().trim();
+
+        int duree = 1; // Valeur par défaut
+        if (nbJours.getSelectedItem() != null) {
+            try {
+                duree = Integer.parseInt(nbJours.getSelectedItem().toString());
+            } catch (NumberFormatException e) {
+                duree = 1;
+            }
+        }
+
+        // 2. Appel de TON validateur
+        String erreurValidation = ValidateurRandonnee.verifierDonnees(nom, latDStr, lonDStr, latAStr, lonAStr, duree);
+
+        // 3. Gestion des erreurs de validation
+        if (erreurValidation != null) {
+            // S'il y a une erreur (c'est-à-dire si le retour n'est pas null), on l'affiche et on stoppe le processus
+            Toast.makeText(this, erreurValidation, Toast.LENGTH_LONG).show();
             return;
         }
-        int duree = Integer.parseInt(nbJours.getSelectedItem().toString());
 
-        ServiceCreationRandonnee.validerRandonneeComplete(this, tokenManager.getToken(), nom, duree, new ServiceCreationRandonnee.FullCreationCallback() {
-            @Override
-            public void onSuccess(long hikeId) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée créée !", Toast.LENGTH_SHORT).show();
-                fermerAvecResultat(Activity.RESULT_OK, null);
-            }
-            @Override
-            public void onError(String message) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur :" + message, Toast.LENGTH_LONG).show();
-            }
-        });
+        // 4. Conversion sécurisée des coordonnées
+        // À ce stade, on sait que la conversion ne plantera pas car ton validateur a déjà fait le travail de vérification
+        double latD = Double.parseDouble(latDStr.replace(",", "."));
+        double lonD = Double.parseDouble(lonDStr.replace(",", "."));
+        double latA = Double.parseDouble(latAStr.replace(",", "."));
+        double lonA = Double.parseDouble(lonAStr.replace(",", "."));
+
+        // 5. Génération des valeurs par défaut pour les champs requis par l'API
+        String nomDepart = "Départ : " + nom;
+        String descDepart = "Point de départ de la randonnée";
+        String nomArrivee = "Arrivée : " + nom;
+        String descArrivee = "Point d'arrivée de la randonnée";
+
+        // 6. Appel de l'API avec les données formatées
+        ServiceCreationRandonnee.creerRandonnee(
+                this,
+                tokenManager.getToken(),
+                nom,
+                duree,
+                nomDepart, descDepart, latD, lonD,
+                nomArrivee, descArrivee, latA, lonA,
+                new ServiceCreationRandonnee.FullCreationCallback() {
+                    @Override
+                    public void onSuccess(long hikeId) {
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée créée avec succès !", Toast.LENGTH_SHORT).show();
+                        fermerAvecResultat(Activity.RESULT_OK, null);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la création : " + message, Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
     }
 
     private void traiterMiseAJour() {
