@@ -2,19 +2,36 @@ package fr.iutrodez.a4awalk.activites;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.modeles.entites.TokenManager; // <-- IMPORT IMPORTANT
 
 public class ProfilActivity extends HeaderActivity {
 
+    private static final String ME_URL = "http://98.94.8.220:8080/users/me";
+
     protected Toolbar toolbar;
+    private RequestQueue requestQueue;
+
+    // Vues
+    private TextView userName, userAddress, userAge, userEmail, userLevel, userMorphology;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +40,6 @@ public class ProfilActivity extends HeaderActivity {
 
         configurerToolbar();
 
-        // Initialiser le toolbar
         toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -32,63 +48,77 @@ public class ProfilActivity extends HeaderActivity {
             }
         }
 
-        // Récupérer les vues TextView
-        TextView userName = findViewById(R.id.user_name);
-        TextView userAddress = findViewById(R.id.user_address);
-        TextView userAge = findViewById(R.id.user_age);
-        TextView userEmail = findViewById(R.id.user_email);
-        TextView userLevel = findViewById(R.id.user_level);
-        TextView userMorphology = findViewById(R.id.user_morphology);
+        // Initialisation des vues
+        userName = findViewById(R.id.user_name);
+        userAddress = findViewById(R.id.user_address);
+        userAge = findViewById(R.id.user_age);
+        userEmail = findViewById(R.id.user_email);
+        userLevel = findViewById(R.id.user_level);
+        userMorphology = findViewById(R.id.user_morphology);
         ImageView profileImage = findViewById(R.id.profile_image);
-
-        // Mettre les données en dur (pour l'instant)
-        String nom = "Bécogné";
-        String prenom = "Néo";
-        String age = "21";
-        String adresse = "18 avenue durand de gros";
-        String email = "neo.becogne@iut-rodez.fr";
-        String niveau = "ENTRAINE";
-        String morphologie = "MOYENNE";
-
-        userName.setText(nom + " " + prenom);
-        userAddress.setText(adresse);
-        userAge.setText(age + " ans");
-        userEmail.setText(email);
-        userLevel.setText(niveau);
-        userMorphology.setText(morphologie);
-
         profileImage.setImageResource(R.drawable.user_icon);
 
-        // Gérer le clic sur le bouton éditer
+        requestQueue = Volley.newRequestQueue(this);
+
+        // Charger les infos depuis l'API
+        chargerProfil();
+
+        // Bouton Éditer
         ImageButton editButton = findViewById(R.id.edit_button);
         if (editButton != null) {
             editButton.setOnClickListener(v -> {
-                // Créer l'intent et passer les données
                 Intent intent = new Intent(ProfilActivity.this, UpdateProfilActivity.class);
-                intent.putExtra("nom", nom);
-                intent.putExtra("prenom", prenom);
-                intent.putExtra("age", age);
-                intent.putExtra("adresse", adresse);
-                intent.putExtra("email", email);
-                intent.putExtra("niveau", niveau);
-                intent.putExtra("morphologie", morphologie);
                 startActivity(intent);
             });
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(android.view.Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_header, menu);
-        return true;
-    }
+    private void chargerProfil() {
+        // === UTILISATION DE VOTRE TOKEN MANAGER ===
+        TokenManager tokenManager = new TokenManager(this);
+        final String token = tokenManager.getToken();
 
-    @Override
-    public boolean onOptionsItemSelected(android.view.MenuItem item) {
-        if (item.getItemId() == R.id.action_account) {
-            Toast.makeText(this, "Vous êtes déjà sur votre profil", Toast.LENGTH_SHORT).show();
-            return true;
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(this, "Non connecté", Toast.LENGTH_SHORT).show();
+            return;
         }
-        return super.onOptionsItemSelected(item);
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, ME_URL, null,
+                response -> {
+                    try {
+                        String nom = response.optString("nom", "Inconnu");
+                        String prenom = response.optString("prenom", "");
+                        String age = String.valueOf(response.optInt("age", 0));
+                        String adresse = response.optString("adresse", "Non renseignée");
+                        String email = response.optString("mail", "Non renseigné");
+                        String niveau = response.optString("niveau", "DEBUTANT");
+                        String morphologie = response.optString("morphologie", "MOYENNE");
+
+                        // Affichage dans l'interface
+                        userName.setText(nom + " " + prenom);
+                        userAddress.setText(adresse);
+                        userAge.setText(age + " ans");
+                        userEmail.setText(email);
+                        userLevel.setText(niveau);
+                        userMorphology.setText(morphologie);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    Log.e("ProfilActivity", "Erreur réseau: " + error.toString());
+                    Toast.makeText(this, "Impossible de charger le profil", Toast.LENGTH_SHORT).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        requestQueue.add(request);
     }
 }
