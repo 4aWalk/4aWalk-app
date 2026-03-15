@@ -29,12 +29,4 @@
             android:textColor="#CCCCCC"
             android:textSize="14sp" />
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/btn_item_fp_supprimer"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@android:drawable/ic_menu_delete"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Supprimer" />
 </LinearLayout>
