@@ -51,7 +51,6 @@ public abstract class HeaderActivity extends AppCompatActivity {
 
         // --- GESTION DU PROFIL ---
         if (id == R.id.action_account) {
-            // Vérifie si on est déjà sur la page ProfilActivity (ou sa modification)
             if (this instanceof ProfilActivity || this instanceof UpdateProfilActivity) {
                 Toast.makeText(this, "Vous êtes déjà sur votre profil", Toast.LENGTH_SHORT).show();
             } else {
@@ -75,11 +74,20 @@ public abstract class HeaderActivity extends AppCompatActivity {
 
         // --- GESTION DES NOURRITURES ---
         if (id == R.id.action_items) {
-            // Vérifie si on est déjà sur la page de gestion des nourritures
             if (this instanceof ActiviteGestionFoodProducts) {
                 Toast.makeText(this, "Vous êtes déjà sur la gestion des nourritures", Toast.LENGTH_SHORT).show();
             } else {
                 startActivity(new Intent(this, ActiviteGestionFoodProducts.class));
+            }
+            return true;
+        }
+
+        // --- GESTION DES ÉQUIPEMENTS ---
+        if (id == R.id.action_equipments) {
+            if (this instanceof ActiviteGestionEquipment) {
+                Toast.makeText(this, "Vous êtes déjà sur la gestion des équipements", Toast.LENGTH_SHORT).show();
+            } else {
+                startActivity(new Intent(this, ActiviteGestionEquipment.class));
             }
             return true;
         }

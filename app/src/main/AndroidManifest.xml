@@ -44,14 +44,14 @@
             android:exported="false" />
         <activity
         android:name=".activites.HeaderActivity"
-        android:exported="true" />
+        android:exported="false" />
         <activity
             android:name=".activites.ProfilActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <activity
             android:name=".activites.UpdateProfilActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <activity android:name=".activites.ActiviteListes"/>
 
@@ -59,9 +59,14 @@
 
         <activity
             android:name=".activites.SacActivity"
-            android:exported="true"/>
+            android:exported="false"/>
 
-        <activity android:name=".activites.ActiviteGestionFoodProducts"/>
+        <activity
+            android:name=".activites.ActiviteGestionFoodProducts"
+            android:exported="false"/>
+        <activity
+            android:name=".activites.ActiviteGestionEquipment"
+            android:exported="false" />
     </application>
 
 </manifest>

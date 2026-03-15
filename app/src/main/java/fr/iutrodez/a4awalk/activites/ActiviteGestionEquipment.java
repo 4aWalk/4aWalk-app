@@ -2,7 +2,6 @@ package fr.iutrodez.a4awalk.activites;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,17 +23,17 @@ import java.util.List;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.adaptateurs.EquipmentAdapter;
 import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
-import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
+import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceEquipment;
 
-public class ActiviteEquipmentItem extends HeaderActivity {
+public class ActiviteGestionEquipment extends HeaderActivity {
 
     private RecyclerView recyclerEquipments;
     private EquipmentAdapter adapter;
     private Button btnAjouter;
-    private List<EquipmentItem> listeEquipements = new ArrayList<>();
+    private List<EquipmentItem> listeEquipments = new ArrayList<>();
     private TokenManager tokenManager;
 
     @Override
@@ -43,49 +42,39 @@ public class ActiviteEquipmentItem extends HeaderActivity {
         setContentView(R.layout.activite_gestion_equipments);
 
         configurerToolbar();
-
         tokenManager = new TokenManager(this);
 
         recyclerEquipments = findViewById(R.id.recycler_equipments_catalog);
-        btnAjouter = findViewById(R.id.btn_afficher_popup_ajout);
+        btnAjouter = findViewById(R.id.btn_afficher_popup_ajout_eq);
 
         recyclerEquipments.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new EquipmentAdapter(listeEquipements);
+        // Plus de listener de suppression
+        adapter = new EquipmentAdapter(listeEquipments);
         recyclerEquipments.setAdapter(adapter);
 
         btnAjouter.setOnClickListener(v -> afficherPopupAjoutEquipment());
 
-        chargerEquipementsDepuisAPI();
+        chargerEquipmentsDepuisAPI();
     }
 
-    private void chargerEquipementsDepuisAPI() {
+    private void chargerEquipmentsDepuisAPI() {
         ServiceEquipment.getAllEquipments(this, tokenManager.getToken(), new AppelAPI.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray result) {
-                listeEquipements.clear();
+                listeEquipments.clear();
                 try {
                     for (int i = 0; i < result.length(); i++) {
                         JSONObject obj = result.getJSONObject(i);
                         EquipmentItem eq = new EquipmentItem();
-
                         eq.setId(obj.getInt("id"));
                         eq.setNom(obj.getString("nom"));
-                        eq.setDescription(obj.getString("description"));
-                        eq.setMasseGrammes(obj.getDouble("masse"));
+                        eq.setDescription(obj.optString("description", ""));
+                        eq.setMasseGrammes(obj.getDouble("masseGrammes"));
                         eq.setNbItem(obj.getInt("nbItem"));
-                        String typeStr = obj.getString("type");
-                        try {
-                            eq.setType(TypeEquipment.valueOf(typeStr.toUpperCase()));
-                        } catch (IllegalArgumentException e) {
-                            // eq.setType(TypeEquipment.AUTRE);
-                        }
-
-                        if (!obj.isNull("masseVide")) {
-                            eq.setMasseAVide(obj.getDouble("masseVide"));
-                        }
-
-                        listeEquipements.add(eq);
+                        eq.setType(TypeEquipment.valueOf(obj.getString("type")));
+                        eq.setMasseAVide(obj.optDouble("masseAVide", 0.0));
+                        listeEquipments.add(eq);
                     }
                     adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
@@ -95,7 +84,7 @@ public class ActiviteEquipmentItem extends HeaderActivity {
 
             @Override
             public void onError(VolleyError error) {
-                Toast.makeText(ActiviteEquipmentItem.this, "Erreur de chargement", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActiviteGestionEquipment.this, "Erreur de chargement", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -105,24 +94,22 @@ public class ActiviteEquipmentItem extends HeaderActivity {
         dialog.setContentView(R.layout.popup_ajout_equipment);
 
         EditText etNom = dialog.findViewById(R.id.et_eq_nom_create);
-        EditText etDesc = dialog.findViewById(R.id.et_eq_desc_create);
+        EditText etDescription = dialog.findViewById(R.id.et_eq_desc_create);
         EditText etMasse = dialog.findViewById(R.id.et_eq_masse_create);
+        EditText etMasseVide = dialog.findViewById(R.id.et_eq_masse_vide_create);
         Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_eq_nb_item_create);
         Spinner spinnerType = dialog.findViewById(R.id.spinner_eq_type_create);
-        EditText etMasseVide = dialog.findViewById(R.id.et_eq_masse_vide_create);
 
         Button btnAnnuler = dialog.findViewById(R.id.btn_eq_annuler_create);
         Button btnValider = dialog.findViewById(R.id.btn_eq_valider_create);
 
-        // 1. Spinner Nombre d'items
-        Integer[] items = new Integer[]{1, 2, 3};
-        ArrayAdapter<Integer> adapterNbItem = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
-        adapterNbItem.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerNbItem.setAdapter(adapterNbItem);
+        // Initialisation Spinner Nb Item (1 à 3)
+        ArrayAdapter<Integer> adapterNb = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new Integer[]{1, 2, 3});
+        adapterNb.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerNbItem.setAdapter(adapterNb);
 
-        // 2. Spinner Type d'équipement
-        String[] types = new String[]{"Sac", "Vêtement", "Bivouac", "Autre"};
-        ArrayAdapter<String> adapterType = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
+        // Initialisation Spinner Type Equipment
+        ArrayAdapter<TypeEquipment> adapterType = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, TypeEquipment.values());
         adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapterType);
 
@@ -130,63 +117,47 @@ public class ActiviteEquipmentItem extends HeaderActivity {
 
         btnValider.setOnClickListener(v -> {
             String nom = etNom.getText().toString().trim();
-            String desc = etDesc.getText().toString().trim();
+            String desc = etDescription.getText().toString().trim();
             String masseStr = etMasse.getText().toString().trim();
             String masseVideStr = etMasseVide.getText().toString().trim();
 
+            // --- VALIDATION DES BUSINESS RULES ---
             if (nom.isEmpty() || desc.isEmpty() || masseStr.isEmpty()) {
                 Toast.makeText(this, "Veuillez remplir les champs obligatoires", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            double masse = 0;
-            double masseVide = 0;
-
-            try {
-                masse = Double.parseDouble(masseStr);
-                if (!masseVideStr.isEmpty()) {
-                    masseVide = Double.parseDouble(masseVideStr);
-                }
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Format de nombre invalide", Toast.LENGTH_SHORT).show();
+            double masse = Double.parseDouble(masseStr);
+            if (masse < 50 || masse > 5000) {
+                Toast.makeText(this, "La masse doit être comprise entre 50g et 5000g", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            EquipmentItem nouvelEquipement = new EquipmentItem();
-            nouvelEquipement.setNom(nom);
-            nouvelEquipement.setDescription(desc);
-            nouvelEquipement.setMasseGrammes(masse);
-            nouvelEquipement.setNbItem((int) spinnerNbItem.getSelectedItem());
-            String typeSelectionne = spinnerType.getSelectedItem().toString().toUpperCase();
-            try {
-                nouvelEquipement.setType(TypeEquipment.valueOf(typeSelectionne));
-            } catch (IllegalArgumentException e) {
-                // Gérer le cas où la valeur du spinner ne matche pas l'Enum (problème d'accents par exemple)
-            }
+            double masseVide = masseVideStr.isEmpty() ? 0.0 : Double.parseDouble(masseVideStr);
 
-            if (!masseVideStr.isEmpty()) {
-                nouvelEquipement.setMasseAVide(masseVide);
-            }
+            EquipmentItem nouveauEq = new EquipmentItem();
+            nouveauEq.setNom(nom);
+            nouveauEq.setDescription(desc);
+            nouveauEq.setMasseGrammes(masse);
+            nouveauEq.setNbItem((Integer) spinnerNbItem.getSelectedItem());
+            nouveauEq.setType((TypeEquipment) spinnerType.getSelectedItem());
+            nouveauEq.setMasseAVide(masseVide);
 
-            ServiceEquipment.creerEquipment(this, tokenManager.getToken(), nouvelEquipement, new AppelAPI.VolleyObjectCallback() {
+            ServiceEquipment.creerEquipment(this, tokenManager.getToken(), nouveauEq, new AppelAPI.VolleyObjectCallback() {
                 @Override
                 public void onSuccess(JSONObject result) {
-                    Toast.makeText(ActiviteEquipmentItem.this, "Équipement ajouté !", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ActiviteGestionEquipment.this, "Équipement ajouté !", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
-                    chargerEquipementsDepuisAPI();
+                    chargerEquipmentsDepuisAPI();
                 }
 
                 @Override
                 public void onError(VolleyError error) {
-                    Toast.makeText(ActiviteEquipmentItem.this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ActiviteGestionEquipment.this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
                 }
             });
         });
 
         dialog.show();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
     }
 }

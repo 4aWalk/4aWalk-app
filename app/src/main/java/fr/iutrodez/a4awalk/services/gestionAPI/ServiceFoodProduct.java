@@ -10,21 +10,18 @@ public class ServiceFoodProduct {
 
     private static final String BASE_URL = "http://98.94.8.220:8080"; // Ton URL de base
 
-    // Récupérer tous les produits (GET) -> Retourne un JSONArray (VolleyCallback)
     public static void getAllFoodProducts(Context context, String token, AppelAPI.VolleyCallback callback) {
         String url = BASE_URL + "/foods";
-
         AppelAPI.get(url, token, context, callback);
     }
 
-    // Créer un produit (POST) -> Retourne un JSONObject (VolleyObjectCallback)
     public static void creerFoodProduct(Context context, String token, FoodProduct fp, AppelAPI.VolleyObjectCallback callback) {
         String url = BASE_URL + "/foods";
 
         try {
             JSONObject body = new JSONObject();
             body.put("nom", fp.getNom());
-            body.put("description", fp.getDescription());
+            body.put("description", fp.getDescription()); // Attention, ton modèle a description mais l'UI a "appellationCourante". J'ai laissé tel quel par rapport à ton code.
             body.put("masseGrammes", fp.getMasseGrammes());
             body.put("appellationCourante", fp.getAppellationCourante());
             body.put("conditionnement", fp.getConditionnement());
@@ -37,12 +34,5 @@ public class ServiceFoodProduct {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    // Supprimer un produit (DELETE)
-    public static void supprimerFoodProduct(Context context, String token, int id, AppelAPI.VolleyObjectCallback callback) {
-        String url = BASE_URL + "/foods/" + id;
-
-        AppelAPI.delete(url, token, context, callback);
     }
 }

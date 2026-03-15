@@ -82,5 +82,6 @@
     <string name="gestion_compte">Gestion du compte</string>
     <string name="deconnexion">Déconnexion</string>
     <string name="nourritures">Nourritures</string>
+    <string name="equipements">Équipements</string>
 
 </resources>
