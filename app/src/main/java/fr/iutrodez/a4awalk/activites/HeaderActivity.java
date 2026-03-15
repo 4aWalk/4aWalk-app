@@ -49,26 +49,38 @@ public abstract class HeaderActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
+        // --- GESTION DU PROFIL ---
         if (id == R.id.action_account) {
-            startActivity(new Intent(this, ProfilActivity.class)); // Modifie si besoin
+            // Vérifie si on est déjà sur la page ProfilActivity (ou sa modification)
+            if (this instanceof ProfilActivity || this instanceof UpdateProfilActivity) {
+                Toast.makeText(this, "Vous êtes déjà sur votre profil", Toast.LENGTH_SHORT).show();
+            } else {
+                startActivity(new Intent(this, ProfilActivity.class));
+            }
             return true;
         }
 
+        // --- GESTION DE LA DÉCONNEXION ---
         if (id == R.id.action_logout) {
             Toast.makeText(this, "Déconnexion...", Toast.LENGTH_SHORT).show();
 
             // Retour au Login
             Intent intent = new Intent(this, ActivitePrincipale.class);
-            // Destruction de l'historique d'activités avec les flags
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
 
-            finish(); // On ferme l'activité actuelle
+            finish();
             return true;
         }
 
+        // --- GESTION DES NOURRITURES ---
         if (id == R.id.action_items) {
-            startActivity(new Intent(this, ActiviteGestionFoodProducts.class)); // Modifie si besoin
+            // Vérifie si on est déjà sur la page de gestion des nourritures
+            if (this instanceof ActiviteGestionFoodProducts) {
+                Toast.makeText(this, "Vous êtes déjà sur la gestion des nourritures", Toast.LENGTH_SHORT).show();
+            } else {
+                startActivity(new Intent(this, ActiviteGestionFoodProducts.class));
+            }
             return true;
         }
 

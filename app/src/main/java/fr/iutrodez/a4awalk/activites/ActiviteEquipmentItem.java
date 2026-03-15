@@ -26,7 +26,7 @@ import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
 
-public class ActiviteGestionFoodProducts extends HeaderActivity {
+public class ActiviteEquipmentItem extends HeaderActivity {
 
     private RecyclerView recyclerFoodProducts;
     private FoodProductAdapter adapter;
@@ -84,7 +84,7 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
 
             @Override
             public void onError(VolleyError error) {
-                Toast.makeText(ActiviteGestionFoodProducts.this, "Erreur de chargement", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActiviteEquipmentItem.this, "Erreur de chargement", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -109,14 +109,14 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
             ServiceFoodProduct.creerFoodProduct(this, tokenManager.getToken(), nouveauProduit, new AppelAPI.VolleyObjectCallback() {
                 @Override
                 public void onSuccess(JSONObject result) {
-                    Toast.makeText(ActiviteGestionFoodProducts.this, "Produit ajouté !", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ActiviteEquipmentItem.this, "Produit ajouté !", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     chargerProduitsDepuisAPI(); // On rafraîchit la liste complète
                 }
 
                 @Override
                 public void onError(VolleyError error) {
-                    Toast.makeText(ActiviteGestionFoodProducts.this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ActiviteEquipmentItem.this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -132,13 +132,13 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
                     ServiceFoodProduct.supprimerFoodProduct(this, tokenManager.getToken(), produit.getId(), new AppelAPI.VolleyObjectCallback() {
                         @Override
                         public void onSuccess(JSONObject result) {
-                            Toast.makeText(ActiviteGestionFoodProducts.this, "Produit supprimé", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActiviteEquipmentItem.this, "Produit supprimé", Toast.LENGTH_SHORT).show();
                             chargerProduitsDepuisAPI(); // On rafraîchit la liste
                         }
 
                         @Override
                         public void onError(VolleyError error) {
-                            Toast.makeText(ActiviteGestionFoodProducts.this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ActiviteEquipmentItem.this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
                         }
                     });
                 })

@@ -11,7 +11,7 @@
     <item
         android:id="@+id/action_items"
         android:icon="@android:drawable/ic_menu_close_clear_cancel"
-        android:title="@string/items"
+        android:title="@string/nourritures"
         app:showAsAction="never" />
 
     <item
