@@ -56,6 +56,47 @@ public class ServicePOI {
         }
     }
 
+    /**
+     * Extrait un POI unique (comme le départ ou l'arrivée) depuis la réponse globale.
+     */
+    public static PointOfInterest extractSinglePOI(JSONObject response, String key) {
+        JSONObject obj = response.optJSONObject(key);
+        if (obj != null) {
+            try {
+                return parsePOI(obj);
+            } catch (JSONException e) {
+                Log.e("ServicePOI", "Erreur parsing du POI : " + key);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Extrait la liste des POIs optionnels depuis la réponse globale.
+     */
+    public static ArrayList<PointOfInterest> extractPOIs(JSONObject response) {
+        ArrayList<PointOfInterest> pois = new ArrayList<>();
+        JSONArray poisJson = response.optJSONArray("points");
+
+        // Conservation de votre logique de fallback d'origine
+        int fallbackCount = response.optInt("nbParticipants", response.optInt("participants", 0));
+
+        try {
+            if (poisJson != null && poisJson.length() > 0) {
+                for (int i = 0; i < poisJson.length(); i++) {
+                    pois.add(parsePOI(poisJson.getJSONObject(i)));
+                }
+            } else if (fallbackCount > 0) {
+                for (int i = 0; i < fallbackCount; i++) {
+                    pois.add(new PointOfInterest());
+                }
+            }
+        } catch (JSONException e) {
+            Log.e("ServicePOI", "Erreur parsing liste POIs");
+        }
+        return pois;
+    }
+
     private static JSONObject createPOIJson(PointOfInterest poi) {
         try {
             JSONObject json = new JSONObject();
@@ -68,6 +109,20 @@ public class ServicePOI {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Parse un JSONObject pour en extraire un PointOfInterest
+     */
+    public static PointOfInterest parsePOI(JSONObject obj) throws JSONException {
+        return new PointOfInterest(
+                obj.getInt("id"),
+                obj.getString("nom"),
+                obj.getDouble("latitude"),
+                obj.getDouble("longitude"),
+                obj.optString("description", ""),
+                obj.optInt("sequence", 0)
+        );
     }
 
 }

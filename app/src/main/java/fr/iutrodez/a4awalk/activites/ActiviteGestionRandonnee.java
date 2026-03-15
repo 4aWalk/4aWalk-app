@@ -18,6 +18,8 @@ import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceOptimisation;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
@@ -54,6 +57,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private Spinner nbJours;
     private ImageButton btnAjouterPOI, btnAjouterParticipant;
     private Button validateButton, btnSupprimer, btnOptimizeHike;
+    private Button btnAddFoodProduct;
     private LinearLayout containerPoi, containerParticipants, containerFoodProducts;
 
     private ArrayList<PointOfInterest> listeTemporairePOI = new ArrayList<>();
@@ -135,6 +139,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         btnAjouterPOI = findViewById(R.id.btn_add_poi);
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
+        btnAddFoodProduct = findViewById(R.id.btn_add_food_product);
         validateButton = findViewById(R.id.validate_button);
         btnSupprimer = findViewById(R.id.btn_delete_hike);
 
@@ -183,6 +188,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         btnAjouterPOI.setVisibility(View.GONE);
         btnAjouterParticipant.setVisibility(View.GONE);
+        btnAddFoodProduct.setVisibility(View.GONE);
 
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
@@ -234,8 +240,12 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         setChampsEditables(true);
         btnAjouterPOI.setVisibility(View.VISIBLE);
         btnAjouterParticipant.setVisibility(View.VISIBLE);
+        btnAddFoodProduct.setVisibility(View.VISIBLE);
+
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
+        listeFoodProducts.setEnabled(true);
+
         btnOptimizeHike.setVisibility(View.GONE);
         btnSupprimer.setVisibility(View.GONE);
 
@@ -286,6 +296,16 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             PopUpFoodProduct.afficherPopupDetailsFoodProduct(ActiviteGestionRandonnee.this, fp);
         });
 
+        // Écouteur pour ajouter un produit
+        btnAddFoodProduct.setOnClickListener(v -> afficherPopupSelectionFoodProduct());
+
+        // Écouteur pour supprimer un produit avec un APPUI LONG
+        listeFoodProducts.setOnItemLongClickListener((parent, view, position, id) -> {
+            FoodProduct fpASupprimer = listeTemporaireFoodProducts.get(position);
+            afficherConfirmationSuppressionFoodProduct(fpASupprimer, position);
+            return true; // Indique que l'événement d'appui long est consommé
+        });
+
         validateButton.setText("Enregistrer les modifications");
         validateButton.setOnClickListener(v -> traiterMiseAJour());
     }
@@ -298,7 +318,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         String latAStr = arriveeLat.getText().toString().trim();
         String lonAStr = arriveeLon.getText().toString().trim();
 
-        int duree = 1; // Valeur par défaut
+        int duree = 1;
         if (nbJours.getSelectedItem() != null) {
             try {
                 duree = Integer.parseInt(nbJours.getSelectedItem().toString());
@@ -307,30 +327,23 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             }
         }
 
-        // 2. Appel de TON validateur
         String erreurValidation = ValidateurRandonnee.verifierDonnees(nom, latDStr, lonDStr, latAStr, lonAStr, duree);
 
-        // 3. Gestion des erreurs de validation
         if (erreurValidation != null) {
-            // S'il y a une erreur (c'est-à-dire si le retour n'est pas null), on l'affiche et on stoppe le processus
             Toast.makeText(this, erreurValidation, Toast.LENGTH_LONG).show();
             return;
         }
 
-        // 4. Conversion sécurisée des coordonnées
-        // À ce stade, on sait que la conversion ne plantera pas car ton validateur a déjà fait le travail de vérification
         double latD = Double.parseDouble(latDStr.replace(",", "."));
         double lonD = Double.parseDouble(lonDStr.replace(",", "."));
         double latA = Double.parseDouble(latAStr.replace(",", "."));
         double lonA = Double.parseDouble(lonAStr.replace(",", "."));
 
-        // 5. Génération des valeurs par défaut pour les champs requis par l'API
         String nomDepart = "Départ : " + nom;
         String descDepart = "Point de départ de la randonnée";
         String nomArrivee = "Arrivée : " + nom;
         String descArrivee = "Point d'arrivée de la randonnée";
 
-        // Appel de l'API avec les données formatées
         ServiceCreationRandonnee.creerRandonnee(
                 this,
                 tokenManager.getToken(),
@@ -362,12 +375,18 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         String libelleTexte = libelle.getText().toString();
         int dureeJours = Integer.parseInt(nbJours.getSelectedItem().toString());
 
-        // Utilisation de la nouvelle classe ServiceModificationRandonnee
         ServiceModificationRandonnee.modifierRandonneeAPI(this, tokenManager.getToken(), currentHike.getId(), libelleTexte, dureeJours, new ServiceModificationRandonnee.UpdateHikeCallback() {
             @Override
             public void onSuccess() {
                 traiterMiseAJourParticipants(currentHike.getId());
                 traiterMiseAJourPOI(currentHike.getId());
+                ServiceFoodProduct.synchroniserFoodProducts(
+                        ActiviteGestionRandonnee.this,
+                        tokenManager.getToken(),
+                        currentHike.getId(),
+                        currentHike.getFoodCatalogue(),
+                        listeTemporaireFoodProducts
+                );
                 Toast.makeText(ActiviteGestionRandonnee.this, "Modifications enregistrées", Toast.LENGTH_SHORT).show();
                 fermerAvecResultat(Activity.RESULT_OK, null);
             }
@@ -449,7 +468,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             inputNom.setEnabled(false); inputLat.setEnabled(false); inputLon.setEnabled(false);
             builder.setPositiveButton("Fermer", null);
         } else {
-            // On définit le bouton Valider à null ici pour éviter la fermeture automatique
             builder.setPositiveButton("Valider", null);
             builder.setNegativeButton("Annuler", null);
 
@@ -539,15 +557,87 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             }
             @Override
             public void onError(VolleyError error) {
-                // AJOUT DES VÉRIFICATIONS DE SÉCURITÉ ICI (error != null && error.networkResponse != null)
-                if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
-                    Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée supprimée avec succès", Toast.LENGTH_SHORT).show();
-                    fermerAvecResultat(Activity.RESULT_OK, null);
-                } else {
-                    Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la suppression de la randonnée", Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la suppression de la randonnée", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    /**
+     * Récupère tous les produits et affiche une liste cliquable.
+     * Lors du clic, le produit est ajouté à la liste temporaire locale.
+     */
+    private void afficherPopupSelectionFoodProduct() {
+        // 1. On récupère la liste de tous les produits existants depuis le catalogue global
+        ServiceFoodProduct.getAllFoodProducts(this, tokenManager.getToken(), new AppelAPI.VolleyCallback() {
+            @Override
+            public void onSuccess(JSONArray result) {
+                try {
+                    List<FoodProduct> catalogueComplet = new ArrayList<>();
+                    List<String> nomsProduits = new ArrayList<>();
+
+                    for (int i = 0; i < result.length(); i++) {
+                        FoodProduct fp = ServiceFoodProduct.constructFPFromJson(result.getJSONObject(i));
+                        catalogueComplet.add(fp);
+                        nomsProduits.add(fp.getNom() + " (" + fp.getMasseGrammes() + "g)");
+                    }
+
+                    // 2. On affiche la liste dans une boîte de dialogue
+                    String[] tableauNoms = nomsProduits.toArray(new String[0]);
+                    new AlertDialog.Builder(ActiviteGestionRandonnee.this)
+                            .setTitle("Sélectionner un produit")
+                            .setItems(tableauNoms, (dialog, which) -> {
+                                // 3. L'utilisateur a cliqué sur un produit
+                                FoodProduct produitSelectionne = catalogueComplet.get(which);
+
+                                // MODIFICATION ICI : On n'appelle plus l'API, on modifie juste la liste locale
+                                ajouterProduitLocal(produitSelectionne);
+                            })
+                            .setNegativeButton("Annuler", null)
+                            .show();
+
+                } catch (JSONException e) {
+                    Toast.makeText(ActiviteGestionRandonnee.this, "Erreur de lecture des produits", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(ActiviteGestionRandonnee.this, "Impossible de charger le catalogue", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Ajoute le produit sélectionné UNIQUEMENT à la liste visuelle temporaire.
+     */
+    private void ajouterProduitLocal(FoodProduct produit) {
+        for (FoodProduct fp : listeTemporaireFoodProducts) {
+            if (fp.getId() == produit.getId()) {
+                Toast.makeText(this, "Ce produit est déjà dans la randonnée", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        listeTemporaireFoodProducts.add(produit);
+        adapterFoodProducts.notifyDataSetChanged();
+        Toast.makeText(this, produit.getNom() + " ajouté à la liste !", Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Retire le produit UNIQUEMENT de la liste visuelle temporaire.
+     */
+    private void afficherConfirmationSuppressionFoodProduct(FoodProduct produit, int position) {
+        new AlertDialog.Builder(this)
+                .setTitle("Retirer le produit")
+                .setMessage("Voulez-vous retirer " + produit.getNom() + " de la randonnée ?")
+                .setPositiveButton("Oui", (dialog, which) -> {
+                    // Suppression purement locale
+                    listeTemporaireFoodProducts.remove(position);
+                    adapterFoodProducts.notifyDataSetChanged();
+                    Toast.makeText(ActiviteGestionRandonnee.this, "Produit retiré de la liste", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Non", null)
+                .show();
     }
 
     private void fermerAvecResultat(int resultCode, String message) {

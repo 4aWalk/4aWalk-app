@@ -19,7 +19,10 @@ import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceEquipement;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 
 public class ServiceRandonnee {
 
@@ -106,87 +109,15 @@ public class ServiceRandonnee {
             int dureeJours = response.getInt("dureeJours");
             boolean optimize = response.optBoolean("optimize", false);
 
-            JSONObject departObj = response.optJSONObject("depart");
-            PointOfInterest depart = (departObj != null) ? parsePOI(departObj) : null;
-
-            JSONObject arriveeObj = response.optJSONObject("arrivee");
-            PointOfInterest arrivee = (arriveeObj != null) ? parsePOI(arriveeObj) : null;
+            PointOfInterest depart = ServicePOI.extractSinglePOI(response, "depart");
+            PointOfInterest arrivee = ServicePOI.extractSinglePOI(response, "arrivee");
 
             Hike hike = new Hike(id, libelle, depart, arrivee, dureeJours, currentUser, optimize);
 
-            // --- Parsing Participants (Gère le cas Liste et le cas Détail) ---
-            ArrayList<Participant> participants = new ArrayList<>();
-            JSONArray partsJson = response.optJSONArray("participants");
-
-            // On cherche le nombre de participants (clé nbParticipants ou participants si c'est un nombre)
-            int nbParticipantsCompteur = response.optInt("nbParticipants", response.optInt("participants", 0));
-
-            if (partsJson != null && partsJson.length() > 0) {
-                // CAS DÉTAIL : On a les objets complets
-                for (int i = 0; i < partsJson.length(); i++) {
-                    participants.add(parseParticipant(partsJson.getJSONObject(i)));
-                }
-            } else if (nbParticipantsCompteur > 0) {
-                // CAS LISTE : On crée des objets vides pour que le .size() soit correct
-                for (int i = 0; i < nbParticipantsCompteur; i++) {
-                    participants.add(new Participant());
-                }
-            }
-            hike.setParticipants(participants);
-
-            // --- Parsing points d'intérêt (Gère le cas Liste et le cas Détail) ---
-            ArrayList<PointOfInterest> pois = new ArrayList<>();
-            JSONArray poisJson = response.optJSONArray("points");
-
-            if (poisJson != null && poisJson.length() > 0) {
-                for (int i = 0; i < poisJson.length(); i++) {
-                    pois.add(parsePOI(poisJson.getJSONObject(i)));
-                }
-            } else if (nbParticipantsCompteur > 0) {
-                for (int i = 0; i < nbParticipantsCompteur; i++) {
-                    pois.add(new PointOfInterest());
-                }
-            }
-            hike.setOptionalPoints(pois);
-
-
-            // --- Food Catalogue ---
-            JSONArray foodJson = response.optJSONArray("foodCatalogue");
-            List<FoodProduct> foodList = new ArrayList<>();
-            if (foodJson != null) {
-                for (int i = 0; i < foodJson.length(); i++) {
-                    JSONObject f = foodJson.getJSONObject(i);
-                    FoodProduct fp = ServiceFoodProduct.constructFPFromJson(f);
-                    foodList.add(fp);
-                }
-            }
-            hike.setFoodCatalogue(foodList);
-
-            // --- Equipment Groups ---
-            JSONObject groupsJson = response.optJSONObject("equipmentGroups");
-            List<EquipmentItem> equipList = new ArrayList<>();
-            if (groupsJson != null) {
-                java.util.Iterator<String> keys = groupsJson.keys();
-                while (keys.hasNext()) {
-                    String categoryKey = keys.next();
-                    JSONObject categoryObj = groupsJson.optJSONObject(categoryKey);
-                    if (categoryObj != null) {
-                        JSONArray itemsArray = categoryObj.optJSONArray("items");
-                        if (itemsArray != null) {
-                            for (int i = 0; i < itemsArray.length(); i++) {
-                                JSONObject e = itemsArray.getJSONObject(i);
-                                EquipmentItem item = new EquipmentItem();
-                                item.setId(e.getInt("id"));
-                                item.setNom(e.getString("nom"));
-                                item.setType(TypeEquipment.valueOf(e.optString("type", "AUTRE")));
-                                item.setNbItem(e.optInt("nbItem", 0));
-                                equipList.add(item);
-                            }
-                        }
-                    }
-                }
-            }
-            hike.setEquipmentGroups(equipList);
+            hike.setParticipants(ServiceParticipant.extractParticipants(response));
+            hike.setOptionalPoints(ServicePOI.extractPOIs(response));
+            hike.setFoodCatalogue(ServiceFoodProduct.extractFoodCatalogue(response));
+            hike.setEquipmentGroups(ServiceEquipement.extractEquipmentGroups(response));
 
             return hike;
 
@@ -194,37 +125,6 @@ public class ServiceRandonnee {
             Log.e("ServiceRandonnee", "Erreur critique parsing JSON : " + e.getMessage());
             return null;
         }
-    }
-
-    private static PointOfInterest parsePOI(JSONObject obj) throws JSONException {
-        return new PointOfInterest(
-                obj.getInt("id"),
-                obj.getString("nom"),
-                obj.getDouble("latitude"),
-                obj.getDouble("longitude"),
-                obj.optString("description", ""),
-                obj.optInt("sequence", 0)
-        );
-    }
-
-    private static Participant parseParticipant(JSONObject obj) throws JSONException {
-        Participant p = new Participant();
-        p.setId(obj.getInt("id"));
-        p.setPrenom(obj.optString("prenom", ""));
-        p.setNom(obj.optString("nom", ""));
-        p.setAge(obj.optInt("age", 0));
-        p.setBesoinKcal(obj.optInt("besoinKcal", 0));
-        p.setBesoinEauLitre(obj.optDouble("besoinEauLitre", 0.0));
-        p.setCapaciteEmportMaxKg(obj.optDouble("capaciteEmportMaxKg", 0.0));
-
-        try {
-            p.setNiveau(Level.valueOf(obj.optString("niveau", "DEBUTANT")));
-            p.setMorphologie(Morphology.valueOf(obj.optString("morphologie", "MOYENNE")));
-        } catch (Exception e) {
-            p.setNiveau(Level.DEBUTANT);
-            p.setMorphologie(Morphology.MOYENNE);
-        }
-        return p;
     }
 
     public static void supprimerRandonnee(Context context, String token, int hikeId, AppelAPI.VolleyObjectCallback callback) {

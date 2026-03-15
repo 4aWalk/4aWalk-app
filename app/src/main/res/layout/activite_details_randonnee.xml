@@ -203,7 +203,13 @@
                     android:id="@+id/food_products_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
-
+                <Button
+                    android:id="@+id/btn_add_food_product"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ajouter un produit"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/orange"/>
 
             </LinearLayout>
             <Button

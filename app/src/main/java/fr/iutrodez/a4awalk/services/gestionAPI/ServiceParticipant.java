@@ -5,6 +5,9 @@ import android.util.Log;
 import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,27 +27,6 @@ public class ServiceParticipant {
         if (participantId == 0) return;
         String url = String.format(URL_MODIF_PARTICIPANT, hikeId, participantId);
         AppelAPI.delete(url, token, context, callback);
-    }
-
-    private static JSONObject buildParticipantJSON(Participant participant) {
-        try {
-            JSONObject body = new JSONObject();
-            if (participant.getNom() != null) body.put("nom", participant.getNom());
-            if (participant.getPrenom() != null) body.put("prenom", participant.getPrenom());
-            body.put("age", participant.getAge());
-            body.put("niveau", participant.getNiveau().toString());
-            body.put("morphologie", participant.getMorphologie().toString());
-            body.put("besoinKcal", participant.getBesoinKcal());
-            body.put("besoinEauLitre", participant.getBesoinEauLitre());
-            if (participant.getCapaciteEmportMaxKg() != 0.0) {
-                body.put("capaciteEmportMaxKg", participant.getCapaciteEmportMaxKg());
-            } else {
-                body.put("capaciteEmportMaxKg", 0);
-            }
-            return body;
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     public static void traiterMAJParticipants(Context contexte, int hikeId, ArrayList<Participant> listeTemporaireParticipants, ArrayList<Participant> participantsOriginaux, TokenManager tokenManager) {
@@ -79,6 +61,76 @@ public class ServiceParticipant {
                 supprimerParticipantAPI(contexte, tokenManager.getToken(), hikeId, pOrigin.getId(), silentCallback);
             }
         }
+    }
+
+    /**
+     * Extrait la liste des participants depuis la réponse globale.
+     */
+    public static ArrayList<Participant> extractParticipants(JSONObject response) {
+        ArrayList<Participant> participants = new ArrayList<>();
+        JSONArray partsJson = response.optJSONArray("participants");
+        int fallbackCount = response.optInt("nbParticipants", response.optInt("participants", 0));
+
+        try {
+            if (partsJson != null && partsJson.length() > 0) {
+                for (int i = 0; i < partsJson.length(); i++) {
+                    participants.add(parseParticipant(partsJson.getJSONObject(i)));
+                }
+            } else if (fallbackCount > 0) {
+                for (int i = 0; i < fallbackCount; i++) {
+                    participants.add(new Participant());
+                }
+            }
+        } catch (JSONException e) {
+            Log.e("ServiceParticipant", "Erreur parsing liste Participants");
+        }
+        return participants;
+    }
+
+    private static JSONObject buildParticipantJSON(Participant participant) {
+        try {
+            JSONObject body = new JSONObject();
+            if (participant.getNom() != null) body.put("nom", participant.getNom());
+            if (participant.getPrenom() != null) body.put("prenom", participant.getPrenom());
+            body.put("age", participant.getAge());
+            body.put("niveau", participant.getNiveau().toString());
+            body.put("morphologie", participant.getMorphologie().toString());
+            body.put("besoinKcal", participant.getBesoinKcal());
+            body.put("besoinEauLitre", participant.getBesoinEauLitre());
+            if (participant.getCapaciteEmportMaxKg() != 0.0) {
+                body.put("capaciteEmportMaxKg", participant.getCapaciteEmportMaxKg());
+            } else {
+                body.put("capaciteEmportMaxKg", 0);
+            }
+            return body;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // Dans fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant
+
+    /**
+     * Parse un JSONObject pour en extraire un Participant
+     */
+    public static Participant parseParticipant(JSONObject obj) throws JSONException {
+        Participant p = new Participant();
+        p.setId(obj.getInt("id"));
+        p.setPrenom(obj.optString("prenom", ""));
+        p.setNom(obj.optString("nom", ""));
+        p.setAge(obj.optInt("age", 0));
+        p.setBesoinKcal(obj.optInt("besoinKcal", 0));
+        p.setBesoinEauLitre(obj.optDouble("besoinEauLitre", 0.0));
+        p.setCapaciteEmportMaxKg(obj.optDouble("capaciteEmportMaxKg", 0.0));
+
+        try {
+            p.setNiveau(Level.valueOf(obj.optString("niveau", "DEBUTANT")));
+            p.setMorphologie(Morphology.valueOf(obj.optString("morphologie", "MOYENNE")));
+        } catch (Exception e) {
+            p.setNiveau(Level.DEBUTANT);
+            p.setMorphologie(Morphology.MOYENNE);
+        }
+        return p;
     }
 
 }

@@ -1,8 +1,17 @@
 package fr.iutrodez.a4awalk.services.gestionAPI;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.android.volley.VolleyError;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
 
@@ -13,6 +22,24 @@ public class ServiceFoodProduct {
     public static void getAllFoodProducts(Context context, String token, AppelAPI.VolleyCallback callback) {
         String url = BASE_URL + "/foods";
         AppelAPI.get(url, token, context, callback);
+    }
+
+    /**
+     * Lie un FoodProduct existant à une Randonnée.
+     */
+    public static void lierFoodProductARandonnee(Context context, String token, int hikeId, int foodId, AppelAPI.VolleyObjectCallback callback) {
+        String url = "http://98.94.8.220:8080/hikes/" + hikeId + "/food/" + foodId;
+        // On envoie un corps JSON vide comme demandé par l'API
+        AppelAPI.post(url, token, new JSONObject(), context, callback);
+    }
+
+    /**
+     * Retire un FoodProduct d'une Randonnée.
+     */
+    public static void retirerFoodProductDeRandonnee(Context context, String token, int hikeId, int foodId, AppelAPI.VolleyObjectCallback callback) {
+        String url = "http://98.94.8.220:8080/hikes/" + hikeId + "/food/" + foodId;
+        // Utilisez votre méthode d'appel DELETE personnalisée
+        AppelAPI.delete(url, token, context, callback);
     }
 
     /**
@@ -32,6 +59,82 @@ public class ServiceFoodProduct {
         nouveauProduit.setNbItem(nbItem);
 
         creerFoodProduct(context, token, nouveauProduit, callback);
+    }
+
+    /**
+     * Extrait le catalogue de FoodProducts depuis la réponse globale.
+     */
+    public static List<FoodProduct> extractFoodCatalogue(JSONObject response) {
+        List<FoodProduct> foodList = new ArrayList<>();
+        JSONArray foodJson = response.optJSONArray("foodCatalogue");
+
+        if (foodJson != null) {
+            try {
+                for (int i = 0; i < foodJson.length(); i++) {
+                    foodList.add(constructFPFromJson(foodJson.getJSONObject(i)));
+                }
+            } catch (JSONException e) {
+                Log.e("ServiceFoodProduct", "Erreur parsing catalogue alimentaire");
+            }
+        }
+        return foodList;
+    }
+
+    /**
+     * Synchronise les produits alimentaires d'une randonnée.
+     * Compare la liste originale avec la liste temporaire et effectue les appels API nécessaires.
+     */
+    public static void synchroniserFoodProducts(Context context, String token, int hikeId,
+                                                List<FoodProduct> originaux, List<FoodProduct> temporaires) {
+
+        // 1. Trouver les AJOUTS (présents dans temporaires, absents dans originaux)
+        for (FoodProduct temp : temporaires) {
+            boolean existeDeja = false;
+            for (FoodProduct orig : originaux) {
+                if (temp.getId() == orig.getId()) {
+                    existeDeja = true;
+                    break;
+                }
+            }
+            if (!existeDeja) {
+                // Le produit a été ajouté, on fait le POST
+                lierFoodProductARandonnee(context, token, hikeId, temp.getId(), new AppelAPI.VolleyObjectCallback() {
+                    @Override public void onSuccess(JSONObject result) {
+                        Log.i("ServiceFoodProduct", "Produit " + temp.getId() + " lié avec succès.");
+                    }
+                    @Override public void onError(VolleyError error) {
+                        Log.e("ServiceFoodProduct", "Erreur lors de la liaison du produit " + temp.getId());
+                    }
+                });
+            }
+        }
+
+        // 2. Trouver les SUPPRESSIONS (présents dans originaux, absents dans temporaires)
+        for (FoodProduct orig : originaux) {
+            boolean estConserve = false;
+            for (FoodProduct temp : temporaires) {
+                if (orig.getId() == temp.getId()) {
+                    estConserve = true;
+                    break;
+                }
+            }
+            if (!estConserve) {
+                // Le produit a été retiré, on fait le DELETE
+                retirerFoodProductDeRandonnee(context, token, hikeId, orig.getId(), new AppelAPI.VolleyObjectCallback() {
+                    @Override public void onSuccess(JSONObject result) {
+                        Log.i("ServiceFoodProduct", "Produit " + orig.getId() + " retiré avec succès.");
+                    }
+                    @Override public void onError(VolleyError error) {
+                        // Gestion du cas où le DELETE renvoie un 204 No Content
+                        if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
+                            Log.i("ServiceFoodProduct", "Produit " + orig.getId() + " retiré avec succès (204).");
+                        } else {
+                            Log.e("ServiceFoodProduct", "Erreur lors du retrait du produit " + orig.getId());
+                        }
+                    }
+                });
+            }
+        }
     }
 
     // Méthode existante conservée pour l'appel brut à l'API
