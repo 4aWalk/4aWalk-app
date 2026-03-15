@@ -51,7 +51,7 @@ public class ActiviteListes extends HeaderActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        setIntent(intent); // Met à jour l'Intent
+        setIntent(intent);
         gererRedirectionOnglet();
     }
 

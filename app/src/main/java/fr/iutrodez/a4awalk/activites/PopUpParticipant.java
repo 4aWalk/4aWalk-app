@@ -26,7 +26,7 @@ import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 
-public class GestionParticipant {
+public class PopUpParticipant {
 
     /**
      * Point d'entrée principal.
@@ -44,10 +44,8 @@ public class GestionParticipant {
 
         ParticipantViewHolder views = new ParticipantViewHolder(dialog);
 
-        // Configuration Commune
         configurerComposantsCommuns(context, views);
 
-        // Routage selon le mode
         switch (mode) {
             case CREATION:
                 setupModeCreation(context, dialog, views, token, hikeId, participant, callback);

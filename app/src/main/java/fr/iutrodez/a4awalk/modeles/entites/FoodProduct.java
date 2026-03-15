@@ -148,4 +148,9 @@ public class FoodProduct implements Item, Parcelable {
     public int getTotalKcals() {
         return (int) (getApportNutritionnelKcal() * this.nbItem);
     }
+
+    @Override
+    public String toString() {
+        return getNom() + " - " +getMasseGrammes() + " g - " + getNbItem() + " personnes";
+    }
 }

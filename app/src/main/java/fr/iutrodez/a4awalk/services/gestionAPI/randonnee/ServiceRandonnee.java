@@ -19,6 +19,7 @@ import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
 
 public class ServiceRandonnee {
 
@@ -155,11 +156,7 @@ public class ServiceRandonnee {
             if (foodJson != null) {
                 for (int i = 0; i < foodJson.length(); i++) {
                     JSONObject f = foodJson.getJSONObject(i);
-                    FoodProduct fp = new FoodProduct();
-                    fp.setId(f.getInt("id"));
-                    fp.setNom(f.getString("nom"));
-                    fp.setMasseGrammes(f.optDouble("masseGrammes", 0.0));
-                    fp.setNbItem(f.optInt("nbItem", 0));
+                    FoodProduct fp = ServiceFoodProduct.constructFPFromJson(f);
                     foodList.add(fp);
                 }
             }
