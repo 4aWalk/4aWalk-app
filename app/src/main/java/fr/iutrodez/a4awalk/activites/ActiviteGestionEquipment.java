@@ -2,10 +2,12 @@ package fr.iutrodez.a4awalk.activites;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -49,8 +51,7 @@ public class ActiviteGestionEquipment extends HeaderActivity {
 
         recyclerEquipments.setLayoutManager(new LinearLayoutManager(this));
 
-        // Plus de listener de suppression
-        adapter = new EquipmentAdapter(listeEquipments);
+        adapter = new EquipmentAdapter(listeEquipments, item -> afficherPopupDetailsEquipment(item));
         recyclerEquipments.setAdapter(adapter);
 
         btnAjouter.setOnClickListener(v -> afficherPopupAjoutEquipment());
@@ -103,12 +104,10 @@ public class ActiviteGestionEquipment extends HeaderActivity {
         Button btnAnnuler = dialog.findViewById(R.id.btn_eq_annuler_create);
         Button btnValider = dialog.findViewById(R.id.btn_eq_valider_create);
 
-        // Initialisation Spinner Nb Item (1 à 3)
         ArrayAdapter<Integer> adapterNb = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new Integer[]{1, 2, 3});
         adapterNb.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerNbItem.setAdapter(adapterNb);
 
-        // Initialisation Spinner Type Equipment
         ArrayAdapter<TypeEquipment> adapterType = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, TypeEquipment.values());
         adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapterType);
@@ -121,7 +120,6 @@ public class ActiviteGestionEquipment extends HeaderActivity {
             String masseStr = etMasse.getText().toString().trim();
             String masseVideStr = etMasseVide.getText().toString().trim();
 
-            // --- VALIDATION DES BUSINESS RULES ---
             if (nom.isEmpty() || desc.isEmpty() || masseStr.isEmpty()) {
                 Toast.makeText(this, "Veuillez remplir les champs obligatoires", Toast.LENGTH_SHORT).show();
                 return;
@@ -159,5 +157,73 @@ public class ActiviteGestionEquipment extends HeaderActivity {
         });
 
         dialog.show();
+
+        // Force la largeur
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    // VOICI LA METHODE MANQUANTE QUE J'AI AJOUTEE
+    private void afficherPopupDetailsEquipment(EquipmentItem equipement) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.popup_ajout_equipment);
+
+        TextView tvTitre = dialog.findViewById(R.id.tv_titre_popup_eq);
+        if (tvTitre != null) tvTitre.setText("Détails de l'équipement");
+
+        EditText etNom = dialog.findViewById(R.id.et_eq_nom_create);
+        EditText etDesc = dialog.findViewById(R.id.et_eq_desc_create);
+        EditText etMasse = dialog.findViewById(R.id.et_eq_masse_create);
+        Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_eq_nb_item_create);
+        Spinner spinnerType = dialog.findViewById(R.id.spinner_eq_type_create);
+        EditText etMasseVide = dialog.findViewById(R.id.et_eq_masse_vide_create);
+
+        Button btnAnnuler = dialog.findViewById(R.id.btn_eq_annuler_create);
+        Button btnValider = dialog.findViewById(R.id.btn_eq_valider_create);
+
+        etNom.setText(equipement.getNom());
+        etDesc.setText(equipement.getDescription());
+        etMasse.setText(String.valueOf(equipement.getMasseGrammes()));
+
+        if (equipement.getMasseAVide() > 0) {
+            etMasseVide.setText(String.valueOf(equipement.getMasseAVide()));
+        }
+
+        Integer[] items = new Integer[]{1, 2, 3};
+        ArrayAdapter<Integer> adapterNbItem = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
+        spinnerNbItem.setAdapter(adapterNbItem);
+        spinnerNbItem.setSelection(equipement.getNbItem() - 1);
+
+        String[] types = new String[]{"Sac", "Vêtement", "Bivouac", "Autre"};
+        ArrayAdapter<String> adapterTypeStr = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
+        spinnerType.setAdapter(adapterTypeStr);
+
+        if (equipement.getType() != null) {
+            for (int i = 0; i < types.length; i++) {
+                if (types[i].equalsIgnoreCase(equipement.getType().name())) {
+                    spinnerType.setSelection(i);
+                    break;
+                }
+            }
+        }
+
+        // Verrouillage
+        etNom.setEnabled(false);
+        etDesc.setEnabled(false);
+        etMasse.setEnabled(false);
+        etMasseVide.setEnabled(false);
+        spinnerNbItem.setEnabled(false);
+        spinnerType.setEnabled(false);
+
+        // Configuration des boutons
+        btnAnnuler.setVisibility(android.view.View.GONE);
+        btnValider.setText("Fermer");
+        btnValider.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
     }
 }

@@ -12,10 +12,18 @@ import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
 
 public class FoodProductAdapter extends RecyclerView.Adapter<FoodProductAdapter.FoodProductViewHolder> {
 
-    private List<FoodProduct> listeProduits;
+    // 1. Création de l'interface pour capter le clic sur un élément
+    public interface OnItemClickListener {
+        void onItemClick(FoodProduct item);
+    }
 
-    public FoodProductAdapter(List<FoodProduct> listeProduits) {
+    private List<FoodProduct> listeProduits;
+    private OnItemClickListener listener; // 2. Ajout de la variable pour le listener
+
+    // 3. Mise à jour du constructeur pour qu'il prenne le listener en paramètre
+    public FoodProductAdapter(List<FoodProduct> listeProduits, OnItemClickListener listener) {
         this.listeProduits = listeProduits;
+        this.listener = listener;
     }
 
     @NonNull
@@ -38,6 +46,13 @@ public class FoodProductAdapter extends RecyclerView.Adapter<FoodProductAdapter.
                 produit.getNbItem(),
                 produit.getPrixEuro());
         holder.tvDetails.setText(details);
+
+        // 4. Déclenchement de l'événement lors du clic sur la ligne entière
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(produit);
+            }
+        });
     }
 
     @Override
@@ -53,7 +68,6 @@ public class FoodProductAdapter extends RecyclerView.Adapter<FoodProductAdapter.
             super(itemView);
             tvNom = itemView.findViewById(R.id.tv_item_fp_nom);
             tvDetails = itemView.findViewById(R.id.tv_item_fp_details);
-            // Plus de bouton supprimer ici
         }
     }
 }

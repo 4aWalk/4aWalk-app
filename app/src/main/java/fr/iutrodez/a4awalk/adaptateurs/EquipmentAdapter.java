@@ -15,10 +15,18 @@ import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
 
 public class EquipmentAdapter extends RecyclerView.Adapter<EquipmentAdapter.EquipmentViewHolder> {
 
-    private List<EquipmentItem> listeEquipments;
+    // 1. L'interface pour le clic
+    public interface OnItemClickListener {
+        void onItemClick(EquipmentItem item);
+    }
 
-    public EquipmentAdapter(List<EquipmentItem> listeEquipments) {
+    private List<EquipmentItem> listeEquipments;
+    private OnItemClickListener listener;
+
+    // 2. Le constructeur prend maintenant le listener en paramètre
+    public EquipmentAdapter(List<EquipmentItem> listeEquipments, OnItemClickListener listener) {
         this.listeEquipments = listeEquipments;
+        this.listener = listener;
     }
 
     @NonNull
@@ -34,12 +42,18 @@ public class EquipmentAdapter extends RecyclerView.Adapter<EquipmentAdapter.Equi
 
         holder.tvNom.setText(produit.getNom());
 
-        // Affichage : "Masse | Nb item | Type"
         String details = String.format("%s g | %s item(s) | %s",
                 produit.getMasseGrammes(),
                 produit.getNbItem(),
-                produit.getType().name());
+                produit.getType() != null ? produit.getType().name() : "Inconnu");
         holder.tvDetails.setText(details);
+
+        // 3. On déclenche le clic sur toute la ligne
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(produit);
+            }
+        });
     }
 
     @Override
