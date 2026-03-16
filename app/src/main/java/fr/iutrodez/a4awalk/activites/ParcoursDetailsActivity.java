@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.osmdroid.bonuspack.routing.OSRMRoadManager;
 import org.osmdroid.bonuspack.routing.Road;
@@ -36,16 +37,16 @@ import fr.iutrodez.a4awalk.modeles.entites.GeoCoordinate;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
 
 public class ParcoursDetailsActivity extends HeaderActivity {
 
     private static final String TAG = "ParcoursDetails";
-    private static final String API_COURSE_BASE_URL = "http://98.94.8.220:8080/courses/";
-    private static final String API_HIKE_BASE_URL = "http://98.94.8.220:8080/hikes/";
+    private static final String BASE_URL = "http://98.94.8.220:8080";
 
     private MapView map;
     private List<GeoPoint> coursePoints;
-    private TextView tvNomParcours, tvDepart, tvArrivee, tvDate, tvRandonnee;
+    private TextView tvNomParcours, tvDate, tvRandonnee;
     private ImageButton btnRetour;
     private Button btnReprendre, btnSupprimer;
 
@@ -88,8 +89,6 @@ public class ParcoursDetailsActivity extends HeaderActivity {
     private void bindViews() {
         map = findViewById(R.id.map);
         tvNomParcours = findViewById(R.id.tvNomParcours);
-        tvDepart = findViewById(R.id.tvDepart);
-        tvArrivee = findViewById(R.id.tvArrivee);
         tvDate = findViewById(R.id.tvDate);
         tvRandonnee = findViewById(R.id.tvRandonnee);
         btnReprendre = findViewById(R.id.btnReprendre);
@@ -113,24 +112,16 @@ public class ParcoursDetailsActivity extends HeaderActivity {
     }
 
     private void loadCourseFromApi() {
-        String url = API_COURSE_BASE_URL + courseId;
+        String url = BASE_URL + "/courses/" + courseId;
 
-        // Utilisation de TA classe AppelAPI !
         AppelAPI.get(url, tokenManager.getToken(), this, new AppelAPI.VolleyObjectCallback() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
-                    // Pour parser le LocalDateTime proprement avec Gson
-                    Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
-                            (JsonDeserializer<LocalDateTime>) (json, type, jsonContext) ->
-                                    LocalDateTime.parse(json.getAsJsonPrimitive().getAsString())).create();
-
-                    currentCourse = gson.fromJson(result.toString(), Course.class);
+                    currentCourse = ServiceParcours.createCourse(result);
                     displayCourseData(currentCourse);
 
-                    if (currentCourse.getHikeId() != null) {
-                        loadHikeNameFromApi(currentCourse.getHikeId());
-                    }
+                    loadHikeNameFromApi(currentCourse.getHikeId());
                 } catch (Exception e) {
                     Log.e(TAG, "Erreur parsing JSON Course", e);
                 }
@@ -144,33 +135,29 @@ public class ParcoursDetailsActivity extends HeaderActivity {
     }
 
     private void loadHikeNameFromApi(long hikeId) {
-        String url = API_HIKE_BASE_URL + hikeId;
+        String url = BASE_URL + "/hikes/" +hikeId;
 
         AppelAPI.get(url, tokenManager.getToken(), this, new AppelAPI.VolleyObjectCallback() {
             @Override
-            public void onSuccess(JSONObject result) {
-                try {
-                    Hike hike = new Gson().fromJson(result.toString(), Hike.class);
-                    String hikeName = (hike != null && hike.getLibelle() != null) ? hike.getLibelle() : "Randonnée " + hikeId;
-                    tvRandonnee.setText(hikeName);
-                } catch (Exception e) {
-                    tvRandonnee.setText("Randonnée " + hikeId);
-                }
+            public void onSuccess(JSONObject result) throws JSONException {
+                tvRandonnee.setText(result.getString("libelle"));
             }
 
             @Override
             public void onError(VolleyError error) {
-                tvRandonnee.setText("Randonnée " + hikeId);
+                error.getMessage();
             }
         });
     }
 
     private void displayCourseData(Course course) {
-        tvNomParcours.setText("Détails du parcours");
+        String nomParcoursStr = getIntent().getStringExtra("NOM_PARCOURS");
 
-        // On suppose que PointOfInterest a une méthode getName() ou getDescription()
-        tvDepart.setText(course.getDepart() != null ? "Point de départ renseigné" : "Non défini");
-        tvArrivee.setText(course.getArrivee() != null ? "Point d'arrivée renseigné" : "Non défini");
+        if (nomParcoursStr != null) {
+            tvNomParcours.setText(nomParcoursStr);
+        } else {
+            tvNomParcours.setText("Détails du parcours");
+        }
 
         if (course.getDateRealisation() != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -178,8 +165,6 @@ public class ParcoursDetailsActivity extends HeaderActivity {
         } else {
             tvDate.setText("Date inconnue");
         }
-
-        tvRandonnee.setText("Chargement...");
 
         coursePoints = new ArrayList<>();
         // On utilise getTrajetsRealises() comme défini dans ton modèle

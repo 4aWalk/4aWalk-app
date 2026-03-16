@@ -67,6 +67,7 @@
         <activity
             android:name=".activites.ActiviteGestionEquipment"
             android:exported="false" />
+        <activity android:name=".activites.ParcoursDetailsActivity"/>
     </application>
 
 </manifest>

@@ -1,6 +1,10 @@
 package fr.iutrodez.a4awalk.services.gestionAPI;
 
+import static fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI.parsePOI;
+
 import android.content.Context;
+import android.util.Log;
+
 import com.android.volley.VolleyError;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,72 +61,59 @@ public class ServiceParcours {
 
         try {
             for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject courseJson = jsonArray.getJSONObject(i);
-                Course course = new Course();
-
-                // --- CHAMPS SIMPLES ---
-                // "id" est un String dans le JSON de Course (Mongo ID)
-                course.setId(courseJson.getString("id"));
-
-                // "hikeId" est un entier/long
-                course.setHikeId(courseJson.getLong("hikeId"));
-
-                // "finished" et "paused"
-                course.setFinished(courseJson.getBoolean("finished"));
-                course.setPaused(courseJson.getBoolean("paused"));
-
-                // --- DATE ---
-                // Parsing de la date ISO-8601 ("2026-02-05T08:19:12.027")
-                String dateStr = courseJson.optString("dateRealisation", null);
-                course.setDateRealisation(LocalDateTime.parse(dateStr));
-
-                // --- DEPART & ARRIVEE (Gestion du null) ---
-                // Dans ton JSON, ils sont null, donc on vérifie avec isNull()
-                if (!courseJson.isNull("depart")) {
-                    course.setDepart(parsePOI(courseJson.getJSONObject("depart")));
-                }
-
-                if (!courseJson.isNull("arrivee")) {
-                    course.setArrivee(parsePOI(courseJson.getJSONObject("arrivee")));
-                }
-
-                // --- PATH (Liste de GeoCoordinate) ---
-                List<GeoCoordinate> pathList = new ArrayList<>();
-                JSONArray pathArray = courseJson.optJSONArray("path");
-
-                if (pathArray != null) {
-                    for (int j = 0; j < pathArray.length(); j++) {
-                        JSONObject pointJson = pathArray.getJSONObject(j);
-
-                        double lat = pointJson.getDouble("latitude");
-                        double lon = pointJson.getDouble("longitude");
-
-                        pathList.add(new GeoCoordinate(lat, lon));
-                    }
-                }
-                course.setTrajetsRealises(pathList);
-
+                Course course = createCourse(jsonArray.getJSONObject(i));
                 liste.add(course);
             }
         } catch (JSONException e) {
-            // TODO faire un message d'erreur
             e.printStackTrace();
         }
         return liste;
     }
 
-    /**
-     * Méthode utilitaire pour parser un POI et éviter de dupliquer le code
-     * entre depart, arrivee et les randos classiques.
-     */
-    private static PointOfInterest parsePOI(JSONObject poiJson) throws JSONException {
-        return new PointOfInterest(
-                poiJson.getInt("id"),
-                poiJson.getString("name"),
-                poiJson.getDouble("latitude"),
-                poiJson.getDouble("longitude"),
-                poiJson.getString("description"),
-                poiJson.getInt("order")
-        );
+    public static Course createCourse(JSONObject courseJson) throws JSONException {
+        Course course = new Course();
+
+        // --- CHAMPS SIMPLES ---
+        // "id" est un String dans le JSON de Course (Mongo ID)
+        course.setId(courseJson.getString("id"));
+
+        // "hikeId" est un entier/long
+        course.setHikeId(courseJson.getInt("hikeId"));
+
+        // "finished" et "paused"
+        course.setFinished(courseJson.getBoolean("isFinished"));
+        course.setPaused(courseJson.getBoolean("isPaused"));
+
+        // --- DATE ---
+        // Parsing de la date ISO-8601 ("2026-02-05T08:19:12.027")
+        String dateStr = courseJson.optString("dateRealisation", null);
+        course.setDateRealisation(LocalDateTime.parse(dateStr));
+
+        // --- DEPART & ARRIVEE (Gestion du null) ---
+        // Dans ton JSON, ils sont null, donc on vérifie avec isNull()
+        if (!courseJson.isNull("depart")) {
+            course.setDepart(parsePOI(courseJson.getJSONObject("depart")));
+        }
+
+        if (!courseJson.isNull("arrivee")) {
+            course.setArrivee(parsePOI(courseJson.getJSONObject("arrivee")));
+        }
+
+        // --- PATH (Liste de GeoCoordinate) ---
+        List<GeoCoordinate> pathList = new ArrayList<>();
+        JSONArray pathArray = courseJson.optJSONArray("path");
+
+        if (pathArray != null) {
+            for (int j = 0; j < pathArray.length(); j++) {
+                JSONObject pointJson = pathArray.getJSONObject(j);
+
+                double lat = pointJson.getDouble("latitude");
+                double lon = pointJson.getDouble("longitude");
+
+                pathList.add(new GeoCoordinate(lat, lon));
+            }
+        }
+        course.setTrajetsRealises(pathList);
+        return course;
     }
 }

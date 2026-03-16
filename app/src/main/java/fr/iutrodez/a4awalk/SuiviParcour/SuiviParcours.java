@@ -106,8 +106,6 @@ public class SuiviParcours extends AppCompatActivity {
         mapView = findViewById(R.id.map);
         btnPause = findViewById(R.id.btnReprendre);
         btnTerminer = findViewById(R.id.btnReprendre);
-        tvProchainPoint = findViewById(R.id.tvArrivee); // TODO fix it
-        tvArrivee = findViewById(R.id.tvArrivee);
 
         mapView.setBuiltInZoomControls(true);
         mapView.setMultiTouchControls(true);

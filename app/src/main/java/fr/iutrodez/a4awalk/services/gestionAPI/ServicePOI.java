@@ -115,8 +115,9 @@ public class ServicePOI {
      * Parse un JSONObject pour en extraire un PointOfInterest
      */
     public static PointOfInterest parsePOI(JSONObject obj) throws JSONException {
+        int id = obj.isNull("id") ? -1 : obj.getInt("id");
         return new PointOfInterest(
-                obj.getInt("id"),
+                id,
                 obj.getString("nom"),
                 obj.getDouble("latitude"),
                 obj.getDouble("longitude"),

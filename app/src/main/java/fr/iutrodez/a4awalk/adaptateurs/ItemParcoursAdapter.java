@@ -15,33 +15,18 @@ import fr.iutrodez.a4awalk.R;
 
 public class ItemParcoursAdapter extends RecyclerView.Adapter<ParcoursViewHolder>{
 
-    /**
-     * Source de données à afficher par la liste
-     */
     private final List<Course> lesDonnees;
-
-    /**
-     * Dictionnaire (Cache) contenant l'ID de la randonnée et son Nom
-     */
-    private final HashMap<Long, String> dictionnaireRandos;
-
-    // 1. Variable pour stocker l'écouteur
+    private final HashMap<Integer, String> dictionnaireRandos;
     private final OnParcoursClickListener listener;
 
-    // 2. Interface pour communiquer avec l'Activity
+    // Remplacez votre interface actuelle par celle-ci :
     public interface OnParcoursClickListener {
-        void onRandoClick(Course route);
+        void onRandoClick(Course route, int position); // Ajout du paramètre position
     }
 
-    /**
-     * Constructeur modifié : on ajoute le dictionnaire en paramètre
-     * @param donnees liste des données
-     * @param dictionnaireRandos cache des noms de randonnées
-     * @param listener l'activité qui écoutera le clic
-     */
-    public ItemParcoursAdapter(List<Course> donnees, HashMap<Long, String> dictionnaireRandos, OnParcoursClickListener listener) {
+    public ItemParcoursAdapter(List<Course> donnees, HashMap<Integer, String> dictionnaireRandos, OnParcoursClickListener listener) {
         this.lesDonnees = donnees;
-        this.dictionnaireRandos = dictionnaireRandos; // Initialisation du dictionnaire
+        this.dictionnaireRandos = dictionnaireRandos;
         this.listener = listener;
     }
 
@@ -54,18 +39,20 @@ public class ItemParcoursAdapter extends RecyclerView.Adapter<ParcoursViewHolder
         return new ParcoursViewHolder(view);
     }
 
-    // Signature corrigée : on enlève "String nomHike" qui causait une erreur de compilation
     @Override
     public void onBindViewHolder(@NonNull ParcoursViewHolder holder, int position) {
         Course myObject = lesDonnees.get(position);
 
-        // On passe l'objet Course ET le dictionnaire au ViewHolder
-        holder.bind(myObject, dictionnaireRandos);
+        holder.bind(myObject, dictionnaireRandos, position);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.onRandoClick(myObject);
+                // getAdapterPosition() est plus sûr que d'utiliser 'position' directement
+                int currentPosition = holder.getAdapterPosition();
+                if (currentPosition != RecyclerView.NO_POSITION) {
+                    listener.onRandoClick(myObject, currentPosition);
+                }
             }
         });
     }

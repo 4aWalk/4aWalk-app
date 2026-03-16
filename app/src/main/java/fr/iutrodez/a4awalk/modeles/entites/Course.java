@@ -7,7 +7,7 @@ import java.util.List;
 public class Course {
     private String id;
 
-    private Long hikeId;
+    private int hikeId;
 
     private LocalDateTime dateRealisation;
 
@@ -18,6 +18,7 @@ public class Course {
     private boolean isFinished;
 
     private boolean isPaused;
+
     private List<GeoCoordinate> trajetsRealises;
 
     public Course() {
@@ -27,7 +28,7 @@ public class Course {
         this.isPaused = false;
     }
 
-    public Course(Long hikeId, PointOfInterest depart) {
+    public Course(int hikeId, PointOfInterest depart) {
         this();
         this.hikeId = hikeId;
         this.depart = depart;
@@ -36,8 +37,8 @@ public class Course {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public Long getHikeId() { return hikeId; }
-    public void setHikeId(Long hikeId) { this.hikeId = hikeId; }
+    public int getHikeId() { return hikeId; }
+    public void setHikeId(int hikeId) { this.hikeId = hikeId; }
 
     public LocalDateTime getDateRealisation() { return dateRealisation; }
     public void setDateRealisation(LocalDateTime dateRealisation) { this.dateRealisation = dateRealisation; }
@@ -49,10 +50,10 @@ public class Course {
     public void setArrivee(PointOfInterest arrivee) { this.arrivee = arrivee; }
 
     public boolean isFinished() { return isFinished; }
-    public void setFinished(boolean finished) { isFinished = finished; }
+    public void setFinished(boolean finished) { this.isFinished = finished; }
 
     public boolean isPaused() { return isPaused; }
-    public void setPaused(boolean paused) { isPaused = paused; }
+    public void setPaused(boolean paused) { this.isPaused = paused; }
 
     public List<GeoCoordinate> getTrajetsRealises() { return trajetsRealises; }
     public void setTrajetsRealises(List<GeoCoordinate> trajetsRealises) { this.trajetsRealises = trajetsRealises; }

@@ -2,16 +2,10 @@ package fr.iutrodez.a4awalk.adaptateurs;
 
 import android.view.View;
 import android.widget.TextView;
-
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.HashMap;
-
 import fr.iutrodez.a4awalk.modeles.entites.Course;
-import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.R;
-import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
-import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
 
 public class ParcoursViewHolder extends RecyclerView.ViewHolder {
 
@@ -20,21 +14,21 @@ public class ParcoursViewHolder extends RecyclerView.ViewHolder {
 
     public ParcoursViewHolder(View itemView) {
         super(itemView);
-        nomParcours = (TextView) itemView.findViewById(R.id.nom_parcours);
-        nomRandonnee = (TextView) itemView.findViewById(R.id.nom_hike);
+        nomParcours = itemView.findViewById(R.id.nom_parcours);
+        nomRandonnee = itemView.findViewById(R.id.nom_hike);
     }
 
-    public void bind(Course course, HashMap<Long, String> dictionnaireRandos){
-        nomParcours.setText("Parcours n°" + course.getId());
+    public void bind(Course course, HashMap<Integer, String> dictionnaireRandos, int position){
 
-        long hikeId = course.getHikeId();
+        nomParcours.setText("Parcours " + (position + 1));
 
-        // On cherche le nom de la rando dans notre dictionnaire pré-chargé
+        // 2. Récupère le nom de la rando
+        int hikeId = course.getHikeId();
+
         if (dictionnaireRandos.containsKey(hikeId)) {
             nomRandonnee.setText(dictionnaireRandos.get(hikeId));
         } else {
             nomRandonnee.setText("Randonnée inconnue");
         }
     }
-
 }

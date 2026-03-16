@@ -21,9 +21,11 @@ import fr.iutrodez.a4awalk.activites.ParcoursDetailsActivity; // L'import de la 
 import fr.iutrodez.a4awalk.adaptateurs.ItemParcoursAdapter;
 import fr.iutrodez.a4awalk.modeles.entites.Course;
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
+import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
 
 public class FragmentListeParcours extends Fragment implements View.OnClickListener {
 
@@ -63,9 +65,6 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
         return vueDuFragment;
     }
 
-    /**
-     * Utilise le ServiceRandonnee pour charger les données
-     */
     public void initialiseListeParcours(String token) {
 
         ServiceParcours.recupererParcoursUtilisateur(requireContext(), token, new ServiceParcours.ParcoursCallback() {
@@ -73,40 +72,47 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
             public void onSuccess(ArrayList<Course> parcours) {
                 listeParcours = parcours;
 
-                // Gestion de l'affichage vide/plein
                 if (listeParcours == null || listeParcours.isEmpty()) {
                     parcoursRecyclerView.setVisibility(View.GONE);
                     messageView.setVisibility(View.VISIBLE);
                     messageView.setText(R.string.no_course_message);
                     Log.i("INFO", "Aucun parcours disponible");
                 } else {
-                    parcoursRecyclerView.setVisibility(View.VISIBLE);
-                    messageView.setVisibility(View.GONE);
-
-                    HashMap<Long, String> dictionnaireRandos = new HashMap<>();
-
-                    adaptateur = new ItemParcoursAdapter(listeParcours, dictionnaireRandos, new ItemParcoursAdapter.OnParcoursClickListener() {
+                    ServiceRandonnee.recupererRandonneesUtilisateur(requireContext(), token, user, new ServiceRandonnee.RandoCallback() {
                         @Override
-                        public void onRandoClick(Course route) {
-                            // C'est ici que l'on déclenche l'ouverture de l'activité de détails
-                            Intent intent = new Intent(requireActivity(), ParcoursDetailsActivity.class);
+                        public void onSuccess(ArrayList<Hike> randonnees) {
+                            HashMap<Integer, String> dictionnaireRandos = new HashMap<>();
+                            if (randonnees != null) {
+                                for (Hike hike : randonnees) {
+                                    dictionnaireRandos.put(hike.getId(), hike.getLibelle());
+                                }
+                            }
 
-                            // On sécurise en passant l'ID en String (car ton modèle Course a un ID en String)
-                            intent.putExtra("COURSE_ID", route.getId());
+                            parcoursRecyclerView.setVisibility(View.VISIBLE);
+                            messageView.setVisibility(View.GONE);
 
-                            startActivity(intent);
+                            adaptateur = new ItemParcoursAdapter(listeParcours, dictionnaireRandos, (route, position) -> {
+                                Intent intent = new Intent(requireActivity(), ParcoursDetailsActivity.class);
+                                intent.putExtra("COURSE_ID", route.getId());
+                                intent.putExtra("NOM_PARCOURS", "Parcours " + (position + 1));
+
+                                startActivity(intent);
+                            });
+
+                            parcoursRecyclerView.setAdapter(adaptateur);
+                        }
+
+                        @Override
+                        public void onError(VolleyError error) {
+                            Log.e("ERREUR API", "Erreur lors de la récupération des randos pour le dico: " + error.toString());
                         }
                     });
-
-                    // On attache l'adaptateur au RecyclerView pour afficher les données !
-                    parcoursRecyclerView.setAdapter(adaptateur);
                 }
             }
 
             @Override
             public void onError(VolleyError error) {
                 Log.e("ERREUR API", "Erreur lors de la récupération des parcours: " + error.toString());
-                // TODO prévention de l'utilisateur
             }
         });
     }
