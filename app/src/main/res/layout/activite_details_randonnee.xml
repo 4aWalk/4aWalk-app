@@ -185,6 +185,35 @@
                     app:tint="@color/black"
                     android:layout_gravity="center_horizontal"/>
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_equipments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Équipements"
+                    android:textStyle="bold"
+                    android:textColor="@color/black" />
+
+                <fr.iutrodez.a4awalk.utils.NonScrollListView
+                    android:id="@+id/equipments_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btn_add_equipment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ajouter un équipement"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/orange"/>
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/container_food_products"
                 android:layout_width="match_parent"

@@ -7,19 +7,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import java.util.List;
 
-import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
-import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
-import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.User;
-import fr.iutrodez.a4awalk.modeles.enums.Level;
-import fr.iutrodez.a4awalk.modeles.enums.Morphology;
-import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 import fr.iutrodez.a4awalk.services.AppelAPI;
-import fr.iutrodez.a4awalk.services.gestionAPI.ServiceEquipement;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceEquipment; // Remplacé "Equipement" par "Equipment" pour la cohérence
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
@@ -117,7 +110,9 @@ public class ServiceRandonnee {
             hike.setParticipants(ServiceParticipant.extractParticipants(response));
             hike.setOptionalPoints(ServicePOI.extractPOIs(response));
             hike.setFoodCatalogue(ServiceFoodProduct.extractFoodCatalogue(response));
-            hike.setEquipmentGroups(ServiceEquipement.extractEquipmentGroups(response));
+
+            // On s'assure que le nom correspond à ce qu'on a fait dans ActiviteGestionRandonnee
+            hike.setEquipmentGroups(ServiceEquipment.extractEquipmentCatalogue(response));
 
             return hike;
 

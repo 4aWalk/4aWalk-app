@@ -2,6 +2,7 @@ package fr.iutrodez.a4awalk.activites;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
+import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
 import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
@@ -34,7 +36,9 @@ import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
+import fr.iutrodez.a4awalk.modeles.enums.TypeEquipment;
 import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceEquipment;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceOptimisation;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
@@ -53,12 +57,12 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private final String ERREUR = "ERREUR";
 
     private EditText libelle, departLat, departLon, arriveeLat, arriveeLon;
-    private ListView listePoints, listeParticipants, listeFoodProducts;
+    private ListView listePoints, listeParticipants, listeFoodProducts, listeEquipments;
     private Spinner nbJours;
     private ImageButton btnAjouterPOI, btnAjouterParticipant;
     private Button validateButton, btnSupprimer, btnOptimizeHike;
-    private Button btnAddFoodProduct;
-    private LinearLayout containerPoi, containerParticipants, containerFoodProducts;
+    private Button btnAddFoodProduct, btnAddEquipment;
+    private LinearLayout containerPoi, containerParticipants, containerFoodProducts, containerEquipments;
 
     private ArrayList<PointOfInterest> listeTemporairePOI = new ArrayList<>();
     private ArrayList<PointOfInterest> poiOriginaux = new ArrayList<>();
@@ -71,6 +75,11 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private ArrayList<FoodProduct> listeTemporaireFoodProducts = new ArrayList<>();
     private ArrayList<FoodProduct> foodProductsOriginaux = new ArrayList<>();
     private ArrayAdapter<FoodProduct> adapterFoodProducts;
+
+    // --- NOUVEAUX ELEMENTS POUR LES EQUIPEMENTS ---
+    private ArrayList<EquipmentItem> listeTemporaireEquipments = new ArrayList<>();
+    private ArrayList<EquipmentItem> equipmentsOriginaux = new ArrayList<>();
+    private ArrayAdapter<EquipmentItem> adapterEquipments;
 
     private TokenManager tokenManager;
     private User currentUser;
@@ -104,6 +113,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                     participantsOriginaux.addAll(listeTemporaireParticipants);
                     poiOriginaux.addAll(listeTemporairePOI);
                     foodProductsOriginaux.addAll(listeTemporaireFoodProducts);
+                    equipmentsOriginaux.addAll(listeTemporaireEquipments);
                 }
                 modificationRandonnee();
                 break;
@@ -130,16 +140,21 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listePoints = findViewById(R.id.points_list);
         listeParticipants = findViewById(R.id.participants_list);
         listeFoodProducts = findViewById(R.id.food_products_list);
+        listeEquipments = findViewById(R.id.equipments_list); // Ajout
         nbJours = findViewById(R.id.spinner_jours);
 
         containerPoi = findViewById(R.id.container_poi);
         containerParticipants = findViewById(R.id.container_participants);
         containerFoodProducts = findViewById(R.id.container_food_products);
+        containerEquipments = findViewById(R.id.container_equipments); // Ajout
+
         btnOptimizeHike = findViewById(R.id.btn_optimize_hike);
 
         btnAjouterPOI = findViewById(R.id.btn_add_poi);
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
         btnAddFoodProduct = findViewById(R.id.btn_add_food_product);
+        btnAddEquipment = findViewById(R.id.btn_add_equipment); // Ajout
+
         validateButton = findViewById(R.id.validate_button);
         btnSupprimer = findViewById(R.id.btn_delete_hike);
 
@@ -158,6 +173,9 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         adapterFoodProducts = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listeTemporaireFoodProducts);
         listeFoodProducts.setAdapter(adapterFoodProducts);
 
+        // Adaptateur Equipements
+        adapterEquipments = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listeTemporaireEquipments);
+        listeEquipments.setAdapter(adapterEquipments);
     }
 
     private void recupererHikeIntent() {
@@ -183,16 +201,19 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
         containerFoodProducts.setVisibility(View.VISIBLE);
+        containerEquipments.setVisibility(View.VISIBLE); // Ajout
 
         setChampsEditables(false);
 
         btnAjouterPOI.setVisibility(View.GONE);
         btnAjouterParticipant.setVisibility(View.GONE);
         btnAddFoodProduct.setVisibility(View.GONE);
+        btnAddEquipment.setVisibility(View.GONE); // Ajout
 
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
         listeFoodProducts.setEnabled(true);
+        listeEquipments.setEnabled(true); // Ajout
 
         listeParticipants.setOnItemClickListener((parent, view, position, id) -> {
             Participant p = listeTemporaireParticipants.get(position);
@@ -206,13 +227,27 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             PopUpFoodProduct.afficherPopupDetailsFoodProduct(ActiviteGestionRandonnee.this, fp);
         });
 
+        // Afficher les détails d'un équipement
+        listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
+            EquipmentItem eq = listeTemporaireEquipments.get(position);
+            // Assure-toi d'avoir cette méthode ou commente la ligne si tu ne l'as pas encore créée
+            // PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
+        });
 
         validateButton.setText(R.string.bouton_modifier_randonnee);
         validateButton.setOnClickListener(v -> {
             participantsOriginaux.clear();
             participantsOriginaux.addAll(listeTemporaireParticipants);
+
             poiOriginaux.clear();
             poiOriginaux.addAll(listeTemporairePOI);
+
+            foodProductsOriginaux.clear();
+            foodProductsOriginaux.addAll(listeTemporaireFoodProducts);
+
+            equipmentsOriginaux.clear();
+            equipmentsOriginaux.addAll(listeTemporaireEquipments);
+
             modificationRandonnee();
         });
 
@@ -227,6 +262,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerPoi.setVisibility(View.GONE);
         containerParticipants.setVisibility(View.GONE);
         containerFoodProducts.setVisibility(View.GONE);
+        containerEquipments.setVisibility(View.GONE); // Ajout
+
         setChampsEditables(true);
         validateButton.setText(R.string.bouton_ajouter_randonnee);
         validateButton.setOnClickListener(v -> traiterCreation());
@@ -236,15 +273,18 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
         containerFoodProducts.setVisibility(View.VISIBLE);
+        containerEquipments.setVisibility(View.VISIBLE); // Ajout
 
         setChampsEditables(true);
         btnAjouterPOI.setVisibility(View.VISIBLE);
         btnAjouterParticipant.setVisibility(View.VISIBLE);
         btnAddFoodProduct.setVisibility(View.VISIBLE);
+        btnAddEquipment.setVisibility(View.VISIBLE); // Ajout
 
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
         listeFoodProducts.setEnabled(true);
+        listeEquipments.setEnabled(true); // Ajout
 
         btnOptimizeHike.setVisibility(View.GONE);
         btnSupprimer.setVisibility(View.GONE);
@@ -252,7 +292,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         updateBtnParticipantState();
 
         btnAjouterPOI.setOnClickListener(v -> gererDialogPOI(-1, false));
-
         listePoints.setOnItemClickListener((parent, view, position, id) -> gererDialogPOI(position, false));
 
         btnAjouterParticipant.setOnClickListener(v -> {
@@ -291,19 +330,33 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             });
         });
 
+        // --- GESTION FOOD PRODUCTS ---
         listeFoodProducts.setOnItemClickListener((parent, view, position, id) -> {
             FoodProduct fp = listeTemporaireFoodProducts.get(position);
             PopUpFoodProduct.afficherPopupDetailsFoodProduct(ActiviteGestionRandonnee.this, fp);
         });
 
-        // Écouteur pour ajouter un produit
         btnAddFoodProduct.setOnClickListener(v -> afficherPopupSelectionFoodProduct());
 
-        // Écouteur pour supprimer un produit avec un APPUI LONG
         listeFoodProducts.setOnItemLongClickListener((parent, view, position, id) -> {
             FoodProduct fpASupprimer = listeTemporaireFoodProducts.get(position);
             afficherConfirmationSuppressionFoodProduct(fpASupprimer, position);
-            return true; // Indique que l'événement d'appui long est consommé
+            return true;
+        });
+
+        // --- GESTION EQUIPEMENTS ---
+        listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
+            EquipmentItem eq = listeTemporaireEquipments.get(position);
+            // Assure-toi d'avoir cette méthode ou commente la ligne
+            // PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
+        });
+
+        btnAddEquipment.setOnClickListener(v -> afficherPopupSelectionEquipment());
+
+        listeEquipments.setOnItemLongClickListener((parent, view, position, id) -> {
+            EquipmentItem eqASupprimer = listeTemporaireEquipments.get(position);
+            afficherConfirmationSuppressionEquipment(eqASupprimer, position);
+            return true;
         });
 
         validateButton.setText("Enregistrer les modifications");
@@ -311,7 +364,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     }
 
     private void traiterCreation() {
-        // 1. Récupération des données brutes de l'interface
         String nom = libelle.getText().toString().trim();
         String latDStr = departLat.getText().toString().trim();
         String lonDStr = departLon.getText().toString().trim();
@@ -380,6 +432,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             public void onSuccess() {
                 traiterMiseAJourParticipants(currentHike.getId());
                 traiterMiseAJourPOI(currentHike.getId());
+
                 ServiceFoodProduct.synchroniserFoodProducts(
                         ActiviteGestionRandonnee.this,
                         tokenManager.getToken(),
@@ -387,6 +440,19 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                         currentHike.getFoodCatalogue(),
                         listeTemporaireFoodProducts
                 );
+
+                // --- Appel à ta future méthode de synchronisation des équipements ---
+                // Tu devras la créer dans ServiceEquipment sur le même modèle que ServiceFoodProduct
+
+                ServiceEquipment.synchroniserEquipments(
+                        ActiviteGestionRandonnee.this,
+                        tokenManager.getToken(),
+                        currentHike.getId(),
+                        currentHike.getEquipmentGroups(),
+                        listeTemporaireEquipments
+                );
+
+
                 Toast.makeText(ActiviteGestionRandonnee.this, "Modifications enregistrées", Toast.LENGTH_SHORT).show();
                 fermerAvecResultat(Activity.RESULT_OK, null);
             }
@@ -420,19 +486,22 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         if (hike.getDureeJours() > 0 && hike.getDureeJours() <= 10) {
             nbJours.setSelection(hike.getDureeJours() - 1);
         }
+
         listeTemporairePOI.clear();
         if (hike.getOptionalPoints() != null) listeTemporairePOI.addAll(hike.getOptionalPoints());
         adapterPOI.notifyDataSetChanged();
-        Log.i("POIS", hike.getOptionalPoints().toString());
 
         listeTemporaireParticipants.clear();
         if (hike.getParticipants() != null) listeTemporaireParticipants.addAll(hike.getParticipants());
         adapterParticipants.notifyDataSetChanged();
-        Log.i("Participants", hike.getParticipants().toString());
 
+        listeTemporaireFoodProducts.clear();
         if (hike.getFoodCatalogue() != null) listeTemporaireFoodProducts.addAll(hike.getFoodCatalogue());
-        adapterParticipants.notifyDataSetChanged();
-        Log.i("Participants", hike.getFoodCatalogue().toString());
+        adapterFoodProducts.notifyDataSetChanged();
+
+        listeTemporaireEquipments.clear();
+        if (hike.getEquipmentGroups() != null) listeTemporaireEquipments.addAll(hike.getEquipmentGroups());
+        adapterEquipments.notifyDataSetChanged();
 
         updateBtnParticipantState();
     }
@@ -481,22 +550,18 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         builder.setView(view);
 
-        // On crée et on affiche l'AlertDialog
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        // On surcharge le comportement du bouton "Valider" APRÈS l'affichage (seulement si on n'est pas en lecture seule)
         if (!isReadOnly) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
                 String nom = inputNom.getText().toString();
                 String latStr = inputLat.getText().toString();
                 String lonStr = inputLon.getText().toString();
 
-                // Appel de notre nouvelle classe de validation
                 PoiValidator.ValidationResult result = PoiValidator.valider(nom, latStr, lonStr);
 
                 if (result.isValid()) {
-                    // Succès : on met à jour ou on ajoute le POI
                     if (poi != null) {
                         poi.setNom(nom);
                         poi.setLatitude(result.getLatitude());
@@ -505,11 +570,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                         listeTemporairePOI.add(new PointOfInterest(0, nom, result.getLatitude(), result.getLongitude(),null,0));
                     }
                     adapterPOI.notifyDataSetChanged();
-
-                    // On ferme la boîte de dialogue manuellement puisque tout est bon
                     dialog.dismiss();
                 } else {
-                    // Échec : on affiche le message d'erreur et on laisse la boîte de dialogue ouverte
                     Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_LONG).show();
                 }
             });
@@ -562,12 +624,9 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         });
     }
 
-    /**
-     * Récupère tous les produits et affiche une liste cliquable.
-     * Lors du clic, le produit est ajouté à la liste temporaire locale.
-     */
+    // --- METHODES POUR LES PRODUITS ALIMENTAIRES ---
+
     private void afficherPopupSelectionFoodProduct() {
-        // 1. On récupère la liste de tous les produits existants depuis le catalogue global
         ServiceFoodProduct.getAllFoodProducts(this, tokenManager.getToken(), new AppelAPI.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray result) {
@@ -581,15 +640,11 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                         nomsProduits.add(fp.getNom() + " (" + fp.getMasseGrammes() + "g)");
                     }
 
-                    // 2. On affiche la liste dans une boîte de dialogue
                     String[] tableauNoms = nomsProduits.toArray(new String[0]);
                     new AlertDialog.Builder(ActiviteGestionRandonnee.this)
                             .setTitle("Sélectionner un produit")
                             .setItems(tableauNoms, (dialog, which) -> {
-                                // 3. L'utilisateur a cliqué sur un produit
                                 FoodProduct produitSelectionne = catalogueComplet.get(which);
-
-                                // MODIFICATION ICI : On n'appelle plus l'API, on modifie juste la liste locale
                                 ajouterProduitLocal(produitSelectionne);
                             })
                             .setNegativeButton("Annuler", null)
@@ -607,9 +662,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         });
     }
 
-    /**
-     * Ajoute le produit sélectionné UNIQUEMENT à la liste visuelle temporaire.
-     */
     private void ajouterProduitLocal(FoodProduct produit) {
         for (FoodProduct fp : listeTemporaireFoodProducts) {
             if (fp.getId() == produit.getId()) {
@@ -617,24 +669,93 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 return;
             }
         }
-
         listeTemporaireFoodProducts.add(produit);
         adapterFoodProducts.notifyDataSetChanged();
         Toast.makeText(this, produit.getNom() + " ajouté à la liste !", Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Retire le produit UNIQUEMENT de la liste visuelle temporaire.
-     */
     private void afficherConfirmationSuppressionFoodProduct(FoodProduct produit, int position) {
         new AlertDialog.Builder(this)
                 .setTitle("Retirer le produit")
                 .setMessage("Voulez-vous retirer " + produit.getNom() + " de la randonnée ?")
                 .setPositiveButton("Oui", (dialog, which) -> {
-                    // Suppression purement locale
                     listeTemporaireFoodProducts.remove(position);
                     adapterFoodProducts.notifyDataSetChanged();
                     Toast.makeText(ActiviteGestionRandonnee.this, "Produit retiré de la liste", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Non", null)
+                .show();
+    }
+
+
+    // --- METHODES POUR LES EQUIPEMENTS ---
+
+    private void afficherPopupSelectionEquipment() {
+        ServiceEquipment.getAllEquipments(this, tokenManager.getToken(), new AppelAPI.VolleyCallback() {
+            @Override
+            public void onSuccess(JSONArray result) {
+                try {
+                    List<EquipmentItem> catalogueComplet = new ArrayList<>();
+                    List<String> nomsEquipments = new ArrayList<>();
+
+                    for (int i = 0; i < result.length(); i++) {
+                        JSONObject obj = result.getJSONObject(i);
+                        EquipmentItem eq = new EquipmentItem();
+                        eq.setId(obj.getInt("id"));
+                        eq.setNom(obj.getString("nom"));
+                        eq.setDescription(obj.optString("description", ""));
+                        eq.setMasseGrammes(obj.getDouble("masseGrammes"));
+                        eq.setNbItem(obj.getInt("nbItem"));
+                        eq.setType(TypeEquipment.valueOf(obj.getString("type")));
+                        eq.setMasseAVide(obj.optDouble("masseAVide", 0.0));
+
+                        catalogueComplet.add(eq);
+                        nomsEquipments.add(eq.getNom() + " (" + eq.getMasseGrammes() + "g)");
+                    }
+
+                    String[] tableauNoms = nomsEquipments.toArray(new String[0]);
+                    new AlertDialog.Builder(ActiviteGestionRandonnee.this)
+                            .setTitle("Sélectionner un équipement")
+                            .setItems(tableauNoms, (dialog, which) -> {
+                                EquipmentItem eqSelectionne = catalogueComplet.get(which);
+                                ajouterEquipmentLocal(eqSelectionne);
+                            })
+                            .setNegativeButton("Annuler", null)
+                            .show();
+
+                } catch (JSONException e) {
+                    Toast.makeText(ActiviteGestionRandonnee.this, "Erreur de lecture des équipements", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(ActiviteGestionRandonnee.this, "Impossible de charger le catalogue", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void ajouterEquipmentLocal(EquipmentItem eq) {
+        for (EquipmentItem item : listeTemporaireEquipments) {
+            if (item.getId() == eq.getId()) {
+                Toast.makeText(this, "Cet équipement est déjà dans la randonnée", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        listeTemporaireEquipments.add(eq);
+        adapterEquipments.notifyDataSetChanged();
+        Toast.makeText(this, eq.getNom() + " ajouté à la liste !", Toast.LENGTH_SHORT).show();
+    }
+
+    private void afficherConfirmationSuppressionEquipment(EquipmentItem eq, int position) {
+        new AlertDialog.Builder(this)
+                .setTitle("Retirer l'équipement")
+                .setMessage("Voulez-vous retirer " + eq.getNom() + " de la randonnée ?")
+                .setPositiveButton("Oui", (dialog, which) -> {
+                    listeTemporaireEquipments.remove(position);
+                    adapterEquipments.notifyDataSetChanged();
+                    Toast.makeText(ActiviteGestionRandonnee.this, "Équipement retiré de la liste", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Non", null)
                 .show();
