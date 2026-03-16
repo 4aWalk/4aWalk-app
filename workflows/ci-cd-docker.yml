@@ -1,0 +1,46 @@
+name: CI/CD Android Client & Quality
+# Déclenché sur chaque push vers main (production) ou integration (recette)
+on:
+  push:
+    branches:
+      - main
+      - integration
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      # Clone le dépôt complet. fetch-depth: 0 est nécessaire pour que SonarQube
+      # puisse analyser tout l'historique Git et calculer les métriques différentielles.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important pour SonarQube afin d'analyser tout l'historique Git
+
+      # Installe le JDK Temurin 21, requis pour compiler le projet Gradle et lancer SonarQube.
+      # L'option cache: gradle évite de re-télécharger les dépendances à chaque build.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      # Met en cache les plugins et règles SonarQube pour accélérer les analyses futures.
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # Donne les droits d'exécution au wrapper Gradle, nécessaire sur les runners Linux.
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Compile le projet, exécute les tests unitaires et envoie les résultats à SonarCloud.
+      # GITHUB_TOKEN permet à Sonar de commenter les PRs, SONAR_TOKEN authentifie l'envoi.
+      - name: Build, Test and Analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build test sonar -Dsonar.projectKey=4aWalk_client-4aWalk -Dsonar.organization=4awalk -Dsonar.host.url=https://sonarcloud.io
