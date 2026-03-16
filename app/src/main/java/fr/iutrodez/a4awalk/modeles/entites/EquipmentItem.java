@@ -129,6 +129,6 @@ public class EquipmentItem implements Item, Parcelable {
 
     @Override
     public String toString() {
-        return getNom() + " - " +getMasseGrammes() + " g - " + getNbItem() + " personnes " + getType().toString();
+        return getNom() + " - " +getMasseGrammes() + " g - " + getNbItem() + " personne(s)";
     }
 }

@@ -35,6 +35,7 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
     private TextView messageView;
     private User user;
     private Intent intentionRecu;
+    private TokenManager tokenManager;
 
     public static FragmentListeParcours newInstance() {
         return new FragmentListeParcours();
@@ -56,11 +57,7 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
         parcoursRecyclerView.setLayoutManager(new LinearLayoutManager(vueDuFragment.getContext()));
 
         // Initialisation du Token
-        TokenManager tokenManager = new TokenManager(getActivity());
-        String token = tokenManager.getToken();
-
-        // Appel de la méthode qui utilise le service
-        initialiseListeParcours(token);
+        tokenManager = new TokenManager(getActivity());
 
         return vueDuFragment;
     }
@@ -120,5 +117,14 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
     @Override
     public void onClick(View v) {
         // ...
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // À chaque fois que le fragment redevient visible, on actualise la liste
+        if (tokenManager.getToken() != null) {
+            initialiseListeParcours(tokenManager.getToken());
+        }
     }
 }

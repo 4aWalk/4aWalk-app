@@ -46,10 +46,10 @@ public class PopUpFoodProduct {
 
         // Remplissage des champs
         etNom.setText(produit.getNom());
-        etMasse.setText(String.valueOf(produit.getMasseGrammes()));
+        etMasse.setText(String.valueOf(produit.getMasseGrammes()) + " g");
         etAppellation.setText(produit.getAppellationCourante());
         etConditionnement.setText(produit.getConditionnement() != null ? produit.getConditionnement() : "");
-        etKcal.setText(String.valueOf(produit.getApportNutritionnelKcal()));
+        etKcal.setText(String.valueOf(produit.getApportNutritionnelKcal()) + "Kcal");
         etPrix.setText(String.valueOf(produit.getPrixEuro()));
 
         Integer[] items = new Integer[]{1, 2, 3};

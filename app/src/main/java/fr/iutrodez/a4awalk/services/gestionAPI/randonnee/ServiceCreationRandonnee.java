@@ -56,7 +56,7 @@ public class ServiceCreationRandonnee {
             });
         };
 
-    private static JSONObject construireJsonRandonnee(String libelle, int duree,
+    public static JSONObject construireJsonRandonnee(String libelle, int duree,
                                                       String nomD, String descriptionD, double latitudeD, double longitudeD,
                                                       String nomA, String descriptionA, double latitudeA, double longitudeA) {
         JSONObject json = new JSONObject();

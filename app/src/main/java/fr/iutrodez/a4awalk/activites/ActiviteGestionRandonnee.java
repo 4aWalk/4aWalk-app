@@ -273,18 +273,18 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
         containerFoodProducts.setVisibility(View.VISIBLE);
-        containerEquipments.setVisibility(View.VISIBLE); // Ajout
+        containerEquipments.setVisibility(View.VISIBLE);
 
         setChampsEditables(true);
         btnAjouterPOI.setVisibility(View.VISIBLE);
         btnAjouterParticipant.setVisibility(View.VISIBLE);
         btnAddFoodProduct.setVisibility(View.VISIBLE);
-        btnAddEquipment.setVisibility(View.VISIBLE); // Ajout
+        btnAddEquipment.setVisibility(View.VISIBLE);
 
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
         listeFoodProducts.setEnabled(true);
-        listeEquipments.setEnabled(true); // Ajout
+        listeEquipments.setEnabled(true);
 
         btnOptimizeHike.setVisibility(View.GONE);
         btnSupprimer.setVisibility(View.GONE);
@@ -426,8 +426,13 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         String libelleTexte = libelle.getText().toString();
         int dureeJours = Integer.parseInt(nbJours.getSelectedItem().toString());
+        double latitudeD = Double.parseDouble(departLat.getText().toString());
+        double longitudeD = Double.parseDouble(departLon.getText().toString());
+        double latitudeA = Double.parseDouble(arriveeLat.getText().toString());
+        double longitudeA = Double.parseDouble(arriveeLon.getText().toString());
 
-        ServiceModificationRandonnee.modifierRandonneeAPI(this, tokenManager.getToken(), currentHike.getId(), libelleTexte, dureeJours, new ServiceModificationRandonnee.UpdateHikeCallback() {
+        ServiceModificationRandonnee.modifierRandonneeAPI(this, tokenManager.getToken(), currentHike.getId(), libelleTexte, dureeJours,
+                latitudeD, longitudeD, latitudeA, longitudeA, new ServiceModificationRandonnee.UpdateHikeCallback() {
             @Override
             public void onSuccess() {
                 traiterMiseAJourParticipants(currentHike.getId());
