@@ -231,7 +231,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
             EquipmentItem eq = listeTemporaireEquipments.get(position);
             // Assure-toi d'avoir cette méthode ou commente la ligne si tu ne l'as pas encore créée
-            // PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
+            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
         });
 
         validateButton.setText(R.string.bouton_modifier_randonnee);
@@ -348,7 +348,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
             EquipmentItem eq = listeTemporaireEquipments.get(position);
             // Assure-toi d'avoir cette méthode ou commente la ligne
-            // PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
+            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
         });
 
         btnAddEquipment.setOnClickListener(v -> afficherPopupSelectionEquipment());

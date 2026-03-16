@@ -126,4 +126,9 @@ public class EquipmentItem implements Item, Parcelable {
     }
 
     public double getTotalMassesKg() { return this.getTotalMasses() / 1000; }
+
+    @Override
+    public String toString() {
+        return getNom() + " - " +getMasseGrammes() + " g - " + getNbItem() + " personnes " + getType().toString();
+    }
 }
