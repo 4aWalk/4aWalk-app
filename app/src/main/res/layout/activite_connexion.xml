@@ -1,104 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:fillViewport="true"
     android:background="#F5E6D3"
-    android:gravity="center"
-    android:padding="24dp"
-    tools:context=".activites.ActivitePrincipale">>
+    tools:context=".activites.ActivitePrincipale">
 
-    <!-- Logo -->
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginBottom="32dp"
-        android:src="@drawable/logo4awalk"
-        android:contentDescription="@string/logo_description" />
-
-    <!-- Titre Connexion -->
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/btnConnexion"
-        android:textSize="28sp"
-        android:textColor="#000000"
-        android:textStyle="bold"
-        android:layout_marginBottom="40dp" />
-
-    <!-- Label Email -->
-    <TextView
-        android:id="@+id/emailLabel"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Email"
-        android:textSize="16sp"
-        android:textColor="#000000"
-        android:layout_marginBottom="8dp" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
 
-    <!-- Champ Email -->
-    <EditText
-        android:id="@+id/emailInput"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:inputType="textEmailAddress"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textSize="16sp"
-        android:textColor="@color/black"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/edittext_border"/>
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/logo4awalk"
+            android:contentDescription="@string/logo_description" />
 
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btnConnexion"
+            android:textSize="28sp"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp" />
 
-    <!-- Label Mot de passe -->
-    <TextView
-        android:id="@+id/passwordLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Mot de passe"
-        android:textSize="16sp"
-        android:textColor="#000000"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:id="@+id/emailLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_marginBottom="8dp" />
 
-    <!-- Champ Mot de passe -->
-    <EditText
-        android:id="@+id/passwordInput"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="@drawable/edittext_border"
-        android:inputType="textPassword"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textSize="16sp"
-        android:textColor="@color/black"
-        android:layout_marginBottom="32dp" />
+        <EditText
+            android:id="@+id/emailInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:inputType="textEmailAddress"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/edittext_border"/>
 
-    <!-- Bouton Se connecter -->
-    <Button
-        android:id="@+id/loginButton"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="@string/btnConnecter"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="@color/lightvert"
-        android:layout_marginBottom="16dp"/>
+        <TextView
+            android:id="@+id/passwordLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mot de passe"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_marginBottom="8dp" />
 
-    <!-- Bouton S'inscrire -->
-    <Button
-        android:id="@+id/registerButton"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="@string/btnInscrire"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="@color/grey"/>
+        <EditText
+            android:id="@+id/passwordInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/edittext_border"
+            android:inputType="textPassword"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:layout_marginBottom="32dp" />
 
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="@string/btnConnecter"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/lightvert"
+            android:layout_marginBottom="16dp"/>
 
-</LinearLayout>
+        <Button
+            android:id="@+id/registerButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="@string/btnInscrire"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/grey"/>
+
+    </LinearLayout>
+</ScrollView>
