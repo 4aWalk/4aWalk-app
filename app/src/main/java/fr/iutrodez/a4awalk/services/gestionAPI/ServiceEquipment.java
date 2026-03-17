@@ -22,6 +22,25 @@ public class ServiceEquipment {
     private static final String URL_EQUIPMENTS = "http://98.94.8.220:8080/equipments"; // À adapter si besoin
 
     /**
+     * Lie un équipement existant à une Randonnée.
+     */
+    public static void lierEquipmentARandonnee(Context context, String token, int hikeId, int equipId, AppelAPI.VolleyObjectCallback callback) {
+        String url = "http://98.94.8.220:8080/hikes/" + hikeId + "/equipment/" + equipId;
+        // On envoie un corps JSON vide comme demandé par l'API
+        AppelAPI.post(url, token, new JSONObject(), context, callback);
+    }
+
+    /**
+     * Retire un équipement d'une Randonnée.
+     */
+    public static void retirerEquipmentDeRandonnee(Context context, String token, int hikeId, int equipId, AppelAPI.VolleyObjectCallback callback) {
+        String url = "http://98.94.8.220:8080/hikes/" + hikeId + "/equipment/" + equipId;
+        // On effectue la requête DELETE
+        // Attention : Vérifie le nom exact de ta méthode delete dans ta classe AppelAPI (ça peut être delete, deleteObject, etc.)
+        AppelAPI.delete(url, token, context, callback);
+    }
+
+    /**
      * Parse les équipements depuis les groupes de la réponse JSON.
      */
     public static List<EquipmentItem> extractEquipmentGroups(JSONObject response) {
@@ -105,38 +124,65 @@ public class ServiceEquipment {
 
     /**
      * Synchronise la liste des équipements d'une randonnée avec l'API.
+     * Compare la liste initiale avec la liste modifiée et effectue les appels API (POST/DELETE) nécessaires.
      */
     public static void synchroniserEquipments(Context context, String token, int hikeId,
                                               List<EquipmentItem> listeInitiale,
-                                              List<EquipmentItem> listeModifiee) { // <-- Le changement est ici (List au lieu de ArrayList)
+                                              List<EquipmentItem> listeModifiee) {
 
-        // Exemple d'URL (à adapter selon ta route API exacte)
-        String urlSync = "http://98.94.8.220:8080/hikes/" + hikeId + "/equipments";
-
-        // Création du tableau JSON contenant les IDs ou les objets modifiés
-        JSONArray bodyArray = new JSONArray();
-        try {
-            for (EquipmentItem item : listeModifiee) {
-                JSONObject obj = new JSONObject();
-                obj.put("id", item.getId());
-                // Ajoute d'autres champs si ton API l'exige pour la synchronisation
-                bodyArray.put(obj);
+        // 1. Trouver les AJOUTS (présents dans listeModifiee, absents dans listeInitiale)
+        for (EquipmentItem temp : listeModifiee) {
+            boolean existeDeja = false;
+            for (EquipmentItem orig : listeInitiale) {
+                if (temp.getId() == orig.getId()) {
+                    existeDeja = true;
+                    break;
+                }
             }
-        } catch (JSONException e) {
-            Log.e("ServiceEquipment", "Erreur JSON lors de la synchro", e);
+            if (!existeDeja) {
+                // L'équipement a été ajouté, on fait le POST
+                lierEquipmentARandonnee(context, token, hikeId, temp.getId(), new AppelAPI.VolleyObjectCallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Log.i("ServiceEquipment", "Équipement " + temp.getId() + " lié avec succès.");
+                    }
+
+                    @Override
+                    public void onError(VolleyError error) {
+                        Log.e("ServiceEquipment", "Erreur lors de la liaison de l'équipement " + temp.getId());
+                    }
+                });
+            }
         }
 
-        // Appel PUT (ou POST selon ton API) pour mettre à jour la liste dans la rando
-        AppelAPI.putA(urlSync, token, bodyArray, context, new AppelAPI.VolleyCallback() {
-            @Override
-            public void onSuccess(JSONArray result) {
-                Log.d("ServiceEquipment", "Synchronisation des équipements réussie.");
+        // 2. Trouver les SUPPRESSIONS (présents dans listeInitiale, absents dans listeModifiee)
+        for (EquipmentItem orig : listeInitiale) {
+            boolean estConserve = false;
+            for (EquipmentItem temp : listeModifiee) {
+                if (orig.getId() == temp.getId()) {
+                    estConserve = true;
+                    break;
+                }
             }
+            if (!estConserve) {
+                // L'équipement a été retiré, on fait le DELETE
+                retirerEquipmentDeRandonnee(context, token, hikeId, orig.getId(), new AppelAPI.VolleyObjectCallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Log.i("ServiceEquipment", "Équipement " + orig.getId() + " retiré avec succès.");
+                    }
 
-            @Override
-            public void onError(VolleyError error) {
-                Log.e("ServiceEquipment", "Erreur lors de la synchronisation", error);
+                    @Override
+                    public void onError(VolleyError error) {
+                        // Gestion du cas où le DELETE renvoie un 204 No Content
+                        if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
+                            Log.i("ServiceEquipment", "Équipement " + orig.getId() + " retiré avec succès (204).");
+                        } else {
+                            Log.e("ServiceEquipment", "Erreur lors du retrait de l'équipement " + orig.getId());
+                        }
+                    }
+                });
             }
-        });
+        }
     }
 }
