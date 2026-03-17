@@ -32,7 +32,7 @@ public class ServiceRandonnee {
         void onError(VolleyError error);
     }
 
-    public static void recupererRandonneesUtilisateur(Context context, String token, User currentUser, RandoCallback callback) {
+    public static void recupererRandonneesUtilisateur(Context context, String token, User currentUser,boolean details, RandoCallback callback) {
         AppelAPI.get(URL_RANDOS, token, context, new AppelAPI.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray result) {
@@ -40,7 +40,7 @@ public class ServiceRandonnee {
                     callback.onSuccess(new ArrayList<>());
                     return;
                 }
-                ArrayList<Hike> listeRandos = parseHikesFromJSON(result, currentUser);
+                ArrayList<Hike> listeRandos = parseHikesFromJSON(result, currentUser, false);
                 callback.onSuccess(listeRandos);
             }
 
@@ -52,7 +52,7 @@ public class ServiceRandonnee {
         });
     }
 
-    public static void recupererDetailsRandonnee(Context context, String token, int hikeId, User currentUser, RandoDetailCallback callback) {
+    public static void recupererDetailsRandonnee(Context context, String token, int hikeId, User currentUser, boolean isDetails, RandoDetailCallback callback) {
         String url = URL_RANDO_DETAIL + hikeId;
         AppelAPI.get(url, token, context, new AppelAPI.VolleyObjectCallback() {
             @Override
@@ -61,7 +61,7 @@ public class ServiceRandonnee {
                     callback.onError(new VolleyError("Résultat vide"));
                     return;
                 }
-                Hike hikeDetail = parseHikeDetail(result, currentUser);
+                Hike hikeDetail = parseHikeDetail(result, currentUser, isDetails);
                 if (hikeDetail != null) {
                     callback.onSuccess(hikeDetail);
                 } else {
@@ -77,14 +77,14 @@ public class ServiceRandonnee {
         });
     }
 
-    private static ArrayList<Hike> parseHikesFromJSON(JSONArray jsonArray, User currentUser) {
+    private static ArrayList<Hike> parseHikesFromJSON(JSONArray jsonArray, User currentUser, boolean isDetails) {
         ArrayList<Hike> liste = new ArrayList<>();
         if (jsonArray == null) return liste;
 
         for (int i = 0; i < jsonArray.length(); i++) {
             try {
                 JSONObject randoJson = jsonArray.getJSONObject(i);
-                Hike hike = parseHikeDetail(randoJson, currentUser);
+                Hike hike = parseHikeDetail(randoJson, currentUser, isDetails);
                 if (hike != null) {
                     liste.add(hike);
                 }
@@ -95,27 +95,32 @@ public class ServiceRandonnee {
         return liste;
     }
 
-    public static Hike parseHikeDetail(JSONObject response, User currentUser) {
+    public static Hike parseHikeDetail(JSONObject response, User currentUser, boolean isDetails) {
         try {
             int id = response.getInt("id");
             String libelle = response.getString("libelle");
             int dureeJours = response.getInt("dureeJours");
-            boolean optimize = response.optBoolean("optimize", false);
+            boolean optimize;
 
-            PointOfInterest depart = ServicePOI.extractSinglePOI(response, "depart");
-            PointOfInterest arrivee = ServicePOI.extractSinglePOI(response, "arrivee");
-
-            Hike hike = new Hike(id, libelle, depart, arrivee, dureeJours, currentUser, optimize);
-
-            hike.setParticipants(ServiceParticipant.extractParticipants(response));
-            hike.setOptionalPoints(ServicePOI.extractPOIs(response));
-            hike.setFoodCatalogue(ServiceFoodProduct.extractFoodCatalogue(response));
-
-            // On s'assure que le nom correspond à ce qu'on a fait dans ActiviteGestionRandonnee
-            hike.setEquipmentGroups(ServiceEquipment.extractEquipmentCatalogue(response));
-
+            Hike hike = new Hike();
+            hike.setId(id);
+            hike.setLibelle(libelle);
+            hike.setDureeJours(dureeJours);
+            if (isDetails) {
+                optimize = response.getBoolean("optimize");
+                PointOfInterest depart = ServicePOI.extractSinglePOI(response, "depart");
+                hike.setDepart(depart);
+                PointOfInterest arrivee = ServicePOI.extractSinglePOI(response, "arrivee");
+                hike.setArrivee(arrivee);
+                hike.setParticipants(ServiceParticipant.extractParticipants(response));
+                hike.setOptionalPoints(ServicePOI.extractPOIs(response));
+                hike.setFoodCatalogue(ServiceFoodProduct.extractFoodCatalogue(response));
+                hike.setEquipmentGroups(ServiceEquipment.extractEquipmentCatalogue(response));
+            } else {
+                optimize = response.getBoolean("isOptimize");
+            }
             hike.setOptimize(optimize);
-
+            Log.i("OPTIMISER", "Randonnee: " + hike.getLibelle() + ", optimisation: " + hike.getOptimize());
             return hike;
 
         } catch (Exception e) {

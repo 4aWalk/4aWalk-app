@@ -10,14 +10,14 @@ import fr.iutrodez.a4awalk.R;
 public class RandoViewHolder extends RecyclerView.ViewHolder {
 
     private TextView libelleRando;
-    public ImageButton btnEdit; // Ajout
-    public ImageButton btnDelete; // Ajout
+    public ImageButton btnEdit;
+    public ImageButton btnDelete;
 
     public RandoViewHolder(View itemView) {
         super(itemView);
         libelleRando = itemView.findViewById(R.id.nom_rando);
-        btnEdit = itemView.findViewById(R.id.btn_edit_rando); // Ajout
-        btnDelete = itemView.findViewById(R.id.btn_delete_rando); // Ajout
+        btnEdit = itemView.findViewById(R.id.btn_edit_rando);
+        btnDelete = itemView.findViewById(R.id.btn_delete_rando);
     }
 
     public void bind(Hike hike){

@@ -10,10 +10,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.List;
-import java.util.ArrayList;
-import android.widget.LinearLayout;
-import fr.iutrodez.a4awalk.modeles.entites.Participant;
 
 import com.android.volley.VolleyError;
 
@@ -31,9 +27,9 @@ public class PopUpEquipment {
     /**
      * Affiche une popup en lecture seule avec les détails d'un équipement.
      */
-    public static void afficherPopupDetailsEquipment(Context context, EquipmentItem equipment, List<Participant> participants) {
+    public static void afficherPopupDetailsEquipment(Context context, EquipmentItem equipment) {
         Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.popup_ajout_equipment);
+        dialog.setContentView(R.layout.popup_ajout_equipment); // Assure-toi d'avoir ce layout !
 
         TextView tvTitre = dialog.findViewById(R.id.tv_titre_popup_eq);
         if (tvTitre != null) tvTitre.setText("Détails de l'équipement");
@@ -44,10 +40,6 @@ public class PopUpEquipment {
         EditText etMasseAVide = dialog.findViewById(R.id.et_eq_masse_vide_create);
         Spinner spinnerType = dialog.findViewById(R.id.spinner_eq_type_create);
         Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_eq_nb_item_create);
-
-        // MODIFICATION : Récupération des vues du propriétaire
-        LinearLayout llOwnerSelection = dialog.findViewById(R.id.ll_owner_selection);
-        Spinner spinnerOwner = dialog.findViewById(R.id.spinner_eq_owner_create);
 
         Button btnAnnuler = dialog.findViewById(R.id.btn_eq_annuler_create);
         Button btnValider = dialog.findViewById(R.id.btn_eq_valider_create);
@@ -68,50 +60,17 @@ public class PopUpEquipment {
         spinnerType.setSelection(spinnerPosition);
 
         // Spinner pour la quantité
-        Integer[] items = new Integer[]{1, 2, 3, 4, 5, 10};
+        Integer[] items = new Integer[]{1, 2, 3, 4, 5, 10}; // Adapté pour les équipements
         ArrayAdapter<Integer> spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, items);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerNbItem.setAdapter(spinnerAdapter);
 
+        // Sélection simple de la quantité
         for (int i = 0; i < items.length; i++) {
             if (items[i] == equipment.getNbItem()) {
                 spinnerNbItem.setSelection(i);
                 break;
             }
-        }
-
-        // --- NOUVEAU : GESTION DU SPINNER PROPRIÉTAIRE ---
-        if (equipment.getType() == TypeEquipment.VETEMENT || equipment.getType() == TypeEquipment.REPOS) {
-            if (llOwnerSelection != null) llOwnerSelection.setVisibility(View.VISIBLE);
-
-            List<String> nomParticipants = new ArrayList<>();
-            nomParticipants.add("Aucun propriétaire défini");
-
-            int positionSelectionnee = 0;
-
-            for (int i = 0; i < participants.size(); i++) {
-                Participant p = participants.get(i);
-                nomParticipants.add(p.getPrenom() + " " + p.getNom());
-
-                // Trouver l'index correspondant au ownerId de l'équipement
-                if (equipment.getOwnerId() != null && equipment.getOwnerId() == p.getId()) {
-                    positionSelectionnee = i + 1;
-                }
-            }
-
-            if (spinnerOwner != null) {
-                ArrayAdapter<String> ownerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, nomParticipants);
-                ownerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerOwner.setAdapter(ownerAdapter);
-
-                // Affecter le participant et bloquer le spinner
-                spinnerOwner.setSelection(positionSelectionnee);
-                spinnerOwner.setEnabled(false);
-            }
-
-        } else {
-            // Cacher la zone si ce n'est pas un vêtement ou du repos
-            if (llOwnerSelection != null) llOwnerSelection.setVisibility(View.GONE);
         }
 
         // Verrouillage des champs (Mode Consultation)

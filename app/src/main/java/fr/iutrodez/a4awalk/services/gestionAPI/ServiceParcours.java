@@ -21,10 +21,10 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 
 public class ServiceParcours {
 
-    private static final String URL_RANDOS = "http://98.94.8.220:8080/courses/my";
+    private static final String BASE_URL = "http://98.94.8.220:8080";
 
     /**
-     * Interface pour renvoyer le résultat au Fragment
+     * Interface pour renvoyer le résultat au Fragment concernant la récupération des parcours
      */
     public interface ParcoursCallback {
         void onSuccess(ArrayList<Course> parcours);
@@ -32,21 +32,74 @@ public class ServiceParcours {
     }
 
     /**
+     * Interface pour renvoyer le résultat de la création de la course
+     */
+    public interface CourseCreationCallback {
+        void onSuccess(String courseId);
+        void onError(VolleyError error);
+    }
+
+    /**
+     * Lance une nouvelle course en envoyant la position actuelle et une position proche.
+     * Utilise la classe utilitaire AppelAPI.
+     */
+    public static void demarrerCourse(Context context, String token, int hikeId, double latitude, double longitude, CourseCreationCallback callback) {
+        String url = BASE_URL + "/courses";
+
+        JSONObject requestBody = new JSONObject();
+        try {
+            requestBody.put("hikeId", hikeId);
+
+            JSONArray pathArray = new JSONArray();
+
+            // Point 1 : Position actuelle
+            JSONObject point1 = new JSONObject();
+            point1.put("latitude", latitude);
+            point1.put("longitude", longitude);
+
+            // Point 2 : Position quasiment à côté (+ 0.0001 degré)
+            JSONObject point2 = new JSONObject();
+            point2.put("latitude", latitude + 0.0001);
+            point2.put("longitude", longitude + 0.0001);
+
+            pathArray.put(point1);
+            pathArray.put(point2);
+
+            requestBody.put("path", pathArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        // Appel API centralisé via la méthode POST de votre utilitaire
+        AppelAPI.post(url, token, requestBody, context, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) throws JSONException {
+                // L'API renvoie un objet contenant l'id de la course créée
+                String courseId = result.getString("id");
+                callback.onSuccess(courseId);
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    /**
      * Récupère les randonnées depuis l'API, les transforme en objets et notifie le callback.
      */
     public static void recupererParcoursUtilisateur(Context context, String token, ParcoursCallback callback) {
 
-        AppelAPI.get(URL_RANDOS, token, context, new AppelAPI.VolleyCallback() {
+        AppelAPI.get(BASE_URL + "/courses/my", token, context, new AppelAPI.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray result) {
-                // On transforme le JSON en objets Java
                 ArrayList<Course> listeParcours = parseCoursesFromJSON(result);
                 callback.onSuccess(listeParcours);
             }
 
             @Override
             public void onError(VolleyError erreur) {
-                // On transmet l'erreur au Fragment
                 callback.onError(erreur);
             }
         });
@@ -87,7 +140,9 @@ public class ServiceParcours {
         // --- DATE ---
         // Parsing de la date ISO-8601 ("2026-02-05T08:19:12.027")
         String dateStr = courseJson.optString("dateRealisation", null);
-        course.setDateRealisation(LocalDateTime.parse(dateStr));
+        if (dateStr != null && !dateStr.isEmpty()) {
+            course.setDateRealisation(LocalDateTime.parse(dateStr));
+        }
 
         // --- DEPART & ARRIVEE (Gestion du null) ---
         // Dans ton JSON, ils sont null, donc on vérifie avec isNull()

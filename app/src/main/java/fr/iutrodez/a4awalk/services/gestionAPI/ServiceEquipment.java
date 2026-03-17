@@ -24,15 +24,10 @@ public class ServiceEquipment {
     /**
      * Lie un équipement existant à une Randonnée.
      */
-    public static void lierEquipmentARandonnee(Context context, String token, int hikeId, int equipId, Integer ownerId, AppelAPI.VolleyObjectCallback callback) {
+    public static void lierEquipmentARandonnee(Context context, String token, int hikeId, int equipId, AppelAPI.VolleyObjectCallback callback) {
         String url = "http://98.94.8.220:8080/hikes/" + hikeId + "/equipment/" + equipId;
-
-        // Ajout du query parameter si ownerId n'est pas null
-        if (ownerId != null) {
-            url += "?owner=" + ownerId;
-        }
-
-        AppelAPI.post(url, token, null, context, callback);
+        // On envoie un corps JSON vide comme demandé par l'API
+        AppelAPI.post(url, token, new JSONObject(), context, callback);
     }
 
     /**
@@ -93,11 +88,6 @@ public class ServiceEquipment {
         item.setMasseGrammes(obj.optDouble("masseGrammes", 0.0));
         item.setNbItem(obj.optInt("nbItem", 1));
         item.setMasseAVide(obj.optDouble("masseAVide", 0.0));
-        if (obj.has("ownerId") && !obj.isNull("ownerId")) {
-            item.setOwnerId(obj.getInt("ownerId"));
-        } else {
-            item.setOwnerId(null);
-        }
 
         try {
             item.setType(TypeEquipment.valueOf(obj.optString("type", "AUTRE")));
@@ -151,7 +141,7 @@ public class ServiceEquipment {
             }
             if (!existeDeja) {
                 // L'équipement a été ajouté, on fait le POST
-                lierEquipmentARandonnee(context, token, hikeId, temp.getId(), temp.getOwnerId(), new AppelAPI.VolleyObjectCallback() {
+                lierEquipmentARandonnee(context, token, hikeId, temp.getId(), new AppelAPI.VolleyObjectCallback() {
                     @Override
                     public void onSuccess(JSONObject result) {
                         Log.i("ServiceEquipment", "Équipement " + temp.getId() + " lié avec succès.");

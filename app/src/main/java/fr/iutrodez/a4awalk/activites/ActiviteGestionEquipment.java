@@ -42,12 +42,12 @@ public class ActiviteGestionEquipment extends HeaderActivity {
         tokenManager = new TokenManager(this);
 
         recyclerEquipments = findViewById(R.id.recycler_equipments_catalog);
-        btnAjouter = findViewById(R.id.btn_afficher_popup_ajout_eq);
+        btnAjouter = findViewById(R.id.btn_afficher_popup_ajout);
 
         recyclerEquipments.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new EquipmentAdapter(listeEquipements, item ->
-                PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionEquipment.this, item, new java.util.ArrayList<>())
+                PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionEquipment.this, item)
         );
         recyclerEquipments.setAdapter(adapter);
 

@@ -75,7 +75,7 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
                     messageView.setText(R.string.no_course_message);
                     Log.i("INFO", "Aucun parcours disponible");
                 } else {
-                    ServiceRandonnee.recupererRandonneesUtilisateur(requireContext(), token, user, new ServiceRandonnee.RandoCallback() {
+                    ServiceRandonnee.recupererRandonneesUtilisateur(requireContext(), token, user, false, new ServiceRandonnee.RandoCallback() {
                         @Override
                         public void onSuccess(ArrayList<Hike> randonnees) {
                             HashMap<Integer, String> dictionnaireRandos = new HashMap<>();

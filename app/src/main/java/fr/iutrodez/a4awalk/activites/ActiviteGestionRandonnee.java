@@ -1,9 +1,10 @@
 package fr.iutrodez.a4awalk.activites;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,7 +18,13 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.android.volley.VolleyError;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.SuiviParcour.SuiviParcours;
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
 import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
 import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
@@ -42,10 +50,10 @@ import fr.iutrodez.a4awalk.services.gestionAPI.ServiceEquipment;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceFoodProduct;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceOptimisation;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
-import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
 import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
 import fr.iutrodez.a4awalk.utils.validators.ValidateurRandonnee;
 
@@ -55,6 +63,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private static final int MODE_CREATION = 2;
     private static final int MODE_MODIFICATION = 3;
     private final String ERREUR = "ERREUR";
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1002;
 
     private EditText libelle, departLat, departLon, arriveeLat, arriveeLon;
     private ListView listePoints, listeParticipants, listeFoodProducts, listeEquipments;
@@ -140,13 +150,13 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listePoints = findViewById(R.id.points_list);
         listeParticipants = findViewById(R.id.participants_list);
         listeFoodProducts = findViewById(R.id.food_products_list);
-        listeEquipments = findViewById(R.id.equipments_list); // Ajout
+        listeEquipments = findViewById(R.id.equipments_list);
         nbJours = findViewById(R.id.spinner_jours);
 
         containerPoi = findViewById(R.id.container_poi);
         containerParticipants = findViewById(R.id.container_participants);
         containerFoodProducts = findViewById(R.id.container_food_products);
-        containerEquipments = findViewById(R.id.container_equipments); // Ajout
+        containerEquipments = findViewById(R.id.container_equipments);
 
         btnOptimizeHike = findViewById(R.id.btn_optimize_hike);
         btnSaveHike = findViewById(R.id.btn_save_hike);
@@ -155,7 +165,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         btnAjouterPOI = findViewById(R.id.btn_add_poi);
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
         btnAddFoodProduct = findViewById(R.id.btn_add_food_product);
-        btnAddEquipment = findViewById(R.id.btn_add_equipment); // Ajout
+        btnAddEquipment = findViewById(R.id.btn_add_equipment);
 
         List<Integer> jours = new ArrayList<>();
         for (int i = 1; i <= 3; i++) jours.add(i);
@@ -200,14 +210,15 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
         containerFoodProducts.setVisibility(View.VISIBLE);
-        containerEquipments.setVisibility(View.VISIBLE); // Ajout
+        containerEquipments.setVisibility(View.VISIBLE);
+        Log.i("OPTIMISER", "isOptimize: " + currentHike.getOptimize());
 
         setChampsEditables(false);
 
         btnAjouterPOI.setVisibility(View.GONE);
         btnAjouterParticipant.setVisibility(View.GONE);
         btnAddFoodProduct.setVisibility(View.GONE);
-        btnAddEquipment.setVisibility(View.GONE); // Ajout
+        btnAddEquipment.setVisibility(View.GONE);
 
         listePoints.setEnabled(true);
         listeParticipants.setEnabled(true);
@@ -229,23 +240,23 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         // Afficher les détails d'un équipement
         listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
             EquipmentItem eq = listeTemporaireEquipments.get(position);
-            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq, listeTemporaireParticipants);
+            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
         });
 
         btnSaveHike.setVisibility(View.GONE);
+        if (currentHike.getOptimize()) {
+            btnStartCourse.setVisibility(View.VISIBLE);
+        }
         btnOptimizeHike.setVisibility(View.VISIBLE);
-        btnStartCourse.setVisibility(View.VISIBLE);
         btnOptimizeHike.setOnClickListener(v -> lancerOptimisation());
-        btnStartCourse.setOnClickListener(v -> {
-            Toast.makeText(this, "Démarrage du parcours...", Toast.LENGTH_SHORT).show();
-        });
+        btnStartCourse.setOnClickListener(v -> lancerDemarrageCourse());
     }
 
     private void creationRandonnee() {
         containerPoi.setVisibility(View.GONE);
         containerParticipants.setVisibility(View.GONE);
         containerFoodProducts.setVisibility(View.GONE);
-        containerEquipments.setVisibility(View.GONE); // Ajout
+        containerEquipments.setVisibility(View.GONE);
         btnSaveHike.setText("Créer la randonnée");
 
         btnSaveHike.setOnClickListener(v -> traiterCreation());
@@ -332,7 +343,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         // --- GESTION EQUIPEMENTS ---
         listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
             EquipmentItem eq = listeTemporaireEquipments.get(position);
-            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq, listeTemporaireParticipants);
+            // Assure-toi d'avoir cette méthode ou commente la ligne
+            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
         });
 
         btnAddEquipment.setOnClickListener(v -> afficherPopupSelectionEquipment());
@@ -670,10 +682,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                         eq.setMasseGrammes(obj.getDouble("masseGrammes"));
                         eq.setNbItem(obj.getInt("nbItem"));
                         eq.setType(TypeEquipment.valueOf(obj.getString("type")));
-                        // Attention: optDouble renvoie NaN si la clé existe mais est null, il vaut mieux faire ceci:
-                        if (!obj.isNull("masseAVide")) {
-                            eq.setMasseAVide(obj.getDouble("masseAVide"));
-                        }
+                        eq.setMasseAVide(obj.optDouble("masseAVide", 0.0));
 
                         catalogueComplet.add(eq);
                         nomsEquipments.add(eq.getNom() + " (" + eq.getMasseGrammes() + "g)");
@@ -684,14 +693,13 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                             .setTitle("Sélectionner un équipement")
                             .setItems(tableauNoms, (dialog, which) -> {
                                 EquipmentItem eqSelectionne = catalogueComplet.get(which);
-                                gererAjoutEquipment(eqSelectionne); // <--- Appel à la nouvelle méthode
+                                ajouterEquipmentLocal(eqSelectionne);
                             })
                             .setNegativeButton("Annuler", null)
                             .show();
 
                 } catch (JSONException e) {
                     Toast.makeText(ActiviteGestionRandonnee.this, "Erreur de lecture des équipements", Toast.LENGTH_SHORT).show();
-                    Log.e("ActiviteGestionRando", "Erreur JSON parse equipments", e);
                 }
             }
 
@@ -700,68 +708,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 Toast.makeText(ActiviteGestionRandonnee.this, "Impossible de charger le catalogue", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    /**
-     * Gère la logique d'ajout : vérifie le type et demande le propriétaire si nécessaire.
-     */
-    private void gererAjoutEquipment(EquipmentItem eq) {
-        // 1. Vérifier s'il est déjà dans la liste
-        for (EquipmentItem item : listeTemporaireEquipments) {
-            if (item.getId() == eq.getId()) {
-                Toast.makeText(this, "Cet équipement est déjà dans la randonnée", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
-
-        // 2. Si c'est un VETEMENT ou REPOS, demander le propriétaire
-        if (eq.getType() == TypeEquipment.VETEMENT || eq.getType() == TypeEquipment.REPOS) {
-            demanderProprietaireEtAjouter(eq);
-        } else {
-            // Sinon, l'ajouter directement
-            ajouterEquipmentFinal(eq, null);
-        }
-    }
-
-    /**
-     * Affiche une popup pour sélectionner le participant propriétaire.
-     */
-    private void demanderProprietaireEtAjouter(EquipmentItem eq) {
-        if (listeTemporaireParticipants.isEmpty()) {
-            Toast.makeText(this, "Veuillez d'abord ajouter des participants à la randonnée.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        List<String> nomParticipants = new ArrayList<>();
-        for (Participant p : listeTemporaireParticipants) {
-            nomParticipants.add(p.getPrenom() + " " + p.getNom());
-        }
-
-        String[] tableauParticipants = nomParticipants.toArray(new String[0]);
-
-        new AlertDialog.Builder(this)
-                .setTitle("À qui appartient cet équipement ?")
-                .setItems(tableauParticipants, (dialog, which) -> {
-                    // On récupère l'ID du participant sélectionné
-                    int idProprietaire = listeTemporaireParticipants.get(which).getId();
-                    ajouterEquipmentFinal(eq, idProprietaire);
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
-    }
-
-    /**
-     * Ajoute l'équipement à la liste visuelle en sauvegardant l'ID du propriétaire.
-     */
-    private void ajouterEquipmentFinal(EquipmentItem eq, Integer ownerId) {
-        // Si ce n'est pas le cas, ajoute un attribut "private Integer ownerId;" avec ses getters/setters
-        // dans ta classe fr.iutrodez.a4awalk.modeles.entites.EquipmentItem
-
-        eq.setOwnerId(ownerId);
-
-        listeTemporaireEquipments.add(eq);
-        adapterEquipments.notifyDataSetChanged();
-        Toast.makeText(this, eq.getNom() + " ajouté à la liste !", Toast.LENGTH_SHORT).show();
     }
 
     private void ajouterEquipmentLocal(EquipmentItem eq) {
@@ -788,6 +734,74 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 })
                 .setNegativeButton("Non", null)
                 .show();
+    }
+
+    private void lancerDemarrageCourse() {
+        // Vérification des permissions GPS
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        btnStartCourse.setEnabled(false);
+        Toast.makeText(this, "Recherche de la position GPS...", Toast.LENGTH_SHORT).show();
+
+        // Récupération de la dernière position connue
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                appelerAPIStartCourse(location.getLatitude(), location.getLongitude());
+            } else {
+                btnStartCourse.setEnabled(true);
+                Toast.makeText(this, "Position introuvable. Veuillez vérifier que votre GPS est activé.", Toast.LENGTH_LONG).show();
+            }
+        }).addOnFailureListener(e -> {
+            btnStartCourse.setEnabled(true);
+            Toast.makeText(this, "Erreur lors de la récupération de la position.", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void appelerAPIStartCourse(double lat, double lon) {
+        if (currentHike == null || currentHike.getId() == 0) {
+            btnStartCourse.setEnabled(true);
+            Toast.makeText(this, "Erreur : ID Randonnée invalide.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Création de la course en cours...", Toast.LENGTH_SHORT).show();
+
+        ServiceParcours.demarrerCourse(this, tokenManager.getToken(), currentHike.getId(), lat, lon, new ServiceParcours.CourseCreationCallback() {
+            @Override
+            public void onSuccess(String courseId) {
+                btnStartCourse.setEnabled(true);
+                Toast.makeText(ActiviteGestionRandonnee.this, "Course démarrée avec succès !", Toast.LENGTH_SHORT).show();
+
+                // Lancement de l'activité de suivi avec l'ID de la course
+                Intent intent = new Intent(ActiviteGestionRandonnee.this, SuiviParcours.class);
+                intent.putExtra("courseId", courseId);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                btnStartCourse.setEnabled(true);
+                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors du démarrage de la course : " + error.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    // Gestion du retour de la demande de permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission accordée, on retente le démarrage
+                lancerDemarrageCourse();
+            } else {
+                Toast.makeText(this, "Permission GPS requise pour démarrer la course.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void fermerAvecResultat(int resultCode, String message) {
