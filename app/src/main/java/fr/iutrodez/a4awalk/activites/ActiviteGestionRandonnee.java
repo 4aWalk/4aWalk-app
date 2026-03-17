@@ -60,7 +60,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private ListView listePoints, listeParticipants, listeFoodProducts, listeEquipments;
     private Spinner nbJours;
     private ImageButton btnAjouterPOI, btnAjouterParticipant;
-    private Button validateButton, btnSupprimer, btnOptimizeHike;
+    private Button btnOptimizeHike, btnSaveHike, btnStartCourse;
     private Button btnAddFoodProduct, btnAddEquipment;
     private LinearLayout containerPoi, containerParticipants, containerFoodProducts, containerEquipments;
 
@@ -149,14 +149,13 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerEquipments = findViewById(R.id.container_equipments); // Ajout
 
         btnOptimizeHike = findViewById(R.id.btn_optimize_hike);
+        btnSaveHike = findViewById(R.id.btn_save_hike);
+        btnStartCourse = findViewById(R.id.btn_start_course);
 
         btnAjouterPOI = findViewById(R.id.btn_add_poi);
         btnAjouterParticipant = findViewById(R.id.btn_add_participant);
         btnAddFoodProduct = findViewById(R.id.btn_add_food_product);
         btnAddEquipment = findViewById(R.id.btn_add_equipment); // Ajout
-
-        validateButton = findViewById(R.id.validate_button);
-        btnSupprimer = findViewById(R.id.btn_delete_hike);
 
         List<Integer> jours = new ArrayList<>();
         for (int i = 1; i <= 3; i++) jours.add(i);
@@ -234,28 +233,13 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
         });
 
-        validateButton.setText(R.string.bouton_modifier_randonnee);
-        validateButton.setOnClickListener(v -> {
-            participantsOriginaux.clear();
-            participantsOriginaux.addAll(listeTemporaireParticipants);
-
-            poiOriginaux.clear();
-            poiOriginaux.addAll(listeTemporairePOI);
-
-            foodProductsOriginaux.clear();
-            foodProductsOriginaux.addAll(listeTemporaireFoodProducts);
-
-            equipmentsOriginaux.clear();
-            equipmentsOriginaux.addAll(listeTemporaireEquipments);
-
-            modificationRandonnee();
-        });
-
+        btnSaveHike.setVisibility(View.GONE);
         btnOptimizeHike.setVisibility(View.VISIBLE);
+        btnStartCourse.setVisibility(View.VISIBLE);
         btnOptimizeHike.setOnClickListener(v -> lancerOptimisation());
-
-        btnSupprimer.setVisibility(View.VISIBLE);
-        btnSupprimer.setOnClickListener(v -> afficherConfirmationSuppression());
+        btnStartCourse.setOnClickListener(v -> {
+            Toast.makeText(this, "Démarrage du parcours...", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void creationRandonnee() {
@@ -263,10 +247,11 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         containerParticipants.setVisibility(View.GONE);
         containerFoodProducts.setVisibility(View.GONE);
         containerEquipments.setVisibility(View.GONE); // Ajout
+        btnSaveHike.setText("Créer la randonnée");
+
+        btnSaveHike.setOnClickListener(v -> traiterCreation());
 
         setChampsEditables(true);
-        validateButton.setText(R.string.bouton_ajouter_randonnee);
-        validateButton.setOnClickListener(v -> traiterCreation());
     }
 
     private void modificationRandonnee() {
@@ -286,8 +271,9 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listeFoodProducts.setEnabled(true);
         listeEquipments.setEnabled(true);
 
+        btnSaveHike.setVisibility(View.VISIBLE);
         btnOptimizeHike.setVisibility(View.GONE);
-        btnSupprimer.setVisibility(View.GONE);
+        btnStartCourse.setVisibility(View.GONE);
 
         updateBtnParticipantState();
 
@@ -359,8 +345,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             return true;
         });
 
-        validateButton.setText("Enregistrer les modifications");
-        validateButton.setOnClickListener(v -> traiterMiseAJour());
+        btnSaveHike.setOnClickListener(v -> traiterMiseAJour());
     }
 
     private void traiterCreation() {
@@ -600,31 +585,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             @Override
             public void onError(String message) {
                 Toast.makeText(ActiviteGestionRandonnee.this, "Échec de l'optimisation : " + message, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private void afficherConfirmationSuppression() {
-        String nomRando = currentHike != null && currentHike.getLibelle() != null ? currentHike.getLibelle() : "cette randonnée";
-
-        new AlertDialog.Builder(this)
-                .setTitle("Confirmation de suppression")
-                .setMessage("Etes-vous sur de supprimer la randonnée " + nomRando + " ?")
-                .setPositiveButton("Oui", (dialog, which) -> supprimerRandonnee())
-                .setNegativeButton("Non", null)
-                .show();
-    }
-
-    private void supprimerRandonnee() {
-        ServiceRandonnee.supprimerRandonnee(this, tokenManager.getToken(), currentHike.getId(), new AppelAPI.VolleyObjectCallback() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée supprimée avec succès", Toast.LENGTH_SHORT).show();
-                fermerAvecResultat(Activity.RESULT_OK, null);
-            }
-            @Override
-            public void onError(VolleyError error) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la suppression de la randonnée", Toast.LENGTH_SHORT).show();
             }
         });
     }

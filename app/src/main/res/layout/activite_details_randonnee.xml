@@ -242,28 +242,29 @@
 
             </LinearLayout>
             <Button
-                android:id="@+id/validate_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/create_button_text"
-                android:layout_marginTop="30dp"
-                android:backgroundTint="@color/vert"/>
-            <Button
                 android:id="@+id/btn_optimize_hike"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/optimiser"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="30dp"
                 android:backgroundTint="@color/orange"
                 android:visibility="gone"/>
+
             <Button
-                android:id="@+id/btn_delete_hike"
+                android:id="@+id/btn_start_course"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/btnSupprimer"
+                android:text="@string/demarrer_parcours"
                 android:layout_marginTop="10dp"
-                android:backgroundTint="#D32F2F"
+                android:backgroundTint="@color/beige"
                 android:visibility="gone"/>
+            <Button
+                android:id="@+id/btn_save_hike"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enregistrer"
+                android:layout_marginTop="30dp"
+                android:backgroundTint="@color/vert" />
 
         </LinearLayout>
     </ScrollView>

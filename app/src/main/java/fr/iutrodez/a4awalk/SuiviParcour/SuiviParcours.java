@@ -37,14 +37,16 @@ import java.util.List;
 import java.util.Map;
 
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 
 public class SuiviParcours extends AppCompatActivity {
 
     // ===== Constantes API =====
     private static final String COURSE_ID_FALLBACK = "6989e2f5a5b0b8078ee29a24";
-    private static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QDRhd2Fsay5mciIsInVzZXJJZCI6MiwiaWF0IjoxNzcwODg2MTcwLCJleHAiOjE3NzA5NzI1NzB9.ZhJWOvc0xvnphoQ45c0r3t4mYtIswgTgza0YaRdQpFw";
     private static final String BASE_URL = "http://98.94.8.220:8080/courses/";
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
+
+    public TokenManager tokenManager;
 
     // ===== ID du parcours courant (depuis Intent ou fallback) =====
     private String currentCourseId;
@@ -83,6 +85,7 @@ public class SuiviParcours extends AppCompatActivity {
 
         setContentView(R.layout.details_parcours);
 
+        tokenManager = new TokenManager(this);
         // ===== Récupération du courseId depuis l'Intent =====
         String intentCourseId = getIntent().getStringExtra("courseId");
         currentCourseId = (intentCourseId != null && !intentCourseId.isEmpty())
@@ -321,7 +324,7 @@ public class SuiviParcours extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + TOKEN);
+                headers.put("Authorization", "Bearer " + tokenManager.getToken());
                 return headers;
             }
         };
@@ -343,7 +346,7 @@ public class SuiviParcours extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + TOKEN);
+                headers.put("Authorization", "Bearer " + tokenManager.getToken());
                 headers.put("Content-Type", "application/json");
                 return headers;
             }
@@ -366,7 +369,7 @@ public class SuiviParcours extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + TOKEN);
+                headers.put("Authorization", "Bearer " + tokenManager.getToken());
                 headers.put("Content-Type", "application/json");
                 return headers;
             }

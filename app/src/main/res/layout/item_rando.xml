@@ -12,37 +12,35 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="10dp">
 
         <TextView
             android:id="@+id/nom_rando"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="2dp"
-            android:gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Randonnée1"
-            android:textColor="@color/black"/>
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/nb_participants_rando"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="2dp"
-            android:gravity="center"
-            android:layout_weight="1"
-            android:text="Participants"
-            android:textColor="@color/black"/>
+        <ImageButton
+            android:id="@+id/btn_edit_rando"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_edit"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Modifier la randonnée" />
 
-        <TextView
-            android:id="@+id/nb_jours_rando"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="2dp"
-            android:gravity="center"
-            android:layout_weight="1"
-            android:text="Jours"
-            android:textColor="@color/black"/>
-    
+        <ImageButton
+            android:id="@+id/btn_delete_rando"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Supprimer la randonnée" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

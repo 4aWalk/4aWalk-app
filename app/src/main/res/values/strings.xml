@@ -83,5 +83,6 @@
     <string name="deconnexion">Déconnexion</string>
     <string name="nourritures">Nourritures</string>
     <string name="equipements">Équipements</string>
+    <string name="demarrer_parcours">Démarrer un parcours</string>
 
 </resources>

@@ -9,6 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.AlertDialog;
+import org.json.JSONObject;
+import fr.iutrodez.a4awalk.services.AppelAPI;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -140,36 +143,83 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     }
 
     private void affichageInfosRando() {
-        adaptateur = new ItemRandoAdapter(listeRandos, hikeResume -> {
+        adaptateur = new ItemRandoAdapter(listeRandos, new ItemRandoAdapter.OnRandoClickListener() {
 
-            // 1. Indiquer à l'utilisateur qu'on charge les détails
-            if (getContext() != null) {
-                Toast.makeText(getContext(), "Chargement des détails...", Toast.LENGTH_SHORT).show();
+            @Override
+            public void onRandoClick(Hike hikeResume) {
+                // Clic sur la carte : Consultation (ID_PAGE = 1)
+                ouvrirRandonnee(hikeResume, 1);
             }
 
-            // 2. Appel ciblé pour récupérer l'objet complet de CETTE randonnée
-            ServiceRandonnee.recupererDetailsRandonnee(requireContext(), tokenManager.getToken(), hikeResume.getId(), user, new ServiceRandonnee.RandoDetailCallback() {
-                @Override
-                public void onSuccess(Hike hikeDetailComplet) {
-                    // Lancement de l'activité avec l'objet complet
-                    Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
-                    intent.putExtra("ID_PAGE", 1); // Mode Consultation/Modification
-                    intent.putExtra("HIKE_OBJECT", hikeDetailComplet); // Objet complet
-                    intent.putExtra("USER_DATA", user);
+            @Override
+            public void onEditClick(Hike hikeResume) {
+                // Clic sur l'icône Modifier : Modification (ID_PAGE = 3)
+                ouvrirRandonnee(hikeResume, 3);
+            }
 
-                    randoResultLauncher.launch(intent);
-                }
-
-                @Override
-                public void onError(VolleyError error) {
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Impossible de charger les détails", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+            @Override
+            public void onDeleteClick(Hike hikeResume) {
+                // Clic sur l'icône Supprimer : Affichage de la confirmation
+                afficherConfirmationSuppression(hikeResume);
+            }
         });
 
         randoRecyclerView.setAdapter(adaptateur);
+    }
+
+    private void ouvrirRandonnee(Hike hikeResume, int idPageAction) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), "Chargement des détails...", Toast.LENGTH_SHORT).show();
+        }
+
+        ServiceRandonnee.recupererDetailsRandonnee(requireContext(), tokenManager.getToken(), hikeResume.getId(), user, new ServiceRandonnee.RandoDetailCallback() {
+            @Override
+            public void onSuccess(Hike hikeDetailComplet) {
+                Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
+                intent.putExtra("ID_PAGE", idPageAction); // 1 pour Consultation, 3 pour Modification
+                intent.putExtra("HIKE_OBJECT", hikeDetailComplet);
+                intent.putExtra("USER_DATA", user);
+
+                randoResultLauncher.launch(intent);
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Impossible de charger les détails", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void afficherConfirmationSuppression(Hike rando) {
+        String nomRando = rando != null && rando.getLibelle() != null ? rando.getLibelle() : "cette randonnée";
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirmation de suppression")
+                .setMessage("Etes-vous sûr de vouloir supprimer la randonnée " + nomRando + " ?")
+                .setPositiveButton("Oui", (dialog, which) -> supprimerRandonnee(rando))
+                .setNegativeButton("Non", null)
+                .show();
+    }
+
+    private void supprimerRandonnee(Hike rando) {
+        ServiceRandonnee.supprimerRandonnee(requireContext(), tokenManager.getToken(), rando.getId(), new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Randonnée supprimée avec succès", Toast.LENGTH_SHORT).show();
+                }
+                // On rafraîchit la liste pour faire disparaître l'élément supprimé
+                initialiseListeRandos(tokenManager.getToken());
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Erreur lors de la suppression de la randonnée", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override

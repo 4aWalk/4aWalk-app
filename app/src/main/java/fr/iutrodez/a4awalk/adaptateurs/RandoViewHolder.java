@@ -1,50 +1,26 @@
 package fr.iutrodez.a4awalk.adaptateurs;
 
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
-
 import androidx.recyclerview.widget.RecyclerView;
-
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.R;
 
-public class RandoViewHolder extends RecyclerView.ViewHolder{
-    /**
-     * TextView qui contient le nom de la randonnée
-     */
+public class RandoViewHolder extends RecyclerView.ViewHolder {
+
     private TextView libelleRando;
+    public ImageButton btnEdit; // Ajout
+    public ImageButton btnDelete; // Ajout
 
-    /**
-     * ImageView qui contient le nombre de participants de la randonnée
-     */
-    private TextView nbParticipantsRando;
-
-    /**
-     * ImageView qui contient le nombre de jours de la randonnée
-     */
-    private TextView nbJoursRando;
-
-    /**
-     * Constructeur avec en argument une vue correspondant
-     * à un item de la liste
-     * Le constructeur permet d'initialiser les identifiants des
-     * widgets déclarés en tant qu'attributs
-     * @param itemView vue décrivant l'affichage d'un item de la liste
-     */
     public RandoViewHolder(View itemView) {
         super(itemView);
-        libelleRando = (TextView) itemView.findViewById(R.id.nom_rando);
-        nbParticipantsRando = (TextView) itemView.findViewById(R.id.nb_participants_rando);
-        nbJoursRando = (TextView) itemView.findViewById(R.id.nb_jours_rando);
+        libelleRando = itemView.findViewById(R.id.nom_rando);
+        btnEdit = itemView.findViewById(R.id.btn_edit_rando); // Ajout
+        btnDelete = itemView.findViewById(R.id.btn_delete_rando); // Ajout
     }
-    /**
-     * Permet de placer les informations contenues dans l'argument
-     * dans les widgets d'un item de la liste
-     * @param hike l'instance qui doit être affichée
-     */
+
     public void bind(Hike hike){
         libelleRando.setText(hike.getLibelle());
-        nbParticipantsRando.setText(hike.getParticipants().size() + " participant(s)");
-        nbJoursRando.setText(String.valueOf(hike.getDureeJours()) + " jour(s)");
     }
 }

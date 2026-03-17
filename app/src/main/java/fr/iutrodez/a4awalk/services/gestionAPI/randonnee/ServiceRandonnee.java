@@ -114,6 +114,8 @@ public class ServiceRandonnee {
             // On s'assure que le nom correspond à ce qu'on a fait dans ActiviteGestionRandonnee
             hike.setEquipmentGroups(ServiceEquipment.extractEquipmentCatalogue(response));
 
+            hike.setOptimize(optimize);
+
             return hike;
 
         } catch (Exception e) {
