@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -27,6 +30,22 @@ import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
 
 public class PopUpParticipant {
+
+    /**
+     * Applique les dimensions correctes au Dialog :
+     * - largeur : toute la largeur de l'écran
+     * - hauteur : au maximum 90% de la hauteur de l'écran
+     * Cela évite que les boutons tombent hors de l'écran sur les petits appareils.
+     */
+    private static void appliquerDimensionsDialog(Context context, Dialog dialog) {
+        if (dialog.getWindow() == null) return;
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        int maxHeight = (int) (metrics.heightPixels * 0.90);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+        lp.height = maxHeight;
+        dialog.getWindow().setAttributes(lp);
+    }
 
     /**
      * Point d'entrée principal.
@@ -66,6 +85,7 @@ public class PopUpParticipant {
         });
 
         dialog.show();
+        appliquerDimensionsDialog(context, dialog);
     }
 
     // --- CLASSE INTERNE POUR LA VUE ---
@@ -140,7 +160,6 @@ public class PopUpParticipant {
                 traiterSoumission(context, dialog, views, hikeId, participant.getId(), callback, true)
         );
 
-        // Action de suppression
         views.btnSupprimer.setOnClickListener(v -> {
             if (callback != null) {
                 callback.onDeleteAction(participant);
@@ -163,13 +182,10 @@ public class PopUpParticipant {
             Participant p = extraireDonneesVues(views);
             p.setIdRando(hikeId);
 
-            // Si c'est une mise à jour, on conserve l'ID existant
             if (isUpdate) {
                 p.setId(participantId);
             }
 
-            // On se contente de renvoyer le participant à l'activité via le callback.
-            // C'est l'activité qui fera les appels API lors de la sauvegarde globale.
             if (callback != null) {
                 callback.onActionSuccess(p);
                 dialog.dismiss();
@@ -238,8 +254,6 @@ public class PopUpParticipant {
     private static void selectionnerSpinner(Spinner spinner, String value) {
         ArrayAdapter adapter = (ArrayAdapter) spinner.getAdapter();
         if (adapter != null) {
-            // Attention : value ("DEBUTANT" par exemple) doit exactement correspondre
-            // aux valeurs dans le XML R.array.niveaux.
             int position = adapter.getPosition(value);
             if (position >= 0) spinner.setSelection(position);
         }

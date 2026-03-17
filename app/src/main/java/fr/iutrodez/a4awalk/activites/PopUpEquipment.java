@@ -2,18 +2,17 @@ package fr.iutrodez.a4awalk.activites;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.List;
-import java.util.ArrayList;
-import android.widget.LinearLayout;
-import fr.iutrodez.a4awalk.modeles.entites.Participant;
 
 import com.android.volley.VolleyError;
 
@@ -33,11 +32,27 @@ import fr.iutrodez.a4awalk.utils.validators.ValidateurEquipement;
 public class PopUpEquipment {
 
     /**
+     * Applique les dimensions correctes au Dialog :
+     * - largeur : toute la largeur de l'écran
+     * - hauteur : au maximum 90% de la hauteur de l'écran
+     * Cela évite que les boutons tombent hors de l'écran sur les petits appareils.
+     */
+    private static void appliquerDimensionsDialog(Context context, Dialog dialog) {
+        if (dialog.getWindow() == null) return;
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        int maxHeight = (int) (metrics.heightPixels * 0.90);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+        lp.height = maxHeight;
+        dialog.getWindow().setAttributes(lp);
+    }
+
+    /**
      * Affiche une popup en lecture seule avec les détails d'un équipement.
      */
     public static void afficherPopupDetailsEquipment(Context context, EquipmentItem equipment, ArrayList<Participant> participants) {
         Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.popup_ajout_equipment); // Assure-toi d'avoir ce layout !
+        dialog.setContentView(R.layout.popup_ajout_equipment);
 
         TextView tvTitre = dialog.findViewById(R.id.tv_titre_popup_eq);
         if (tvTitre != null) tvTitre.setText("Détails de l'équipement");
@@ -48,11 +63,8 @@ public class PopUpEquipment {
         EditText etMasseAVide = dialog.findViewById(R.id.et_eq_masse_vide_create);
         Spinner spinnerType = dialog.findViewById(R.id.spinner_eq_type_create);
         Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_eq_nb_item_create);
-
-        // MODIFICATION : Récupération des vues du propriétaire
         LinearLayout llOwnerSelection = dialog.findViewById(R.id.ll_owner_selection);
         Spinner spinnerOwner = dialog.findViewById(R.id.spinner_eq_owner_create);
-
         Button btnAnnuler = dialog.findViewById(R.id.btn_eq_annuler_create);
         Button btnValider = dialog.findViewById(R.id.btn_eq_valider_create);
 
@@ -62,22 +74,18 @@ public class PopUpEquipment {
         etDescription.setText(equipment.getDescription() != null ? equipment.getDescription() : "");
         etMasseAVide.setText(String.valueOf(equipment.getMasseAVide()));
 
-        // Spinner pour le type d'équipement
+        // Spinner type d'équipement
         TypeEquipment[] types = TypeEquipment.values();
         ArrayAdapter<TypeEquipment> typeAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, types);
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(typeAdapter);
+        spinnerType.setSelection(typeAdapter.getPosition(equipment.getType()));
 
-        int spinnerPosition = typeAdapter.getPosition(equipment.getType());
-        spinnerType.setSelection(spinnerPosition);
-
-        // Spinner pour la quantité
-        Integer[] items = new Integer[]{1, 2, 3, 4, 5, 10}; // Adapté pour les équipements
+        // Spinner quantité
+        Integer[] items = new Integer[]{1, 2, 3, 4, 5, 10};
         ArrayAdapter<Integer> spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, items);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerNbItem.setAdapter(spinnerAdapter);
-
-        // Sélection simple de la quantité
         for (int i = 0; i < items.length; i++) {
             if (items[i] == equipment.getNbItem()) {
                 spinnerNbItem.setSelection(i);
@@ -85,20 +93,16 @@ public class PopUpEquipment {
             }
         }
 
-        // --- NOUVEAU : GESTION DU SPINNER PROPRIÉTAIRE ---
+        // Gestion du spinner propriétaire
         if (equipment.getType() == TypeEquipment.VETEMENT || equipment.getType() == TypeEquipment.REPOS) {
             if (llOwnerSelection != null) llOwnerSelection.setVisibility(View.VISIBLE);
 
             List<String> nomParticipants = new ArrayList<>();
             nomParticipants.add("Aucun propriétaire défini");
-
             int positionSelectionnee = 0;
-
             for (int i = 0; i < participants.size(); i++) {
                 Participant p = participants.get(i);
                 nomParticipants.add(p.getPrenom() + " " + p.getNom());
-
-                // Trouver l'index correspondant au ownerId de l'équipement
                 if (equipment.getOwnerId() != null && equipment.getOwnerId() == p.getId()) {
                     positionSelectionnee = i + 1;
                 }
@@ -108,14 +112,10 @@ public class PopUpEquipment {
                 ArrayAdapter<String> ownerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, nomParticipants);
                 ownerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerOwner.setAdapter(ownerAdapter);
-
-                // Affecter le participant et bloquer le spinner
                 spinnerOwner.setSelection(positionSelectionnee);
                 spinnerOwner.setEnabled(false);
             }
-
         } else {
-            // Cacher la zone si ce n'est pas un vêtement ou du repos
             if (llOwnerSelection != null) llOwnerSelection.setVisibility(View.GONE);
         }
 
@@ -133,9 +133,7 @@ public class PopUpEquipment {
         btnValider.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
+        appliquerDimensionsDialog(context, dialog);
     }
 
     /**
@@ -151,7 +149,6 @@ public class PopUpEquipment {
         EditText etMasseAVide = dialog.findViewById(R.id.et_eq_masse_vide_create);
         Spinner spinnerType = dialog.findViewById(R.id.spinner_eq_type_create);
         Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_eq_nb_item_create);
-
         Button btnAnnuler = dialog.findViewById(R.id.btn_eq_annuler_create);
         Button btnValider = dialog.findViewById(R.id.btn_eq_valider_create);
 
@@ -175,21 +172,19 @@ public class PopUpEquipment {
             String description = etDescription.getText().toString().trim();
             String masseVideStr = etMasseAVide.getText().toString().trim();
 
-            // Si la masse à vide est vide, on la met à 0
             if (masseVideStr.isEmpty()) masseVideStr = "0";
 
-            // On utilise la valeur brute du Spinner pour nbItemStr (pour passer dans le validateur)
-            String nbItemStr = spinnerNbItem.getSelectedItem() != null ? spinnerNbItem.getSelectedItem().toString() : "1";
+            String nbItemStr = spinnerNbItem.getSelectedItem() != null
+                    ? spinnerNbItem.getSelectedItem().toString() : "1";
 
-            // 1. Validation des champs via ValidateurEquipement
+            // 1. Validation
             String erreur = ValidateurEquipement.valider(nom, masseStr, nbItemStr);
-
             if (erreur != null) {
                 Toast.makeText(context, erreur, Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 2. Les données sont validées
+            // 2. Conversion
             double masse = Double.parseDouble(masseStr.replace(",", "."));
             double masseAVide = Double.parseDouble(masseVideStr.replace(",", "."));
             int nbItem = Integer.parseInt(nbItemStr);
@@ -202,7 +197,7 @@ public class PopUpEquipment {
                     Toast.makeText(context, "Équipement ajouté avec succès !", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     if (onSuccessCallback != null) {
-                        onSuccessCallback.run(); // Rafraîchit la liste dans l'activité
+                        onSuccessCallback.run();
                     }
                 }
 
@@ -214,9 +209,6 @@ public class PopUpEquipment {
         });
 
         dialog.show();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
+        appliquerDimensionsDialog(context, dialog);
     }
 }

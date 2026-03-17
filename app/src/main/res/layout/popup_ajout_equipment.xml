@@ -1,115 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minWidth="350dp" android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#FFFFFF">
-
-        <TextView
-            android:id="@+id/tv_titre_popup_eq"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nouvel Équipement"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"
-            android:gravity="center" />
-
-        <EditText
-            android:id="@+id/et_eq_nom_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nom (Obligatoire)" />
-
-        <EditText
-            android:id="@+id/et_eq_desc_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Description (Obligatoire)" />
-
-        <EditText
-            android:id="@+id/et_eq_masse_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="Masse en g (50 à 5000)" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nombre d'items (1 à 3) :"
-            android:layout_marginTop="8dp"/>
-
-        <Spinner
-            android:id="@+id/spinner_eq_nb_item_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Type d'équipement :" />
-
-        <Spinner
-            android:id="@+id/spinner_eq_type_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/ll_owner_selection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minWidth="350dp"
             android:orientation="vertical"
-            android:visibility="gone"
-            android:layout_marginBottom="8dp">
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_titre_popup_eq"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nouvel Équipement"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"
+                android:gravity="center" />
+
+            <EditText
+                android:id="@+id/et_eq_nom_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nom (Obligatoire)"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_eq_desc_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Description (Obligatoire)"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_eq_masse_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="Masse en g (50 à 5000)"
+                android:layout_marginBottom="8dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Propriétaire :" />
+                android:text="Nombre d'items (1 à 3) :"
+                android:layout_marginTop="4dp" />
 
             <Spinner
-                android:id="@+id/spinner_eq_owner_create"
+                android:id="@+id/spinner_eq_nb_item_create"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <EditText
-            android:id="@+id/et_eq_masse_vide_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="Masse à vide en g (Optionnel)"
-            android:layout_marginBottom="16dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_eq_annuler_create"
-                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Annuler"
-                android:backgroundTint="#808080" />
+                android:layout_marginBottom="8dp" />
 
-            <Button
-                android:id="@+id/btn_eq_valider_create"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:backgroundTint="@color/vert"
-                android:text="Valider" />
+                android:text="Type d'équipement :" />
+
+            <Spinner
+                android:id="@+id/spinner_eq_type_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/ll_owner_selection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Propriétaire :" />
+
+                <Spinner
+                    android:id="@+id/spinner_eq_owner_create"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/et_eq_masse_vide_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="Masse à vide en g (Optionnel)"
+                android:layout_marginBottom="8dp" />
+
         </LinearLayout>
+    </ScrollView>
+
+    <!-- Boutons HORS du ScrollView : toujours visibles en bas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#FFFFFF">
+
+        <Button
+            android:id="@+id/btn_eq_annuler_create"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Annuler"
+            android:backgroundTint="#808080" />
+
+        <Button
+            android:id="@+id/btn_eq_valider_create"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/vert"
+            android:text="Valider" />
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>

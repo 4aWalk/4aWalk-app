@@ -2,8 +2,10 @@ package fr.iutrodez.a4awalk.activites;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,6 +26,22 @@ import fr.iutrodez.a4awalk.utils.validators.ValidateurFoodProduct;
 public class PopUpFoodProduct {
 
     /**
+     * Applique les dimensions correctes au Dialog :
+     * - largeur : toute la largeur de l'écran
+     * - hauteur : au maximum 90% de la hauteur de l'écran
+     * Cela évite que les boutons tombent hors de l'écran sur les petits appareils.
+     */
+    private static void appliquerDimensionsDialog(Context context, Dialog dialog) {
+        if (dialog.getWindow() == null) return;
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        int maxHeight = (int) (metrics.heightPixels * 0.90);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+        lp.height = maxHeight;
+        dialog.getWindow().setAttributes(lp);
+    }
+
+    /**
      * Affiche une popup en lecture seule avec les détails d'un produit alimentaire.
      */
     public static void afficherPopupDetailsFoodProduct(Context context, FoodProduct produit) {
@@ -40,7 +58,6 @@ public class PopUpFoodProduct {
         EditText etKcal = dialog.findViewById(R.id.et_fp_kcal);
         EditText etPrix = dialog.findViewById(R.id.et_fp_prix);
         Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_fp_nb_item);
-
         Button btnAnnuler = dialog.findViewById(R.id.btn_fp_annuler);
         Button btnValider = dialog.findViewById(R.id.btn_fp_valider);
 
@@ -73,9 +90,7 @@ public class PopUpFoodProduct {
         btnValider.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
+        appliquerDimensionsDialog(context, dialog);
     }
 
     /**
@@ -92,7 +107,6 @@ public class PopUpFoodProduct {
         EditText etKcal = dialog.findViewById(R.id.et_fp_kcal);
         EditText etPrix = dialog.findViewById(R.id.et_fp_prix);
         Spinner spinnerNbItem = dialog.findViewById(R.id.spinner_fp_nb_item);
-
         Button btnAnnuler = dialog.findViewById(R.id.btn_fp_annuler);
         Button btnValider = dialog.findViewById(R.id.btn_fp_valider);
 
@@ -113,7 +127,6 @@ public class PopUpFoodProduct {
 
             // 1. Validation des champs
             String erreur = ValidateurFoodProduct.valider(nom, masseStr, appellation, kcalStr, prixStr);
-
             if (erreur != null) {
                 Toast.makeText(context, erreur, Toast.LENGTH_SHORT).show();
                 return;
@@ -132,7 +145,7 @@ public class PopUpFoodProduct {
                     Toast.makeText(context, "Produit ajouté avec succès !", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     if (onSuccessCallback != null) {
-                        onSuccessCallback.run(); // Rafraîchit la liste dans l'activité
+                        onSuccessCallback.run();
                     }
                 }
 
@@ -144,9 +157,6 @@ public class PopUpFoodProduct {
         });
 
         dialog.show();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
+        appliquerDimensionsDialog(context, dialog);
     }
 }
