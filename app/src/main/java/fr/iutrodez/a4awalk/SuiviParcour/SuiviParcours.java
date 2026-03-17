@@ -7,7 +7,9 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +20,7 @@ import androidx.core.content.ContextCompat;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.LocationCallback;
@@ -38,6 +41,8 @@ import java.util.Map;
 
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
+import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
 
 public class SuiviParcours extends AppCompatActivity {
 
@@ -53,9 +58,12 @@ public class SuiviParcours extends AppCompatActivity {
 
     // ===== UI =====
     private MapView mapView;
+    private TextView tvDate;
+    private TextView tvRandonnee;
+    private TextView tvNomParcours;
     private Button btnPause;
     private Button btnTerminer;
-    private TextView tvProchainPoint, tvArrivee;
+    private ImageButton btnRetour;
 
     // ===== Managers =====
     private MapManager mapManager;
@@ -87,12 +95,21 @@ public class SuiviParcours extends AppCompatActivity {
 
         tokenManager = new TokenManager(this);
         // ===== Récupération du courseId depuis l'Intent =====
-        String intentCourseId = getIntent().getStringExtra("courseId");
+        String intentCourseId = getIntent().getStringExtra("COURSE_ID");
         currentCourseId = (intentCourseId != null && !intentCourseId.isEmpty())
                 ? intentCourseId
                 : COURSE_ID_FALLBACK;
 
+        String dateRealisation = getIntent().getStringExtra("DATE_REALISATION");
+        String nomRandonnee = getIntent().getStringExtra("NOM_RANDONNEE");
+        String nomParcours = getIntent().getStringExtra("NOM_PARCOURS");
+
         initViews();
+
+        if (dateRealisation != null) tvDate.setText(dateRealisation);
+        if (nomRandonnee != null) tvRandonnee.setText(nomRandonnee);
+        if (nomParcours != null) tvNomParcours.setText(nomParcours);
+
         initManagers();
         initParcours();
         initDistanceManager();
@@ -108,7 +125,16 @@ public class SuiviParcours extends AppCompatActivity {
     private void initViews() {
         mapView = findViewById(R.id.map);
         btnPause = findViewById(R.id.btnReprendre);
-        btnTerminer = findViewById(R.id.btnReprendre);
+        btnTerminer = findViewById(R.id.btnTerminer);
+        btnRetour = findViewById(R.id.btnRetour);
+
+        tvDate = findViewById(R.id.tvDate);
+        tvRandonnee = findViewById(R.id.tvRandonnee);
+        tvNomParcours = findViewById(R.id.tvNomParcours);
+
+        btnTerminer.setVisibility(View.GONE);
+
+        btnRetour.setOnClickListener(v -> finish());
 
         mapView.setBuiltInZoomControls(true);
         mapView.setMultiTouchControls(true);
@@ -142,10 +168,10 @@ public class SuiviParcours extends AppCompatActivity {
         distanceManager.setListener(new DistanceListener() {
             @Override
             public void onDistanceUpdated(float next, float end) {
-                runOnUiThread(() -> {
-                    tvProchainPoint.setText(formatDistanceProchain(next));
-                    tvArrivee.setText(formatDistanceArrivee(end));
-                });
+                //runOnUiThread(() -> {
+                //    tvProchainPoint.setText(formatDistanceProchain(next));
+                //    tvArrivee.setText(formatDistanceArrivee(end));
+                //});
             }
 
             @Override
@@ -165,8 +191,11 @@ public class SuiviParcours extends AppCompatActivity {
 
     private void initPauseButton() {
         btnPause.setOnClickListener(v -> {
-            if (!isPaused) pauseRandonnee();
-            else reprendreRandonnee();
+            if (!isPaused) {
+                pauseRandonnee();
+            } else {
+                reprendreRandonnee();
+            }
         });
     }
 
@@ -188,6 +217,7 @@ public class SuiviParcours extends AppCompatActivity {
         }
 
         envoyerStatutPauseAPI(true);
+        btnRetour.setVisibility(View.VISIBLE);
         locationManager.stopLocationUpdates();
         btnPause.setText("Reprendre la randonnée");
         isPaused = true;
@@ -333,26 +363,21 @@ public class SuiviParcours extends AppCompatActivity {
     }
 
     private void envoyerStatutPauseAPI(boolean paused) {
-        String url = BASE_URL + currentCourseId + "/state";
-
-        StringRequest request = new StringRequest(Request.Method.PUT, url,
-                response -> Toast.makeText(this,
-                        paused ? "Statut: En pause ⏸" : "Statut: En cours ▶",
-                        Toast.LENGTH_SHORT).show(),
-                error -> Toast.makeText(this,
-                        "Erreur changement statut : " + error.toString(),
-                        Toast.LENGTH_LONG).show()
-        ) {
+        ServiceParcours.changerStatutPause(this, tokenManager.getToken(), currentCourseId, paused, new AppelAPI.VolleyObjectCallback() {
             @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", "Bearer " + tokenManager.getToken());
-                headers.put("Content-Type", "application/json");
-                return headers;
+            public void onSuccess(JSONObject result) {
+                Toast.makeText(SuiviParcours.this,
+                        paused ? "Statut: En pause ⏸" : "Statut: En cours ▶",
+                        Toast.LENGTH_SHORT).show();
             }
-        };
 
-        requestQueue.add(request);
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(SuiviParcours.this,
+                        "Erreur changement statut : " + error.toString(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void envoyerFinRandoneeAPI() {

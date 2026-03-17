@@ -1,5 +1,6 @@
 package fr.iutrodez.a4awalk.activites;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.SuiviParcour.SuiviParcours;
 import fr.iutrodez.a4awalk.modeles.entites.Course;
 import fr.iutrodez.a4awalk.modeles.entites.GeoCoordinate;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
@@ -76,6 +78,7 @@ public class ParcoursDetailsActivity extends HeaderActivity {
         bindViews();
         configureMap();
         loadCourseFromApi();
+        btnSupprimer.setOnClickListener(v -> ServiceParcours.terminerParcours(this, tokenManager.getToken(), currentCourse.getId()));
     }
 
     private void setupOsmdroidConfig() {
@@ -92,7 +95,7 @@ public class ParcoursDetailsActivity extends HeaderActivity {
         tvDate = findViewById(R.id.tvDate);
         tvRandonnee = findViewById(R.id.tvRandonnee);
         btnReprendre = findViewById(R.id.btnReprendre);
-        btnSupprimer = findViewById(R.id.btnSupprimer);
+        btnSupprimer = findViewById(R.id.btnTerminer);
         btnRetour = findViewById(R.id.btnRetour);
 
         if (btnRetour != null) {
@@ -100,8 +103,8 @@ public class ParcoursDetailsActivity extends HeaderActivity {
         }
 
         // Mode Consultation : on masque les boutons d'action
-        btnReprendre.setVisibility(View.GONE);
-        btnSupprimer.setVisibility(View.GONE);
+        btnReprendre.setVisibility(View.VISIBLE);
+        btnSupprimer.setVisibility(View.VISIBLE);
     }
 
     private void configureMap() {
@@ -164,6 +167,29 @@ public class ParcoursDetailsActivity extends HeaderActivity {
             tvDate.setText(course.getDateRealisation().format(formatter));
         } else {
             tvDate.setText("Date inconnue");
+        }
+
+        // Si le parcours n'est pas terminé, on affiche toujours le bouton pour accéder au suivi
+        if (!course.isFinished()) {
+            btnReprendre.setVisibility(View.VISIBLE);
+
+            // On adapte le texte du bouton selon l'état actuel du parcours
+            if (course.isPaused()) {
+                btnReprendre.setText("Reprendre");
+            } else {
+                btnReprendre.setText("Voir le suivi");
+            }
+
+            btnReprendre.setOnClickListener(v -> {
+                Intent intent = new Intent(this, SuiviParcours.class);
+                intent.putExtra("COURSE_ID", course.getId());
+                intent.putExtra("DATE_REALISATION", tvDate.getText().toString());
+                intent.putExtra("NOM_RANDONNEE", tvRandonnee.getText().toString());
+                intent.putExtra("NOM_PARCOURS", tvNomParcours.getText().toString());
+                startActivity(intent);
+            });
+        } else {
+            btnReprendre.setVisibility(View.GONE);
         }
 
         coursePoints = new ArrayList<>();

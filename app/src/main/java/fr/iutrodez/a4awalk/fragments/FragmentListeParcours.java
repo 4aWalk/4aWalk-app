@@ -17,6 +17,7 @@ import com.android.volley.VolleyError;
 import java.util.ArrayList;
 import java.util.HashMap; // N'oublie pas cet import
 
+import fr.iutrodez.a4awalk.SuiviParcour.SuiviParcours;
 import fr.iutrodez.a4awalk.activites.ParcoursDetailsActivity; // L'import de la nouvelle activité
 import fr.iutrodez.a4awalk.adaptateurs.ItemParcoursAdapter;
 import fr.iutrodez.a4awalk.modeles.entites.Course;

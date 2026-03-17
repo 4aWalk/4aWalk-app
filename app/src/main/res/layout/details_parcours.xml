@@ -62,7 +62,6 @@
 
                 <TextView
                     android:id="@+id/tvNomParcours"
-                    android:text="Parcours 1"
                     android:textSize="32sp"
                     android:textStyle="bold"
                     android:textColor="#000"
@@ -85,7 +84,6 @@
 
                     <TextView
                         android:id="@+id/tvDate"
-                        android:text="08/10/2025"
                         android:textSize="18sp"
                         android:textColor="#000"
                         android:layout_width="0dp"
@@ -113,7 +111,6 @@
 
                     <TextView
                         android:id="@+id/tvRandonnee"
-                        android:text="Randonnée 1"
                         android:textSize="18sp"
                         android:textColor="#000"
                         android:layout_width="0dp"
@@ -140,21 +137,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Reprendre"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="18sp"
-                android:backgroundTint="#4CAF50"
-                android:visibility="gone"/>
-
-            <View android:layout_height="8dp" android:layout_width="match_parent"/>
+                android:backgroundTint="@color/vert"/>
 
             <Button
-                android:id="@+id/btnSupprimer"
+                android:id="@+id/btnTerminer"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Supprimer"
-                android:textColor="@android:color/white"
+                android:text="Terminer"
+                android:textColor="@color/white"
                 android:textSize="18sp"
-                android:backgroundTint="#F44336"/>
+                android:backgroundTint="@color/red"/>
 
         </LinearLayout>
     </ScrollView>

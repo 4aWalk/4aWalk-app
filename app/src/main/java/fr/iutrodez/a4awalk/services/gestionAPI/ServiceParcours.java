@@ -4,6 +4,7 @@ import static fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI.parsePOI;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import org.json.JSONArray;
@@ -22,6 +23,21 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 public class ServiceParcours {
 
     private static final String BASE_URL = "http://98.94.8.220:8080";
+
+    public static void terminerParcours(Context context, String id, String token) {
+        String url = BASE_URL + "/courses/" + id + "/finish";
+        AppelAPI.put(url, token, null, context, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) throws JSONException {
+
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
     /**
      * Interface pour renvoyer le résultat au Fragment concernant la récupération des parcours
@@ -103,6 +119,17 @@ public class ServiceParcours {
                 callback.onError(erreur);
             }
         });
+    }
+
+    /**
+     * Met à jour le statut du parcours (pause ou reprise).
+     */
+    public static void changerStatutPause(Context context, String token, String courseId, boolean isPaused, AppelAPI.VolleyObjectCallback callback) {
+        String url = BASE_URL + "/courses/" + courseId + "/state";
+
+        // On utilise la méthode PUT existante. Si l'API nécessite le booléen isPaused dans le body,
+        // il faudra remplacer 'null' par un JSONObject contenant l'état.
+        AppelAPI.put(url, token, null, context, callback);
     }
 
     /**
