@@ -93,7 +93,7 @@ public class ServiceEquipment {
         item.setMasseGrammes(obj.optDouble("masseGrammes", 0.0));
         item.setNbItem(obj.optInt("nbItem", 1));
         item.setMasseAVide(obj.optDouble("masseAVide", 0.0));
-
+        if (obj.has("ownerId") && !obj.isNull("ownerId")) {
             item.setOwnerId(obj.getInt("ownerId"));
         } else {
             item.setOwnerId(null);
