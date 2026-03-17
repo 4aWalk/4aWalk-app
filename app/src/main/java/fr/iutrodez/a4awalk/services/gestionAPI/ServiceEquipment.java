@@ -140,7 +140,8 @@ public class ServiceEquipment {
                                               List<EquipmentItem> listeInitiale,
                                               List<EquipmentItem> listeModifiee) {
 
-        // 1. Trouver les AJOUTS (présents dans listeModifiee, absents dans listeInitiale)
+        // 1. Construire la liste des équipements à AJOUTER
+        List<EquipmentItem> aAjouter = new ArrayList<>();
         for (EquipmentItem temp : listeModifiee) {
             boolean existeDeja = false;
             for (EquipmentItem orig : listeInitiale) {
@@ -149,23 +150,11 @@ public class ServiceEquipment {
                     break;
                 }
             }
-            if (!existeDeja) {
-                // L'équipement a été ajouté, on fait le POST
-                lierEquipmentARandonnee(context, token, hikeId, temp.getId(), temp.getOwnerId(), new AppelAPI.VolleyObjectCallback() {
-                    @Override
-                    public void onSuccess(JSONObject result) {
-                        Log.i("ServiceEquipment", "Équipement " + temp.getId() + " lié avec succès.");
-                    }
-
-                    @Override
-                    public void onError(VolleyError error) {
-                        Log.e("ServiceEquipment", "Erreur lors de la liaison de l'équipement " + temp.getId());
-                    }
-                });
-            }
+            if (!existeDeja) aAjouter.add(temp);
         }
 
-        // 2. Trouver les SUPPRESSIONS (présents dans listeInitiale, absents dans listeModifiee)
+        // 2. Construire la liste des équipements à SUPPRIMER
+        List<EquipmentItem> aSupprimer = new ArrayList<>();
         for (EquipmentItem orig : listeInitiale) {
             boolean estConserve = false;
             for (EquipmentItem temp : listeModifiee) {
@@ -174,25 +163,66 @@ public class ServiceEquipment {
                     break;
                 }
             }
-            if (!estConserve) {
-                // L'équipement a été retiré, on fait le DELETE
-                retirerEquipmentDeRandonnee(context, token, hikeId, orig.getId(), new AppelAPI.VolleyObjectCallback() {
+            if (!estConserve) aSupprimer.add(orig);
+        }
+
+        // 3. Lancer les ajouts séquentiellement, puis les suppressions séquentiellement
+        ajouterSequentiellement(context, token, hikeId, aAjouter, 0, () ->
+                supprimerSequentiellement(context, token, hikeId, aSupprimer, 0)
+        );
+    }
+
+    private static void ajouterSequentiellement(Context context, String token, int hikeId,
+                                                List<EquipmentItem> liste, int index,
+                                                Runnable onTermine) {
+        if (index >= liste.size()) {
+            if (onTermine != null) onTermine.run();
+            return;
+        }
+
+        EquipmentItem eq = liste.get(index);
+        lierEquipmentARandonnee(context, token, hikeId, eq.getId(), eq.getOwnerId(),
+                new AppelAPI.VolleyObjectCallback() {
                     @Override
                     public void onSuccess(JSONObject result) {
-                        Log.i("ServiceEquipment", "Équipement " + orig.getId() + " retiré avec succès.");
+                        Log.i("ServiceEquipment", "Équipement " + eq.getId() + " lié avec succès.");
+                        // On passe au suivant seulement après succès
+                        ajouterSequentiellement(context, token, hikeId, liste, index + 1, onTermine);
                     }
 
                     @Override
                     public void onError(VolleyError error) {
-                        // Gestion du cas où le DELETE renvoie un 204 No Content
-                        if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
-                            Log.i("ServiceEquipment", "Équipement " + orig.getId() + " retiré avec succès (204).");
-                        } else {
-                            Log.e("ServiceEquipment", "Erreur lors du retrait de l'équipement " + orig.getId());
-                        }
+                        Log.e("ServiceEquipment", "Erreur liaison équipement " + eq.getId());
+                        // On continue quand même pour ne pas bloquer les suivants
+                        ajouterSequentiellement(context, token, hikeId, liste, index + 1, onTermine);
                     }
-                });
-            }
-        }
+                }
+        );
+    }
+
+    private static void supprimerSequentiellement(Context context, String token, int hikeId,
+                                                  List<EquipmentItem> liste, int index) {
+        if (index >= liste.size()) return;
+
+        EquipmentItem eq = liste.get(index);
+        retirerEquipmentDeRandonnee(context, token, hikeId, eq.getId(),
+                new AppelAPI.VolleyObjectCallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Log.i("ServiceEquipment", "Équipement " + eq.getId() + " retiré avec succès.");
+                        supprimerSequentiellement(context, token, hikeId, liste, index + 1);
+                    }
+
+                    @Override
+                    public void onError(VolleyError error) {
+                        if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
+                            Log.i("ServiceEquipment", "Équipement " + eq.getId() + " retiré (204).");
+                        } else {
+                            Log.e("ServiceEquipment", "Erreur retrait équipement " + eq.getId());
+                        }
+                        supprimerSequentiellement(context, token, hikeId, liste, index + 1);
+                    }
+                }
+        );
     }
 }
