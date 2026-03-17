@@ -3,6 +3,7 @@ package fr.iutrodez.a4awalk.activites;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -150,7 +151,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         listePoints = findViewById(R.id.points_list);
         listeParticipants = findViewById(R.id.participants_list);
         listeFoodProducts = findViewById(R.id.food_products_list);
-        listeEquipments = findViewById(R.id.equipments_list);
+        listeEquipments = findViewById(R.id.equipments_list); // Ajout
         nbJours = findViewById(R.id.spinner_jours);
 
         containerPoi = findViewById(R.id.container_poi);
@@ -240,7 +241,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         // Afficher les détails d'un équipement
         listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
             EquipmentItem eq = listeTemporaireEquipments.get(position);
-            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
+            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq, listeTemporaireParticipants);
         });
 
         btnSaveHike.setVisibility(View.GONE);
@@ -343,8 +344,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         // --- GESTION EQUIPEMENTS ---
         listeEquipments.setOnItemClickListener((parent, view, position, id) -> {
             EquipmentItem eq = listeTemporaireEquipments.get(position);
-            // Assure-toi d'avoir cette méthode ou commente la ligne
-            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq);
+            PopUpEquipment.afficherPopupDetailsEquipment(ActiviteGestionRandonnee.this, eq, listeTemporaireParticipants);
         });
 
         btnAddEquipment.setOnClickListener(v -> afficherPopupSelectionEquipment());
@@ -682,7 +682,10 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                         eq.setMasseGrammes(obj.getDouble("masseGrammes"));
                         eq.setNbItem(obj.getInt("nbItem"));
                         eq.setType(TypeEquipment.valueOf(obj.getString("type")));
-                        eq.setMasseAVide(obj.optDouble("masseAVide", 0.0));
+                        // Attention: optDouble renvoie NaN si la clé existe mais est null, il vaut mieux faire ceci:
+                        if (!obj.isNull("masseAVide")) {
+                            eq.setMasseAVide(obj.getDouble("masseAVide"));
+                        }
 
                         catalogueComplet.add(eq);
                         nomsEquipments.add(eq.getNom() + " (" + eq.getMasseGrammes() + "g)");
@@ -708,6 +711,68 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 Toast.makeText(ActiviteGestionRandonnee.this, "Impossible de charger le catalogue", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    /**
+     * Gère la logique d'ajout : vérifie le type et demande le propriétaire si nécessaire.
+     */
+    private void gererAjoutEquipment(EquipmentItem eq) {
+        // 1. Vérifier s'il est déjà dans la liste
+        for (EquipmentItem item : listeTemporaireEquipments) {
+            if (item.getId() == eq.getId()) {
+                Toast.makeText(this, "Cet équipement est déjà dans la randonnée", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        // 2. Si c'est un VETEMENT ou REPOS, demander le propriétaire
+        if (eq.getType() == TypeEquipment.VETEMENT || eq.getType() == TypeEquipment.REPOS) {
+            demanderProprietaireEtAjouter(eq);
+        } else {
+            // Sinon, l'ajouter directement
+            ajouterEquipmentFinal(eq, null);
+        }
+    }
+
+    /**
+     * Affiche une popup pour sélectionner le participant propriétaire.
+     */
+    private void demanderProprietaireEtAjouter(EquipmentItem eq) {
+        if (listeTemporaireParticipants.isEmpty()) {
+            Toast.makeText(this, "Veuillez d'abord ajouter des participants à la randonnée.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        List<String> nomParticipants = new ArrayList<>();
+        for (Participant p : listeTemporaireParticipants) {
+            nomParticipants.add(p.getPrenom() + " " + p.getNom());
+        }
+
+        String[] tableauParticipants = nomParticipants.toArray(new String[0]);
+
+        new AlertDialog.Builder(this)
+                .setTitle("À qui appartient cet équipement ?")
+                .setItems(tableauParticipants, (dialog, which) -> {
+                    // On récupère l'ID du participant sélectionné
+                    int idProprietaire = listeTemporaireParticipants.get(which).getId();
+                    ajouterEquipmentFinal(eq, idProprietaire);
+                })
+                .setNegativeButton("Annuler", null)
+                .show();
+    }
+
+    /**
+     * Ajoute l'équipement à la liste visuelle en sauvegardant l'ID du propriétaire.
+     */
+    private void ajouterEquipmentFinal(EquipmentItem eq, Integer ownerId) {
+        // Si ce n'est pas le cas, ajoute un attribut "private Integer ownerId;" avec ses getters/setters
+        // dans ta classe fr.iutrodez.a4awalk.modeles.entites.EquipmentItem
+
+        eq.setOwnerId(ownerId);
+
+        listeTemporaireEquipments.add(eq);
+        adapterEquipments.notifyDataSetChanged();
+        Toast.makeText(this, eq.getNom() + " ajouté à la liste !", Toast.LENGTH_SHORT).show();
     }
 
     private void ajouterEquipmentLocal(EquipmentItem eq) {

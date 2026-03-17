@@ -26,6 +26,9 @@ public class EquipmentItem implements Item, Parcelable {
 
     private double masseAVide;
 
+    // Nouvel attribut pour le propriétaire (Integer pour accepter null)
+    private Integer ownerId;
+
 
     // --- Constructeurs ---
 
@@ -52,12 +55,25 @@ public class EquipmentItem implements Item, Parcelable {
         nom = in.readString();
         description = in.readString();
 
-        if (in.readByte() == 0) masseGrammes = null; else masseGrammes = in.readDouble();
+        if (in.readByte() == 0) {
+            masseGrammes = null;
+        } else {
+            masseGrammes = in.readDouble();
+        }
+
         nbItem = in.readInt();
 
         String typeStr = in.readString();
         type = typeStr != null ? TypeEquipment.valueOf(typeStr) : null;
+
         masseAVide = in.readDouble();
+
+        // Lecture du ownerId (gestion du cas null)
+        if (in.readByte() == 0) {
+            ownerId = null;
+        } else {
+            ownerId = in.readInt();
+        }
     }
 
     @Override
@@ -68,10 +84,24 @@ public class EquipmentItem implements Item, Parcelable {
         dest.writeString(nom);
         dest.writeString(description);
 
-        if (masseGrammes == null) dest.writeByte((byte) 0); else { dest.writeByte((byte) 1); dest.writeDouble(masseGrammes); }
+        if (masseGrammes == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeDouble(masseGrammes);
+        }
+
         dest.writeInt(nbItem);
         dest.writeString(type != null ? type.name() : null);
         dest.writeDouble(masseAVide);
+
+        // Écriture du ownerId (gestion du cas null)
+        if (ownerId == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(ownerId);
+        }
     }
 
     public static final Creator<EquipmentItem> CREATOR = new Creator<EquipmentItem>() {
@@ -121,6 +151,10 @@ public class EquipmentItem implements Item, Parcelable {
     public double getMasseAVide() { return masseAVide; }
     public void setMasseAVide(double masseAVide) {this.masseAVide = masseAVide;}
 
+    // Nouveaux getter et setter pour ownerId
+    public Integer getOwnerId() { return ownerId; }
+    public void setOwnerId(Integer ownerId) { this.ownerId = ownerId; }
+
     public double getTotalMasses() {
         return getMasseGrammes() - (this.masseAVide * this.nbItem);
     }
@@ -129,6 +163,6 @@ public class EquipmentItem implements Item, Parcelable {
 
     @Override
     public String toString() {
-        return getNom() + " - " +getMasseGrammes() + " g - " + getNbItem() + " personne(s)";
+        return getNom() + " - " + getMasseGrammes() + " g - " + getNbItem() + " personne(s)";
     }
 }
