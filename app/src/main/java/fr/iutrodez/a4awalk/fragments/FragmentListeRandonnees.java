@@ -34,9 +34,6 @@ import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
 
 public class FragmentListeRandonnees extends Fragment implements View.OnClickListener {
 
-    public final static String HIKE_ID_KEY = "HIKE_ID";
-    public final static String CHILD_MESSAGE_KEY = "CHILD_MESSAGE";
-
     private ArrayList<Hike> listeRandos;
     private ItemRandoAdapter adaptateur;
     private RecyclerView randoRecyclerView;
