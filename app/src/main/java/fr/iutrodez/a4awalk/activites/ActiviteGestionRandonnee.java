@@ -476,7 +476,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
                     @Override
                     public void onError(String message) {
-                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la création : " + message, Toast.LENGTH_LONG).show();
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la création : Nom déjà utilisé ", Toast.LENGTH_LONG).show();
                     }
                 }
         );
