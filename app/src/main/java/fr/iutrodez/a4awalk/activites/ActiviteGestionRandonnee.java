@@ -765,7 +765,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                             .setTitle("Sélectionner un équipement")
                             .setItems(tableauNoms, (dialog, which) -> {
                                 EquipmentItem eqSelectionne = catalogueComplet.get(which);
-                                ajouterEquipmentLocal(eqSelectionne);
+                                gererAjoutEquipment(eqSelectionne);
                             })
                             .setNegativeButton("Annuler", null)
                             .show();
