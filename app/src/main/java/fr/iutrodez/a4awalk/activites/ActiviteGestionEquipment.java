@@ -29,9 +29,9 @@ public class ActiviteGestionEquipment extends HeaderActivity {
     private RecyclerView recyclerEquipments;
     private EquipmentAdapter adapter;
     private Button btnAjouter;
-    private SearchView searchView;                              // +
+    private SearchView searchView;
     private List<EquipmentItem> listeEquipements = new ArrayList<>();
-    private List<EquipmentItem> listeEquipementsFiltree = new ArrayList<>(); // +
+    private List<EquipmentItem> listeEquipementsFiltree = new ArrayList<>();
     private TokenManager tokenManager;
 
     @Override
@@ -43,26 +43,26 @@ public class ActiviteGestionEquipment extends HeaderActivity {
         tokenManager = new TokenManager(this);
 
         recyclerEquipments = findViewById(R.id.recycler_equipments_catalog);
-        btnAjouter        = findViewById(R.id.btn_afficher_popup_ajout_eq);
-        searchView        = findViewById(R.id.search_equipments);           // +
+        btnAjouter = findViewById(R.id.btn_afficher_popup_ajout_eq);
+        searchView = findViewById(R.id.search_equipments);
 
         recyclerEquipments.setLayoutManager(new LinearLayoutManager(this));
 
-        // L'adaptateur travaille désormais sur la liste filtrée
+        // Adaptateur de la liste des equipements
         adapter = new EquipmentAdapter(listeEquipementsFiltree, item ->
                 PopUpEquipment.afficherPopupDetailsEquipment(
-                        ActiviteGestionEquipment.this, item, new ArrayList<>())
+                        this, item, new ArrayList<>())
         );
         recyclerEquipments.setAdapter(adapter);
 
         btnAjouter.setOnClickListener(v ->
                 PopUpEquipment.afficherPopupAjoutEquipment(
-                        ActiviteGestionEquipment.this,
+                        this,
                         tokenManager.getToken(),
                         this::chargerEquipementsDepuisAPI)
         );
 
-        // Écoute les saisies dans la barre de recherche              // +
+        // Écoute les saisies dans la barre de recherche
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -80,7 +80,7 @@ public class ActiviteGestionEquipment extends HeaderActivity {
         chargerEquipementsDepuisAPI();
     }
 
-    // Filtre listeEquipements → listeEquipementsFiltree selon le nom  // +
+    // Filtre listeEquipements → listeEquipementsFiltree selon le nom
     private void filtrer(String texte) {
         listeEquipementsFiltree.clear();
         if (texte == null || texte.trim().isEmpty()) {
@@ -106,7 +106,7 @@ public class ActiviteGestionEquipment extends HeaderActivity {
                         JSONObject obj = result.getJSONObject(i);
                         listeEquipements.add(ServiceEquipment.constructEqFromJson(obj));
                     }
-                    // Rafraîchit la liste filtrée en respectant la recherche en cours  // +
+                    // Rafraîchit la liste filtrée en respectant la recherche en cours
                     filtrer(searchView.getQuery().toString());
                 } catch (JSONException e) {
                     e.printStackTrace();

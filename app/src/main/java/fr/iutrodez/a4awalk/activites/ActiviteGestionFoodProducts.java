@@ -34,9 +34,9 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
     private RecyclerView recyclerFoodProducts;
     private FoodProductAdapter adapter;
     private Button btnAjouter;
-    private SearchView searchView;                                  // +
+    private SearchView searchView;
     private List<FoodProduct> listeProduits = new ArrayList<>();
-    private List<FoodProduct> listeProduitsFiltree = new ArrayList<>(); // +
+    private List<FoodProduct> listeProduitsFiltree = new ArrayList<>();
     private TokenManager tokenManager;
 
     @Override
@@ -48,8 +48,8 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
         tokenManager = new TokenManager(this);
 
         recyclerFoodProducts = findViewById(R.id.recycler_food_products_catalog);
-        btnAjouter           = findViewById(R.id.btn_afficher_popup_ajout);
-        searchView           = findViewById(R.id.search_food_products);     // +
+        btnAjouter = findViewById(R.id.btn_afficher_popup_ajout);
+        searchView = findViewById(R.id.search_food_products);
 
         recyclerFoodProducts.setLayoutManager(new LinearLayoutManager(this));
 
@@ -83,7 +83,7 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
         chargerProduitsDepuisAPI();
     }
 
-    private void filtrer(String texte) {                                    // +
+    private void filtrer(String texte) {
         listeProduitsFiltree.clear();
         if (texte == null || texte.trim().isEmpty()) {
             listeProduitsFiltree.addAll(listeProduits);
@@ -108,7 +108,7 @@ public class ActiviteGestionFoodProducts extends HeaderActivity {
                         JSONObject obj = result.getJSONObject(i);
                         listeProduits.add(ServiceFoodProduct.constructFPFromJson(obj));
                     }
-                    filtrer(searchView.getQuery().toString());               // +
+                    filtrer(searchView.getQuery().toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Toast.makeText(ActiviteGestionFoodProducts.this,

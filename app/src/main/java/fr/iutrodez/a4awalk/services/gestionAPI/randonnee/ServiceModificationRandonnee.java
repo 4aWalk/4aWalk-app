@@ -18,12 +18,14 @@ public class ServiceModificationRandonnee {
     public static void modifierRandonneeAPI(Context context, String token, int hikeId, String libelle, int dureeJours,
                                             double latitudeD, double longitudeD, double latitudeA, double longitudeA,
                                             UpdateHikeCallback callback) {
+
         String nomDepart = "Départ";
         String descDepart = "Point de départ de la randonnée";
         String nomArrivee = "Arrivée";
         String descArrivee = "Point d'arrivée de la randonnée";
 
-        JSONObject bodyHike = ServiceCreationRandonnee.construireJsonRandonnee(libelle, dureeJours,
+        // Appel interne à la fonction de création du JSON
+        JSONObject bodyHike = construireJsonRandonnee(libelle, dureeJours,
                 nomDepart, descDepart, latitudeD, longitudeD,
                 nomArrivee, descArrivee, latitudeA, longitudeA);
 
@@ -40,5 +42,37 @@ public class ServiceModificationRandonnee {
                 if (callback != null) callback.onError(error.toString());
             }
         });
+    }
+
+    // ================================================================
+    // ================= CONVERSION JSON ET OBJETS ====================
+    // ================================================================
+
+    private static JSONObject construireJsonRandonnee(String libelle, int dureeJours,
+                                                      String nomDepart, String descDepart, double latitudeD, double longitudeD,
+                                                      String nomArrivee, String descArrivee, double latitudeA, double longitudeA) {
+        JSONObject bodyHike = new JSONObject();
+        try {
+            bodyHike.put("libelle", libelle);
+            bodyHike.put("dureeJours", dureeJours);
+
+            JSONObject depart = new JSONObject();
+            depart.put("nom", nomDepart);
+            depart.put("description", descDepart);
+            depart.put("latitude", latitudeD);
+            depart.put("longitude", longitudeD);
+            bodyHike.put("depart", depart);
+
+            JSONObject arrivee = new JSONObject();
+            arrivee.put("nom", nomArrivee);
+            arrivee.put("description", descArrivee);
+            arrivee.put("latitude", latitudeA);
+            arrivee.put("longitude", longitudeA);
+            bodyHike.put("arrivee", arrivee);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return bodyHike;
     }
 }

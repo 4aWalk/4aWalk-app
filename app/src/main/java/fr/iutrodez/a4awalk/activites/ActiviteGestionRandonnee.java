@@ -1,5 +1,8 @@
 package fr.iutrodez.a4awalk.activites;
 
+import static fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant.buildParticipantJSON;
+import static fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant.supprimerParticipantAPI;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -345,27 +348,22 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                             .setTitle("Confirmer l'ajout")
                             .setMessage("Le participant va être sauvegardé et vous serez redirigé vers la consultation de la randonnée.")
                             .setPositiveButton("Oui", (dialog, which) -> {
-                                JSONObject body = buildParticipantBody(newParticipant);
-                                if (body == null) return;
 
-                                AppelAPI.post(
-                                        "http://98.94.8.220:8080/hikes/" + currentHike.getId() + "/participants",
-                                        tokenManager.getToken(), body, ActiviteGestionRandonnee.this,
-                                        new AppelAPI.VolleyObjectCallback() {
-                                            @Override
-                                            public void onSuccess(JSONObject result) {
-                                                Toast.makeText(ActiviteGestionRandonnee.this,
-                                                        "Participant " + newParticipant.getPrenom() + " " + newParticipant.getNom() + " ajouté",
-                                                        Toast.LENGTH_SHORT).show();
-                                                fermerAvecResultat(Activity.RESULT_OK, null);
-                                            }
-                                            @Override
-                                            public void onError(VolleyError error) {
-                                                Toast.makeText(ActiviteGestionRandonnee.this,
-                                                        "Erreur lors de l'ajout du participant", Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                );
+                                // --- APPEL AU SERVICE DELEGUE (Code allégé) ---
+                                ServiceParticipant.ajouterParticipantAPI(ActiviteGestionRandonnee.this, tokenManager.getToken(), currentHike.getId(), newParticipant, new AppelAPI.VolleyObjectCallback() {
+                                    @Override
+                                    public void onSuccess(JSONObject result) {
+                                        Toast.makeText(ActiviteGestionRandonnee.this,
+                                                "Participant " + newParticipant.getPrenom() + " ajouté", Toast.LENGTH_SHORT).show();
+                                        fermerAvecResultat(Activity.RESULT_OK, null);
+                                    }
+                                    @Override
+                                    public void onError(VolleyError error) {
+                                        Toast.makeText(ActiviteGestionRandonnee.this,
+                                                "Erreur lors de l'ajout du participant", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
                             })
                             .setNegativeButton("Annuler", null)
                             .show();
@@ -382,26 +380,20 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             PopUpParticipant.afficherDialogParticipant(this, ModeRandonnee.MODIFICATION, tokenManager.getToken(), currentHike.getId(), pToEdit, new ParticipantCallback() {
                 @Override
                 public void onActionSuccess(Participant updatedParticipant) {
-                    // Mise à jour immédiate en API
-                    JSONObject body = buildParticipantBody(updatedParticipant);
-                    if (body == null) return;
 
-                    AppelAPI.put(
-                            "http://98.94.8.220:8080/hikes/" + currentHike.getId() + "/participants/" + pToEdit.getId(),
-                            tokenManager.getToken(), body, ActiviteGestionRandonnee.this,
-                            new AppelAPI.VolleyObjectCallback() {
-                                @Override
-                                public void onSuccess(JSONObject result) {
-                                    listeTemporaireParticipants.set(position, updatedParticipant);
-                                    adapterParticipants.notifyDataSetChanged();
-                                    Toast.makeText(ActiviteGestionRandonnee.this, "Participant mis à jour", Toast.LENGTH_SHORT).show();
-                                }
-                                @Override
-                                public void onError(VolleyError error) {
-                                    Toast.makeText(ActiviteGestionRandonnee.this, "Erreur mise à jour participant", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                    );
+                    // --- APPEL AU SERVICE DELEGUE (Code allégé) ---
+                    ServiceParticipant.modifierParticipantAPI(ActiviteGestionRandonnee.this, tokenManager.getToken(), currentHike.getId(), updatedParticipant, new AppelAPI.VolleyObjectCallback() {
+                        @Override
+                        public void onSuccess(JSONObject result) {
+                            listeTemporaireParticipants.set(position, updatedParticipant);
+                            adapterParticipants.notifyDataSetChanged();
+                            Toast.makeText(ActiviteGestionRandonnee.this, "Participant mis à jour", Toast.LENGTH_SHORT).show();
+                        }
+                        @Override
+                        public void onError(VolleyError error) {
+                            Toast.makeText(ActiviteGestionRandonnee.this, "Erreur mise à jour participant", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
 
                 @Override
@@ -427,16 +419,16 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                                 .setPositiveButton("Retirer aussi", (dialog, which) -> {
                                     listeTemporaireEquipments.removeAll(equipementsLies);
                                     adapterEquipments.notifyDataSetChanged();
-                                    supprimerParticipantAPI(participantToDelete);
+                                    executerSuppressionParticipant(participantToDelete);
                                 })
                                 .setNegativeButton("Conserver", (dialog, which) -> {
                                     for (EquipmentItem eq : equipementsLies) eq.setOwnerId(null);
                                     adapterEquipments.notifyDataSetChanged();
-                                    supprimerParticipantAPI(participantToDelete);
+                                    executerSuppressionParticipant(participantToDelete);
                                 })
                                 .show();
                     } else {
-                        supprimerParticipantAPI(participantToDelete);
+                        executerSuppressionParticipant(participantToDelete);
                     }
                 }
             });
@@ -1080,41 +1072,36 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         setResult(resultCode, intent);
         finish();
     }
+    private void executerSuppressionParticipant(Participant participantToDelete) {
+        // Si le participant n'a pas encore été sauvegardé en BDD (ex: mode création)
+        if (participantToDelete.getId() == 0) {
+            listeTemporaireParticipants.remove(participantToDelete);
+            adapterParticipants.notifyDataSetChanged();
+            Toast.makeText(ActiviteGestionRandonnee.this, "Participant retiré", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-    private void supprimerParticipantAPI(Participant participant) {
+        // Appel API délégué au ServiceParticipant
         ServiceParticipant.supprimerParticipantAPI(
-                this, tokenManager.getToken(),
-                currentHike.getId(), participant.getId(),
+                ActiviteGestionRandonnee.this,
+                tokenManager.getToken(),
+                currentHike.getId(),
+                participantToDelete.getId(),
                 new AppelAPI.VolleyObjectCallback() {
                     @Override
                     public void onSuccess(JSONObject result) {
-                        listeTemporaireParticipants.remove(participant);
+                        // Mise à jour de l'UI en cas de succès
+                        listeTemporaireParticipants.remove(participantToDelete);
                         adapterParticipants.notifyDataSetChanged();
-                        updateBtnParticipantState();
-                        Toast.makeText(ActiviteGestionRandonnee.this, "Participant supprimé", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Participant supprimé avec succès", Toast.LENGTH_SHORT).show();
                     }
+
                     @Override
                     public void onError(VolleyError error) {
-                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur suppression participant", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors de la suppression du participant", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
     }
-
-    private JSONObject buildParticipantBody(Participant p) {
-        try {
-            JSONObject body = new JSONObject();
-            body.put("nom", p.getNom());
-            body.put("prenom", p.getPrenom());
-            body.put("age", p.getAge());
-            body.put("niveau", p.getNiveau().toString());
-            body.put("morphologie", p.getMorphologie().toString());
-            body.put("besoinKcal", p.getBesoinKcal());
-            body.put("besoinEauLitre", p.getBesoinEauLitre());
-            body.put("capaciteEmportMaxKg", p.getCapaciteEmportMaxKg());
-            return body;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
 }
+
