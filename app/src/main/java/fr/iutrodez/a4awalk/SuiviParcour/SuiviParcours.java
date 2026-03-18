@@ -2,6 +2,9 @@ package fr.iutrodez.a4awalk.SuiviParcour;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
@@ -52,6 +55,8 @@ public class SuiviParcours extends AppCompatActivity {
     private static final String BASE_URL = "http://98.94.8.220:8080/courses/";
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
 
+    private static final float SEUIL_APPROCHE_METRES = 100f;
+
     public TokenManager tokenManager;
 
     // ===== ID du parcours courant (depuis Intent ou fallback) =====
@@ -83,6 +88,10 @@ public class SuiviParcours extends AppCompatActivity {
     private Runnable trackingRunnable;
     private Location lastKnownLocation;
     private LocationCallback locationCallback;
+
+    private List<GeoPoint> poiPoints = new ArrayList<>();
+    private List<String> poiNoms = new ArrayList<>();
+    private boolean[] poiAlerted; // pour ne pas répéter l'alerte
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +142,7 @@ public class SuiviParcours extends AppCompatActivity {
         tvRandonnee = findViewById(R.id.tvRandonnee);
         tvNomParcours = findViewById(R.id.tvNomParcours);
 
+        btnPause.setText("Mettre en pause");
         btnTerminer.setVisibility(View.GONE);
 
         btnRetour.setOnClickListener(v -> finish());
@@ -159,58 +169,78 @@ public class SuiviParcours extends AppCompatActivity {
             }
         }
 
-        mapManager.addMarkers(parcoursPoints);
+        // mapManager.addMarkers(parcoursPoints); ← ligne supprimée
         mapManager.calculerItineraire(parcoursPoints);
 
         if (!parcoursPoints.isEmpty()) {
             mapView.getController().setZoom(15.0);
             mapView.getController().setCenter(parcoursPoints.get(0));
         }
+
+        afficherPOIsRandonnee();
     }
 
     private void afficherPOIsRandonnee() {
-        // Départ de la randonnée
+        poiPoints.clear();
+        poiNoms.clear();
+
+        // Départ
         double hikeDepartLat = getIntent().getDoubleExtra("HIKE_DEPART_LAT", Double.NaN);
         double hikeDepartLon = getIntent().getDoubleExtra("HIKE_DEPART_LON", Double.NaN);
         String hikeDepartNom = getIntent().getStringExtra("HIKE_DEPART_NOM");
         if (!Double.isNaN(hikeDepartLat)) {
             ajouterMarkerPOI(hikeDepartLat, hikeDepartLon,
-                    hikeDepartNom != null ? hikeDepartNom : "Départ");
+                    hikeDepartNom != null ? hikeDepartNom : "Départ",
+                    R.drawable.ic_marker_depart);
+            poiPoints.add(new GeoPoint(hikeDepartLat, hikeDepartLon));
+            poiNoms.add(hikeDepartNom != null ? hikeDepartNom : "Départ");
         }
 
-        // Arrivée de la randonnée
+        // Arrivée
         double hikeArriveeLat = getIntent().getDoubleExtra("HIKE_ARRIVEE_LAT", Double.NaN);
         double hikeArriveeLon = getIntent().getDoubleExtra("HIKE_ARRIVEE_LON", Double.NaN);
         String hikeArriveeNom = getIntent().getStringExtra("HIKE_ARRIVEE_NOM");
         if (!Double.isNaN(hikeArriveeLat)) {
             ajouterMarkerPOI(hikeArriveeLat, hikeArriveeLon,
-                    hikeArriveeNom != null ? hikeArriveeNom : "Arrivée");
+                    hikeArriveeNom != null ? hikeArriveeNom : "Arrivée",
+                    R.drawable.ic_marker_arrivee);
+            poiPoints.add(new GeoPoint(hikeArriveeLat, hikeArriveeLon));
+            poiNoms.add(hikeArriveeNom != null ? hikeArriveeNom : "Arrivée");
         }
 
-        // Points d'intérêt optionnels
+        // POIs optionnels
         double[] poiLats = getIntent().getDoubleArrayExtra("HIKE_POI_LATS");
         double[] poiLons  = getIntent().getDoubleArrayExtra("HIKE_POI_LONS");
-        String[] poiNoms  = getIntent().getStringArrayExtra("HIKE_POI_NOMS");
+        String[] poiNomArray = getIntent().getStringArrayExtra("HIKE_POI_NOMS");
         if (poiLats != null && poiLons != null) {
             for (int i = 0; i < poiLats.length; i++) {
-                String nom = (poiNoms != null && i < poiNoms.length) ? poiNoms[i] : "POI " + (i + 1);
-                ajouterMarkerPOI(poiLats[i], poiLons[i], nom);
+                String nom = (poiNomArray != null && i < poiNomArray.length) ? poiNomArray[i] : "POI " + (i + 1);
+                ajouterMarkerPOI(poiLats[i], poiLons[i], nom,
+                        R.drawable.ic_marker_poi);
+                poiPoints.add(new GeoPoint(poiLats[i], poiLons[i]));
+                poiNoms.add(nom);
             }
         }
+
+        // Initialiser le tableau d'alertes après avoir collecté tous les POIs
+        poiAlerted = new boolean[poiPoints.size()];
     }
 
-    private void ajouterMarkerPOI(double lat, double lon, String titre) {
+    private void ajouterMarkerPOI(double lat, double lon, String titre, int iconResId) {
         GeoPoint point = new GeoPoint(lat, lon);
         Marker marker = new Marker(mapView);
         marker.setPosition(point);
         marker.setTitle(titre);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
-        // Marker OSMdroid par défaut, teinté avec la couleur voulue
-        Drawable icon = ContextCompat.getDrawable(this, org.osmdroid.library.R.drawable.marker_default);
+        Drawable icon = ContextCompat.getDrawable(this, iconResId);
         if (icon != null) {
-            icon = icon.mutate();
-            marker.setIcon(icon);
+            // Redimensionner à 20x20 dp
+            int size = (int) (20 * getResources().getDisplayMetrics().density);
+            Bitmap bitmap = Bitmap.createScaledBitmap(
+                    drawableToBitmap(icon), size, size, true
+            );
+            marker.setIcon(new BitmapDrawable(getResources(), bitmap));
         }
 
         mapView.getOverlays().add(marker);
@@ -331,6 +361,8 @@ public class SuiviParcours extends AppCompatActivity {
                         Drawable icon = ContextCompat.getDrawable(SuiviParcours.this, R.drawable.ic_pin_user);
                         mapManager.updateUserPosition(userPos, icon);
                         distanceManager.updateLocation(loc);
+
+                        verifierProximitePOIs(loc); // ← AJOUTER CETTE LIGNE
                     }
                 }
             };
@@ -509,5 +541,46 @@ public class SuiviParcours extends AppCompatActivity {
         super.onDestroy();
         audioManager.release();
         trackingHandler.removeCallbacks(trackingRunnable);
+    }
+
+    private void verifierProximitePOIs(Location userLocation) {
+        if (poiPoints == null || poiAlerted == null) return;
+
+        for (int i = 0; i < poiPoints.size(); i++) {
+            if (poiAlerted[i]) continue; // déjà alerté pour ce POI
+
+            GeoPoint poi = poiPoints.get(i);
+            float[] results = new float[1];
+            Location.distanceBetween(
+                    userLocation.getLatitude(), userLocation.getLongitude(),
+                    poi.getLatitude(), poi.getLongitude(),
+                    results
+            );
+
+            if (results[0] <= SEUIL_APPROCHE_METRES) {
+                poiAlerted[i] = true;
+                String nomPoi = poiNoms.get(i);
+
+                runOnUiThread(() -> Toast.makeText(
+                        SuiviParcours.this,
+                        "📍 Vous approchez de : " + nomPoi + " (" + (int) results[0] + " m)",
+                        Toast.LENGTH_LONG
+                ).show());
+
+                audioManager.play();
+            }
+        }
+    }
+
+    private Bitmap drawableToBitmap(Drawable drawable) {
+        Bitmap bitmap = Bitmap.createBitmap(
+                drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(),
+                Bitmap.Config.ARGB_8888
+        );
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 }

@@ -136,7 +136,7 @@
                 android:id="@+id/btnReprendre"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Reprendre"
+                android:text="Mettre en pause"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:backgroundTint="@color/vert"/>

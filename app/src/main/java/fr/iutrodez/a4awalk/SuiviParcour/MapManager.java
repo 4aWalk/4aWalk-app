@@ -49,20 +49,6 @@ public class MapManager {
     }
 
     /**
-     * Ajoute des marqueurs sur la carte pour une liste de points.
-     *
-     * @param points Liste de GeoPoint à afficher
-     */
-    public void addMarkers(List<GeoPoint> points) {
-        for (GeoPoint point : points) {
-            Marker marker = new Marker(map);
-            marker.setPosition(point);
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            map.getOverlays().add(marker);
-        }
-    }
-
-    /**
      * Met à jour la position de l'utilisateur sur la carte.
      * <p>
      * Ajoute le point au tracé et recentre la carte si l'utilisateur s'éloigne du centre.
