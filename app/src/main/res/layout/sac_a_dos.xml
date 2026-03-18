@@ -45,7 +45,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Contenu du sac"
+                        android:text="@string/contenu_du_sac"
                         android:textSize="28sp"
                         android:textColor="@android:color/black"
                         android:textStyle="bold"
@@ -60,7 +60,7 @@
                     android:id="@+id/tvInfoSac"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Détails des équipements et de la nourriture"
+                    android:text="@string/d_tails_des_quipements_et_de_la_nourriture"
                     android:textSize="16sp"
                     android:textColor="@android:color/black"
                     android:layout_marginBottom="24dp" />
@@ -82,7 +82,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Inventaire"
+                            android:text="@string/inventaire"
                             android:textSize="18sp"
                             android:textColor="@android:color/black"
                             android:textStyle="bold"
@@ -124,7 +124,7 @@
                                             <TextView
                                                 android:layout_width="80dp"
                                                 android:layout_height="wrap_content"
-                                                android:text="Qté"
+                                                android:text="@string/qt"
                                                 android:gravity="center"
                                                 android:textStyle="bold"
                                                 android:textSize="14sp"
@@ -134,7 +134,7 @@
                                             <TextView
                                                 android:layout_width="250dp"
                                                 android:layout_height="wrap_content"
-                                                android:text="Nom de l'item"
+                                                android:text="@string/nom_de_l_item"
                                                 android:gravity="center"
                                                 android:textStyle="bold"
                                                 android:textSize="14sp"
@@ -144,7 +144,7 @@
                                             <TextView
                                                 android:layout_width="100dp"
                                                 android:layout_height="wrap_content"
-                                                android:text="Poids"
+                                                android:text="@string/poids"
                                                 android:gravity="center"
                                                 android:textStyle="bold"
                                                 android:textSize="14sp"

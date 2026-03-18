@@ -32,7 +32,7 @@
                 android:layout_gravity="start|top"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:text="Retour"
+                android:text="@string/retour"
                 android:backgroundTint="#808080"
                 android:textColor="#FFFFFF"/>
 
@@ -52,7 +52,7 @@
                 android:id="@+id/up_titre_inscription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Modifier votre compte"
+                android:text="@string/modifier_votre_compte"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:layout_gravity="center_horizontal"
@@ -63,7 +63,7 @@
                 android:id="@+id/upd_nom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Nom"
+                android:hint="@string/nom"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -79,7 +79,7 @@
                 android:id="@+id/upd_prenom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Prénom"
+                android:hint="@string/prenom"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -95,7 +95,7 @@
                 android:id="@+id/upd_age"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Age"
+                android:hint="@string/age"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -111,7 +111,7 @@
                 android:id="@+id/upd_adresse"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Adresse personnelle"
+                android:hint="@string/adresse_personnelle"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -127,7 +127,7 @@
                 android:id="@+id/upd_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Email"
+                android:hint="@string/email"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -143,7 +143,7 @@
                 android:id="@+id/upd_mot_de_passe"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Mot de passe"
+                android:hint="@string/mot_de_passe"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -159,7 +159,7 @@
                 android:id="@+id/upd_confirmer_mot_de_passe"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Confirmer le mot de passe"
+                android:hint="@string/confirmer_le_mot_de_passe"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -193,7 +193,7 @@
                 android:id="@+id/btn_update_account"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Valider"
+                android:text="@string/valider"
                 android:backgroundTint="@color/lightvert"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"/>

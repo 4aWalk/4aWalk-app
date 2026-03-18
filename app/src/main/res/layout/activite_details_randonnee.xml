@@ -56,7 +56,7 @@
                 android:id="@+id/btn_choisir_depart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📍 Choisir le point de départ"
+                android:text="@string/choisir_le_point_de_d_part"
                 android:backgroundTint="@color/orange"/>
 
             <TextView
@@ -92,7 +92,7 @@
                 android:id="@+id/btn_choisir_arrivee"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📍 Choisir le point d'arrivée"
+                android:text="@string/choisir_le_point_d_arriv_e"
                 android:backgroundTint="@color/orange"/>
 
             <TextView
@@ -218,7 +218,7 @@
                     android:id="@+id/btn_add_equipment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ajouter un équipement"
+                    android:text="@string/ajouter_un_quipement"
                     android:layout_marginTop="10dp"
                     android:backgroundTint="@color/orange"/>
             </LinearLayout>
@@ -234,7 +234,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Produits Alimentaires"
+                    android:text="@string/produits_alimentaires"
                     android:textStyle="bold"
                     android:textColor="@color/black" />
                 <fr.iutrodez.a4awalk.utils.NonScrollListView
@@ -245,7 +245,7 @@
                     android:id="@+id/btn_add_food_product"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ajouter un produit"
+                    android:text="@string/ajouter_un_produit"
                     android:layout_marginTop="10dp"
                     android:backgroundTint="@color/orange"/>
 
@@ -271,7 +271,7 @@
                 android:id="@+id/btn_save_hike"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Enregistrer"
+                android:text="@string/enregistrer"
                 android:layout_marginTop="30dp"
                 android:backgroundTint="@color/vert" />
 
