@@ -43,4 +43,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build test sonar -Dsonar.projectKey=4aWalk_client-4aWalk -Dsonar.organization=4awalk -Dsonar.host.url=https://sonarcloud.io
+        run: ./gradlew build test jacocoTestReport sonar -Dsonar.projectKey=4aWalk_client-4aWalk -Dsonar.organization=4awalk -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
