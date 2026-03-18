@@ -8,6 +8,8 @@ import com.android.volley.VolleyError;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 
@@ -59,7 +61,32 @@ public class ServiceInscription {
             @Override
             public void onError(VolleyError erreur) {
                 Log.e("API_ERROR", "Détails : " + erreur.toString());
-                onError.onError(erreur.networkResponse.toString());
+
+                if (erreur.networkResponse != null && erreur.networkResponse.data != null) {
+                    int statusCode = erreur.networkResponse.statusCode;
+                    String errorBody = new String(erreur.networkResponse.data, StandardCharsets.UTF_8);
+                    Log.e("API_ERROR", "Code: " + statusCode + " | Body: " + errorBody);
+
+                    if (statusCode == 400) {
+                        // On vérifie si le message de l'API mentionne le mail
+                        try {
+                            JSONObject errorJson = new JSONObject(errorBody);
+                            String apiMessage = errorJson.optString("message", "").toLowerCase();
+                            if (apiMessage.contains("mail") || apiMessage.contains("email")) {
+                                onError.onError("Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre.");
+                            } else {
+                                onError.onError("Données invalides. Veuillez vérifier les informations saisies.");
+                            }
+                        } catch (JSONException e) {
+                            // Si le body n'est pas du JSON, message générique
+                            onError.onError("Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre.");
+                        }
+                    } else {
+                        onError.onError("Erreur " + statusCode + " : " + errorBody);
+                    }
+                } else {
+                    onError.onError("Erreur réseau : vérifiez votre connexion internet.");
+                }
             }
         });
     }

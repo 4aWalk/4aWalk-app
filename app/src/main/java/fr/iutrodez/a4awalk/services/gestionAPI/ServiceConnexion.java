@@ -65,6 +65,7 @@ public class ServiceConnexion {
                         case 403: message = context.getString(R.string.erreur_acces); break;
                         case 404: message = context.getString(R.string.erreur_ressource); break;
                         case 500: message = context.getString(R.string.erreur_serveur); break;
+                        case 401:message="Email ou mot de passe incorrecte";break;
                         default:  message = "Erreur inconnue (Code: " + erreur.networkResponse.statusCode + ")";
                     }
                 }
