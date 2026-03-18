@@ -51,29 +51,34 @@
                 android:textStyle="bold"
                 android:layout_marginTop="10dp"
                 android:textColor="@color/black"/>
-            <LinearLayout
+
+            <Button
+                android:id="@+id/btn_choisir_depart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <EditText
-                    android:id="@+id/depart_rando_lat"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/latitude"
-                    android:inputType="numberDecimal|numberSigned"
-                    android:textColorHint="@color/black"
-                    android:textColor="@color/black" />
-                <EditText
-                    android:id="@+id/depart_rando_lon"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/longitude"
-                    android:inputType="numberDecimal|numberSigned"
-                    android:textColorHint="@color/black"
-                    android:textColor="@color/black" />
-            </LinearLayout>
+                android:text="📍 Choisir le point de départ"
+                android:backgroundTint="@color/orange"/>
+
+            <TextView
+                android:id="@+id/tv_coords_depart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:visibility="gone"/>
+
+            <!-- Gardez les EditText cachés pour compatibilité avec le code existant -->
+            <EditText
+                android:id="@+id/depart_rando_lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
+            <EditText
+                android:id="@+id/depart_rando_lon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -82,29 +87,33 @@
                 android:textStyle="bold"
                 android:layout_marginTop="10dp"
                 android:textColor="@color/black"/>
-            <LinearLayout
+
+            <Button
+                android:id="@+id/btn_choisir_arrivee"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <EditText
-                    android:id="@+id/arrivee_rando_lat"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/latitude"
-                    android:inputType="numberDecimal|numberSigned"
-                    android:textColorHint="@color/black"
-                    android:textColor="@color/black" />
-                <EditText
-                    android:id="@+id/arrivee_rando_lon"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/longitude"
-                    android:inputType="numberDecimal|numberSigned"
-                    android:textColorHint="@color/black"
-                    android:textColor="@color/black" />
-            </LinearLayout>
+                android:text="📍 Choisir le point d'arrivée"
+                android:backgroundTint="@color/orange"/>
+
+            <TextView
+                android:id="@+id/tv_coords_arrivee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:visibility="gone"/>
+
+            <EditText
+                android:id="@+id/arrivee_rando_lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
+            <EditText
+                android:id="@+id/arrivee_rando_lon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

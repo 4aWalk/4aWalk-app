@@ -3,7 +3,6 @@ package fr.iutrodez.a4awalk.activites;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -17,6 +16,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,6 +30,13 @@ import com.google.android.gms.location.LocationServices;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.events.MapEventsReceiver;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.MapEventsOverlay;
+import org.osmdroid.views.overlay.Marker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +62,7 @@ import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
+import fr.iutrodez.a4awalk.utils.MapPickerDialog;
 import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
 import fr.iutrodez.a4awalk.utils.validators.ValidateurRandonnee;
 
@@ -95,6 +103,11 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     private TokenManager tokenManager;
     private User currentUser;
     private Hike currentHike;
+
+    private TextView tvCoordsDepart, tvCoordsArrivee;
+
+    private Button btnChoisirDepart, btnChoisirArrivee;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +160,10 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         departLon = findViewById(R.id.depart_rando_lon);
         arriveeLat = findViewById(R.id.arrivee_rando_lat);
         arriveeLon = findViewById(R.id.arrivee_rando_lon);
+        btnChoisirDepart = findViewById(R.id.btn_choisir_depart);
+        btnChoisirArrivee = findViewById(R.id.btn_choisir_arrivee);
+        tvCoordsDepart = findViewById(R.id.tv_coords_depart);
+        tvCoordsArrivee = findViewById(R.id.tv_coords_arrivee);
 
         listePoints = findViewById(R.id.points_list);
         listeParticipants = findViewById(R.id.participants_list);
@@ -186,6 +203,28 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         // Adaptateur Equipements
         adapterEquipments = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listeTemporaireEquipments);
         listeEquipments.setAdapter(adapterEquipments);
+
+        btnChoisirDepart.setOnClickListener(v -> {
+            double lat = departLat.getText().toString().isEmpty() ? 0 : Double.parseDouble(departLat.getText().toString());
+            double lon = departLon.getText().toString().isEmpty() ? 0 : Double.parseDouble(departLon.getText().toString());
+            MapPickerDialog.afficher(this, lat, lon, "Point de départ", (latitude, longitude) -> {
+                departLat.setText(String.valueOf(latitude));
+                departLon.setText(String.valueOf(longitude));
+                tvCoordsDepart.setText(String.format("📍 %.5f, %.5f", latitude, longitude));
+                tvCoordsDepart.setVisibility(View.VISIBLE);
+            });
+        });
+
+        btnChoisirArrivee.setOnClickListener(v -> {
+            double lat = arriveeLat.getText().toString().isEmpty() ? 0 : Double.parseDouble(arriveeLat.getText().toString());
+            double lon = arriveeLon.getText().toString().isEmpty() ? 0 : Double.parseDouble(arriveeLon.getText().toString());
+            MapPickerDialog.afficher(this, lat, lon, "Point d'arrivée", (latitude, longitude) -> {
+                arriveeLat.setText(String.valueOf(latitude));
+                arriveeLon.setText(String.valueOf(longitude));
+                tvCoordsArrivee.setText(String.format("📍 %.5f, %.5f", latitude, longitude));
+                tvCoordsArrivee.setVisibility(View.VISIBLE);
+            });
+        });
     }
 
     private void recupererHikeIntent() {
@@ -207,7 +246,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     }
 
     private void consultationRandonnee() {
-
+        btnChoisirDepart.setVisibility(View.GONE);
+        btnChoisirArrivee.setVisibility(View.GONE);
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
         containerFoodProducts.setVisibility(View.VISIBLE);
@@ -254,6 +294,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     }
 
     private void creationRandonnee() {
+        btnChoisirDepart.setVisibility(View.VISIBLE);
+        btnChoisirArrivee.setVisibility(View.VISIBLE);
         containerPoi.setVisibility(View.GONE);
         containerParticipants.setVisibility(View.GONE);
         containerFoodProducts.setVisibility(View.GONE);
@@ -266,6 +308,8 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
     }
 
     private void modificationRandonnee() {
+        btnChoisirDepart.setVisibility(View.VISIBLE);
+        btnChoisirArrivee.setVisibility(View.VISIBLE);
         containerPoi.setVisibility(View.VISIBLE);
         containerParticipants.setVisibility(View.VISIBLE);
         containerFoodProducts.setVisibility(View.VISIBLE);
@@ -552,6 +596,16 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             arriveeLat.setText(String.valueOf(hike.getArrivee().getLatitude()));
             arriveeLon.setText(String.valueOf(hike.getArrivee().getLongitude()));
         }
+        if (hike.getDepart() != null) {
+            tvCoordsDepart.setText(String.format("📍 %.5f, %.5f",
+                    hike.getDepart().getLatitude(), hike.getDepart().getLongitude()));
+            tvCoordsDepart.setVisibility(View.VISIBLE);
+        }
+        if (hike.getArrivee() != null) {
+            tvCoordsArrivee.setText(String.format("📍 %.5f, %.5f",
+                    hike.getArrivee().getLatitude(), hike.getArrivee().getLongitude()));
+            tvCoordsArrivee.setVisibility(View.VISIBLE);
+        }
         if (hike.getDureeJours() > 0 && hike.getDureeJours() <= 10) {
             nbJours.setSelection(hike.getDureeJours() - 1);
         }
@@ -589,12 +643,31 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         boolean isCreation = (position == -1);
         PointOfInterest poi = (!isCreation) ? listeTemporairePOI.get(position) : null;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(isCreation ? "Nouveau POI" : (isReadOnly ? "Détails POI" : "Modifier POI"));
-
         final EditText inputNom = view.findViewById(R.id.edit_poi_nom);
         final EditText inputLat = view.findViewById(R.id.edit_poi_lat);
         final EditText inputLon = view.findViewById(R.id.edit_poi_lon);
+        final MapView mapPoi = view.findViewById(R.id.map_poi);
+
+        // Configuration OSMDroid
+        Configuration.getInstance().setUserAgentValue(getPackageName());
+        mapPoi.setTileSource(TileSourceFactory.MAPNIK);
+        mapPoi.setMultiTouchControls(true);
+
+        double latInit = (poi != null) ? poi.getLatitude() : 46.2276;
+        double lonInit = (poi != null) ? poi.getLongitude() : 2.2137;
+        double zoomInit = (poi != null) ? 15.0 : 6.0;
+
+        GeoPoint startPoint = new GeoPoint(latInit, lonInit);
+        mapPoi.getController().setZoom(zoomInit);
+        mapPoi.getController().setCenter(startPoint);
+
+        final Marker[] marker = {null};
+        if (poi != null) {
+            marker[0] = new Marker(mapPoi);
+            marker[0].setPosition(startPoint);
+            marker[0].setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            mapPoi.getOverlays().add(marker[0]);
+        }
 
         if (poi != null) {
             inputNom.setText(poi.getNom());
@@ -602,23 +675,45 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             inputLon.setText(String.valueOf(poi.getLongitude()));
         }
 
+        if (!isReadOnly) {
+            MapEventsOverlay eventsOverlay = new MapEventsOverlay(new MapEventsReceiver() {
+                @Override
+                public boolean singleTapConfirmedHelper(GeoPoint p) {
+                    if (marker[0] != null) mapPoi.getOverlays().remove(marker[0]);
+                    marker[0] = new Marker(mapPoi);
+                    marker[0].setPosition(p);
+                    marker[0].setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                    mapPoi.getOverlays().add(marker[0]);
+                    mapPoi.invalidate();
+                    inputLat.setText(String.valueOf(p.getLatitude()));
+                    inputLon.setText(String.valueOf(p.getLongitude()));
+                    return true;
+                }
+                @Override
+                public boolean longPressHelper(GeoPoint p) { return false; }
+            });
+            mapPoi.getOverlays().add(0, eventsOverlay);
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(isCreation ? "Nouveau POI" : (isReadOnly ? "Détails POI" : "Modifier POI"));
+
         if (isReadOnly) {
             inputNom.setEnabled(false); inputLat.setEnabled(false); inputLon.setEnabled(false);
-            builder.setPositiveButton("Fermer", null);
+            builder.setPositiveButton("Fermer", (d, w) -> mapPoi.onDetach());
         } else {
             builder.setPositiveButton("Valider", null);
-            builder.setNegativeButton("Annuler", null);
-
+            builder.setNegativeButton("Annuler", (d, w) -> mapPoi.onDetach());
             if (!isCreation) {
                 builder.setNeutralButton("Supprimer", (dialog, which) -> {
                     listeTemporairePOI.remove(position);
                     adapterPOI.notifyDataSetChanged();
+                    mapPoi.onDetach();
                 });
             }
         }
 
         builder.setView(view);
-
         AlertDialog dialog = builder.create();
         dialog.show();
 
@@ -629,16 +724,17 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 String lonStr = inputLon.getText().toString();
 
                 PoiValidator.ValidationResult result = PoiValidator.valider(nom, latStr, lonStr);
-
                 if (result.isValid()) {
                     if (poi != null) {
                         poi.setNom(nom);
                         poi.setLatitude(result.getLatitude());
                         poi.setLongitude(result.getLongitude());
                     } else {
-                        listeTemporairePOI.add(new PointOfInterest(0, nom, result.getLatitude(), result.getLongitude(),null,0));
+                        listeTemporairePOI.add(new PointOfInterest(0, nom,
+                                result.getLatitude(), result.getLongitude(), null, 0));
                     }
                     adapterPOI.notifyDataSetChanged();
+                    mapPoi.onDetach();
                     dialog.dismiss();
                 } else {
                     Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_LONG).show();

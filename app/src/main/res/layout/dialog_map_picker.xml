@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tv_map_instruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Appuyez sur la carte pour choisir un point"
+        android:textStyle="italic"
+        android:paddingBottom="8dp"
+        android:textColor="#666666"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="350dp">
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/map_picker"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+</LinearLayout>
