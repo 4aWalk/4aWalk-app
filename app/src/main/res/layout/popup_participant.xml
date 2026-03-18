@@ -43,6 +43,33 @@
                     android:contentDescription="Fermer" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tv_mes_participants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Remplir depuis un participant existant :"
+                android:textStyle="italic"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginBottom="4dp"
+                android:visibility="gone"/>
+
+            <Spinner
+                android:id="@+id/spinner_mes_participants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/spinner"
+                android:popupBackground="@android:color/white"
+                android:visibility="gone"/>
+
+            <View
+                android:id="@+id/separateur_participants"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

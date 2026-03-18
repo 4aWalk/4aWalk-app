@@ -17,12 +17,23 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.android.volley.VolleyError;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
+import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.utils.validators.ParticipantValidator;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
@@ -94,7 +105,9 @@ public class PopUpParticipant {
         final Button btnVoirSac, btnAction, btnSupprimer;
         final EditText etNom, etPrenom, etAge, etBesoinKcal, etBesoinEau, etCapacite;
         final CheckBox cbSacADos;
-        final Spinner spinnerNiveau, spinnerMorpho;
+        final Spinner spinnerNiveau, spinnerMorpho, spinnerMesParticipants;
+        final TextView tvMesParticipants;
+        final View separateurParticipants;
 
         ParticipantViewHolder(Dialog dialog) {
             btnClose = dialog.findViewById(R.id.btnClose);
@@ -110,6 +123,9 @@ public class PopUpParticipant {
             cbSacADos = dialog.findViewById(R.id.cbSacADos);
             spinnerNiveau = dialog.findViewById(R.id.spinnerNiveau);
             spinnerMorpho = dialog.findViewById(R.id.spinnerMorphologie);
+            spinnerMesParticipants = dialog.findViewById(R.id.spinner_mes_participants);
+            tvMesParticipants = dialog.findViewById(R.id.tv_mes_participants);
+            separateurParticipants = dialog.findViewById(R.id.separateur_participants);
         }
     }
 
@@ -122,7 +138,9 @@ public class PopUpParticipant {
         configurerSpinner(context, views.spinnerMorpho, R.array.morphologies);
     }
 
-    private static void setupModeCreation(Context context, Dialog dialog, ParticipantViewHolder views, String token, int hikeId, @Nullable Participant participant, ParticipantCallback callback) {
+    private static void setupModeCreation(Context context, Dialog dialog, ParticipantViewHolder views,
+                                          String token, int hikeId,
+                                          @Nullable Participant participant, ParticipantCallback callback) {
         if (participant != null) {
             remplirChamps(views, participant);
             views.btnAction.setText(R.string.btnModifier);
@@ -133,6 +151,10 @@ public class PopUpParticipant {
         views.btnAction.setVisibility(View.VISIBLE);
         views.btnSupprimer.setVisibility(View.GONE);
         views.btnVoirSac.setVisibility(View.GONE);
+
+        // Chargement des participants existants
+        chargerEtAfficherMesParticipants(context, token, views);
+
         views.btnAction.setOnClickListener(v ->
                 traiterSoumission(context, dialog, views, hikeId, 0, callback, false)
         );
@@ -147,7 +169,9 @@ public class PopUpParticipant {
         views.cbSacADos.setEnabled(false);
     }
 
-    private static void setupModeModification(Context context, Dialog dialog, ParticipantViewHolder views, String token, int hikeId, Participant participant, ParticipantCallback callback) {
+    private static void setupModeModification(Context context, Dialog dialog, ParticipantViewHolder views,
+                                              String token, int hikeId,
+                                              Participant participant, ParticipantCallback callback) {
         if (participant == null) return;
 
         remplirChamps(views, participant);
@@ -155,6 +179,9 @@ public class PopUpParticipant {
         views.btnAction.setVisibility(View.VISIBLE);
         views.btnVoirSac.setVisibility(View.GONE);
         views.btnSupprimer.setVisibility(View.VISIBLE);
+
+        // Chargement des participants existants
+        chargerEtAfficherMesParticipants(context, token, views);
 
         views.btnAction.setOnClickListener(v ->
                 traiterSoumission(context, dialog, views, hikeId, participant.getId(), callback, true)
@@ -257,5 +284,59 @@ public class PopUpParticipant {
             int position = adapter.getPosition(value);
             if (position >= 0) spinner.setSelection(position);
         }
+    }
+
+    private static void chargerEtAfficherMesParticipants(Context context, String token,
+                                                         ParticipantViewHolder views) {
+        ServiceParticipant.getMyParticipants(context, token, new AppelAPI.VolleyCallback() {
+            @Override
+            public void onSuccess(JSONArray result) {
+                try {
+                    List<Participant> mesParticipants = new ArrayList<>();
+                    List<String> noms = new ArrayList<>();
+                    noms.add("— Sélectionner un participant existant —");
+                    mesParticipants.add(null); // placeholder
+
+                    for (int i = 0; i < result.length(); i++) {
+                        Participant p = ServiceParticipant.parseParticipant(result.getJSONObject(i));
+                        mesParticipants.add(p);
+                        noms.add(p.getPrenom() + " " + p.getNom() + " (" + p.getNiveau() + ")");
+                    }
+
+                    if (mesParticipants.size() <= 1) return; // Aucun participant, on n'affiche pas
+
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(context,
+                            android.R.layout.simple_spinner_item, noms);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    views.spinnerMesParticipants.setAdapter(adapter);
+
+                    views.tvMesParticipants.setVisibility(View.VISIBLE);
+                    views.spinnerMesParticipants.setVisibility(View.VISIBLE);
+                    views.separateurParticipants.setVisibility(View.VISIBLE);
+
+                    views.spinnerMesParticipants.setOnItemSelectedListener(
+                            new android.widget.AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(android.widget.AdapterView<?> parent,
+                                                           View view, int position, long id) {
+                                    if (position == 0) return; // placeholder
+                                    Participant p = mesParticipants.get(position);
+                                    if (p != null) remplirChamps(views, p);
+                                }
+
+                                @Override
+                                public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                            });
+
+                } catch (JSONException e) {
+                    Log.e("PopUpParticipant", "Erreur parsing mes participants", e);
+                }
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Log.e("PopUpParticipant", "Erreur chargement mes participants");
+            }
+        });
     }
 }

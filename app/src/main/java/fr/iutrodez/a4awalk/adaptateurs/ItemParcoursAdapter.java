@@ -43,7 +43,7 @@ public class ItemParcoursAdapter extends RecyclerView.Adapter<ParcoursViewHolder
     public void onBindViewHolder(@NonNull ParcoursViewHolder holder, int position) {
         Course myObject = lesDonnees.get(position);
 
-        holder.bind(myObject, dictionnaireRandos, position);
+        holder.bind(myObject, dictionnaireRandos);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

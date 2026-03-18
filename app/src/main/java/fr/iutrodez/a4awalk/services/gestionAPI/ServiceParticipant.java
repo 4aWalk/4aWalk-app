@@ -133,4 +133,7 @@ public class ServiceParticipant {
         return p;
     }
 
+    public static void getMyParticipants(Context context, String token, AppelAPI.VolleyCallback callback) {
+        AppelAPI.get(BASE_URL + "/participants/my", token, context, callback);
+    }
 }
