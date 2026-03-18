@@ -169,4 +169,25 @@ public class ServiceFoodProduct {
         fp.setNbItem(obj.getInt("nbItem"));
         return fp;
     }
+
+    /**
+     * Extrait la liste de la nourriture contenue dans le sac à dos d'un participant.
+     */
+    public static java.util.Set<FoodProduct> extractFoodForBackpack(JSONArray nourritureJson) {
+        java.util.Set<FoodProduct> nourritures = new java.util.HashSet<>();
+        if (nourritureJson != null) {
+            for (int k = 0; k < nourritureJson.length(); k++) {
+                JSONObject foodJson = nourritureJson.optJSONObject(k);
+                if (foodJson != null) {
+                    FoodProduct food = new FoodProduct();
+                    food.setId(foodJson.optInt("id"));
+                    food.setNom(foodJson.optString("nom"));
+                    food.setMasseGrammes(foodJson.optDouble("masseGrammes", 0.0));
+                    food.setNbItem(foodJson.optInt("nbItem", 1));
+                    nourritures.add(food);
+                }
+            }
+        }
+        return nourritures;
+    }
 }

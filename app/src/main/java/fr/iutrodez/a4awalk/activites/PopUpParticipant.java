@@ -21,6 +21,12 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+// Nouveaux imports pour gérer le JSON et les entités du sac
+import org.json.JSONArray;
+import org.json.JSONObject;
+import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
+import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
+
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
 import fr.iutrodez.a4awalk.utils.validators.ParticipantValidator;
@@ -70,7 +76,8 @@ public class PopUpParticipant {
                 setupModeCreation(context, dialog, views, token, hikeId, participant, callback);
                 break;
             case CONSULTATION:
-                setupModeConsultation(views, participant);
+                // AJOUT : On passe bien le context ici pour l'Intent du sac à dos
+                setupModeConsultation(context, views, participant);
                 break;
             case MODIFICATION:
                 setupModeModification(context, dialog, views, token, hikeId, participant, callback);
@@ -79,10 +86,9 @@ public class PopUpParticipant {
 
         // Actions communes
         views.btnClose.setOnClickListener(v -> dialog.dismiss());
-        views.btnVoirSac.setOnClickListener(v -> {
-            Intent intent = new Intent(context, SacActivity.class);
-            context.startActivity(intent);
-        });
+
+        // ATTENTION : L'ancien écouteur global btnVoirSac a été supprimé ici car
+        // il est désormais géré de façon spécifique dans setupModeConsultation()
 
         dialog.show();
         appliquerDimensionsDialog(context, dialog);
@@ -138,13 +144,21 @@ public class PopUpParticipant {
         );
     }
 
-    private static void setupModeConsultation(ParticipantViewHolder views, Participant participant) {
+    private static void setupModeConsultation(Context context, ParticipantViewHolder views, Participant participant) {
         if (participant == null) return;
         remplirChamps(views, participant);
         verrouillerChamps(views);
+
         views.btnAction.setVisibility(View.GONE);
         views.btnSupprimer.setVisibility(View.GONE);
         views.cbSacADos.setEnabled(false);
+
+        Log.i("PopUp", "backpack=" + participant.getBackpack()
+                + " equipements=" + (participant.getBackpack() != null
+                ? participant.getBackpack().getEquipmentItems().size() : "N/A"));
+
+        // Appel de notre nouvelle méthode
+        configurerBoutonSacADos(context, views, participant);
     }
 
     private static void setupModeModification(Context context, Dialog dialog, ParticipantViewHolder views, String token, int hikeId, Participant participant, ParticipantCallback callback) {
@@ -153,8 +167,10 @@ public class PopUpParticipant {
         remplirChamps(views, participant);
         views.btnAction.setText(R.string.btnModifier);
         views.btnAction.setVisibility(View.VISIBLE);
-        views.btnVoirSac.setVisibility(View.GONE);
         views.btnSupprimer.setVisibility(View.VISIBLE);
+
+        // Appel de notre nouvelle méthode (au lieu de views.btnVoirSac.setVisibility(View.GONE))
+        configurerBoutonSacADos(context, views, participant);
 
         views.btnAction.setOnClickListener(v ->
                 traiterSoumission(context, dialog, views, hikeId, participant.getId(), callback, true)
@@ -256,6 +272,56 @@ public class PopUpParticipant {
         if (adapter != null) {
             int position = adapter.getPosition(value);
             if (position >= 0) spinner.setSelection(position);
+        }
+    }
+
+    /**
+     * Configure l'affichage et l'action du bouton "Voir le sac" si le participant en possède un.
+     */
+    private static void configurerBoutonSacADos(Context context, ParticipantViewHolder views, Participant participant) {
+        if (participant.getBackpack() != null) {
+            views.btnVoirSac.setVisibility(View.VISIBLE);
+
+            views.btnVoirSac.setOnClickListener(view -> {
+                Intent intent = new Intent(context, SacActivity.class);
+
+                intent.putExtra("POIDS_ACTUEL", participant.getBackpack().getTotalMassKg());
+                intent.putExtra("CAPACITE_MAX", participant.getCapaciteEmportMaxKg());
+
+                // 1. Équipements
+                JSONArray equipementsArray = new JSONArray();
+                if (participant.getBackpack().getEquipmentItems() != null) {
+                    for (EquipmentItem eq : participant.getBackpack().getEquipmentItems()) {
+                        try {
+                            JSONObject obj = new JSONObject();
+                            obj.put("nom", eq.getNom());
+                            obj.put("masseGrammes", eq.getMasseGrammes());
+                            obj.put("nbItem", eq.getNbItem() > 0 ? eq.getNbItem() : 1);
+                            equipementsArray.put(obj);
+                        } catch (Exception ignored) {}
+                    }
+                }
+                intent.putExtra("EQUIPEMENTS_JSON", equipementsArray.toString());
+
+                // 2. Nourriture
+                JSONArray nourritureArray = new JSONArray();
+                if (participant.getBackpack().getFoodItems() != null) {
+                    for (FoodProduct fp : participant.getBackpack().getFoodItems()) {
+                        try {
+                            JSONObject obj = new JSONObject();
+                            obj.put("nom", fp.getNom());
+                            obj.put("masseGrammes", fp.getMasseGrammes());
+                            obj.put("nbItem", fp.getNbItem() > 0 ? fp.getNbItem() : 1);
+                            nourritureArray.put(obj);
+                        } catch (Exception ignored) {}
+                    }
+                }
+                intent.putExtra("NOURRITURE_JSON", nourritureArray.toString());
+
+                context.startActivity(intent);
+            });
+        } else {
+            views.btnVoirSac.setVisibility(View.GONE);
         }
     }
 }

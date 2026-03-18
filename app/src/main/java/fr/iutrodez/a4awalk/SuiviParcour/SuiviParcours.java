@@ -147,17 +147,22 @@ public class SuiviParcours extends AppCompatActivity {
     }
 
     private void initParcours() {
-        parcoursPoints.add(new GeoPoint(44.360369301617794, 2.5758112393065384));
-        parcoursPoints.add(new GeoPoint(44.351077610605785, 2.5740525086171298));
-        parcoursPoints.add(new GeoPoint(44.34951392435509, 2.576044023961549));
-        parcoursPoints.add(new GeoPoint(44.352487429572584, 2.5677165393061494));
-        parcoursPoints.add(new GeoPoint(44.360369301617794, 2.5758112393065384));
+        parcoursPoints.clear();
+
+        double[] latitudes = getIntent().getDoubleArrayExtra("LATITUDES");
+        double[] longitudes = getIntent().getDoubleArrayExtra("LONGITUDES");
+
+        if (latitudes != null && longitudes != null && latitudes.length == longitudes.length) {
+            for (int i = 0; i < latitudes.length; i++) {
+                parcoursPoints.add(new GeoPoint(latitudes[i], longitudes[i]));
+            }
+        }
 
         mapManager.addMarkers(parcoursPoints);
         mapManager.calculerItineraire(parcoursPoints);
 
         if (!parcoursPoints.isEmpty()) {
-            mapView.getController().setZoom(14.0);
+            mapView.getController().setZoom(15.0);
             mapView.getController().setCenter(parcoursPoints.get(0));
         }
     }

@@ -32,7 +32,7 @@ public class ServiceRandonnee {
         void onError(VolleyError error);
     }
 
-    public static void recupererRandonneesUtilisateur(Context context, String token, User currentUser,boolean details, RandoCallback callback) {
+    public static void recupererRandonneesUtilisateur(Context context, String token, boolean isDetails, RandoCallback callback) {
         AppelAPI.get(URL_RANDOS, token, context, new AppelAPI.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray result) {
@@ -40,7 +40,7 @@ public class ServiceRandonnee {
                     callback.onSuccess(new ArrayList<>());
                     return;
                 }
-                ArrayList<Hike> listeRandos = parseHikesFromJSON(result, currentUser, false);
+                ArrayList<Hike> listeRandos = parseHikesFromJSON(result, isDetails);
                 callback.onSuccess(listeRandos);
             }
 
@@ -52,7 +52,7 @@ public class ServiceRandonnee {
         });
     }
 
-    public static void recupererDetailsRandonnee(Context context, String token, int hikeId, User currentUser, boolean isDetails, RandoDetailCallback callback) {
+    public static void recupererDetailsRandonnee(Context context, String token, int hikeId, boolean isDetails, RandoDetailCallback callback) {
         String url = URL_RANDO_DETAIL + hikeId;
         AppelAPI.get(url, token, context, new AppelAPI.VolleyObjectCallback() {
             @Override
@@ -61,7 +61,7 @@ public class ServiceRandonnee {
                     callback.onError(new VolleyError("Résultat vide"));
                     return;
                 }
-                Hike hikeDetail = parseHikeDetail(result, currentUser, isDetails);
+                Hike hikeDetail = parseHikeDetail(result, isDetails);
                 if (hikeDetail != null) {
                     callback.onSuccess(hikeDetail);
                 } else {
@@ -77,14 +77,14 @@ public class ServiceRandonnee {
         });
     }
 
-    private static ArrayList<Hike> parseHikesFromJSON(JSONArray jsonArray, User currentUser, boolean isDetails) {
+    private static ArrayList<Hike> parseHikesFromJSON(JSONArray jsonArray, boolean isDetails) {
         ArrayList<Hike> liste = new ArrayList<>();
         if (jsonArray == null) return liste;
 
         for (int i = 0; i < jsonArray.length(); i++) {
             try {
                 JSONObject randoJson = jsonArray.getJSONObject(i);
-                Hike hike = parseHikeDetail(randoJson, currentUser, isDetails);
+                Hike hike = parseHikeDetail(randoJson, isDetails);
                 if (hike != null) {
                     liste.add(hike);
                 }
@@ -95,7 +95,7 @@ public class ServiceRandonnee {
         return liste;
     }
 
-    public static Hike parseHikeDetail(JSONObject response, User currentUser, boolean isDetails) {
+    public static Hike parseHikeDetail(JSONObject response, boolean isDetails) {
         try {
             int id = response.getInt("id");
             String libelle = response.getString("libelle");

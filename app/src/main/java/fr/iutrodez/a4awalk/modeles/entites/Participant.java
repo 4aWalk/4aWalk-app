@@ -5,6 +5,9 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.iutrodez.a4awalk.modeles.Person;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
 import fr.iutrodez.a4awalk.modeles.enums.Morphology;
@@ -56,30 +59,58 @@ public class Participant implements Person, Parcelable {
         prenom = in.readString();
         age = in.readInt();
 
-        // Lecture sécurisée des Enums
         String niveauStr = in.readString();
-        try {
-            niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : Level.DEBUTANT;
-        } catch (IllegalArgumentException e) {
-            niveau = Level.DEBUTANT;
-        }
+        try { niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : Level.DEBUTANT; }
+        catch (IllegalArgumentException e) { niveau = Level.DEBUTANT; }
 
         String morphoStr = in.readString();
-        try {
-            morphologie = (morphoStr != null) ? Morphology.valueOf(morphoStr) : Morphology.MOYENNE;
-        } catch (IllegalArgumentException e) {
-            morphologie = Morphology.MOYENNE;
-        }
+        try { morphologie = (morphoStr != null) ? Morphology.valueOf(morphoStr) : Morphology.MOYENNE; }
+        catch (IllegalArgumentException e) { morphologie = Morphology.MOYENNE; }
 
         creator = in.readByte() != 0;
         besoinKcal = in.readInt();
-        besoinEauLitre = in.readDouble();       // Vérifiez que c'est bien readDouble
+        besoinEauLitre = in.readDouble();
         capaciteEmportMaxKg = in.readDouble();
+
+        // AJOUT : lecture du backpack
+        boolean hasBackpack = in.readByte() != 0;
+        if (hasBackpack) {
+            Backpack bp = new Backpack(this);
+            bp.setId(in.readInt());
+            bp.setTotalMassKg(in.readDouble());
+
+            // Equipements
+            int nbEquip = in.readInt();
+            List<EquipmentItem> equipments = new ArrayList<>();
+            for (int i = 0; i < nbEquip; i++) {
+                EquipmentItem eq = new EquipmentItem();
+                eq.setId(in.readInt());
+                eq.setNom(in.readString());
+                eq.setMasseGrammes(in.readDouble());
+                eq.setNbItem(in.readInt());
+                equipments.add(eq);
+            }
+            bp.setEquipmentItems(equipments);
+
+            // Nourriture
+            int nbFood = in.readInt();
+            List<FoodProduct> foods = new ArrayList<>();
+            for (int i = 0; i < nbFood; i++) {
+                FoodProduct fp = new FoodProduct();
+                fp.setId(in.readInt());
+                fp.setNom(in.readString());
+                fp.setMasseGrammes(in.readDouble());
+                fp.setNbItem(in.readInt());
+                foods.add(fp);
+            }
+            bp.setFoodItems(foods);
+
+            this.backpack = bp;
+        }
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        // MODIFICATION : Écriture simplifiée (plus de gestion de null pour les numériques)
         dest.writeInt(id);
         dest.writeInt(idRando);
         dest.writeString(nom);
@@ -91,6 +122,39 @@ public class Participant implements Person, Parcelable {
         dest.writeInt(besoinKcal);
         dest.writeDouble(besoinEauLitre);
         dest.writeDouble(capaciteEmportMaxKg);
+
+        // AJOUT : écriture du backpack
+        if (backpack != null) {
+            dest.writeByte((byte) 1);
+            dest.writeInt(backpack.getId());
+            dest.writeDouble(backpack.getTotalMassKg());
+
+            // Equipements
+            List<EquipmentItem> equipments = backpack.getEquipmentItems();
+            dest.writeInt(equipments != null ? equipments.size() : 0);
+            if (equipments != null) {
+                for (EquipmentItem eq : equipments) {
+                    dest.writeInt(eq.getId());
+                    dest.writeString(eq.getNom());
+                    dest.writeDouble(eq.getMasseGrammes());
+                    dest.writeInt(eq.getNbItem());
+                }
+            }
+
+            // Nourriture
+            List<FoodProduct> foods = backpack.getFoodItems();
+            dest.writeInt(foods != null ? foods.size() : 0);
+            if (foods != null) {
+                for (FoodProduct fp : foods) {
+                    dest.writeInt(fp.getId());
+                    dest.writeString(fp.getNom());
+                    dest.writeDouble(fp.getMasseGrammes());
+                    dest.writeInt(fp.getNbItem());
+                }
+            }
+        } else {
+            dest.writeByte((byte) 0);
+        }
     }
 
     public static final Creator<Participant> CREATOR = new Creator<Participant>() {

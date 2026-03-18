@@ -1,6 +1,8 @@
 package fr.iutrodez.a4awalk.modeles.entites;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,10 +20,10 @@ public class Backpack {
     private Participant owner;
 
     /** Liste des produits alimentaires présents dans le sac */
-    private Set<FoodProduct> foodItems = new HashSet<>();
+    private List<FoodProduct> foodItems = new ArrayList<>();
 
     /** Liste des équipements présents dans le sac */
-    private Set<EquipmentItem> equipmentItems = new HashSet<>();
+    private List<EquipmentItem> equipmentItems = new ArrayList<>();
 
     // --- Constructeurs ---
 
@@ -45,9 +47,9 @@ public class Backpack {
     public Participant getOwner() { return owner; }
     public void setOwner(Participant owner) { this.owner = owner; }
 
-    public Set<FoodProduct> getFoodItems() { return foodItems; }
-    public void setFoodItems(Set<FoodProduct> foodItems) { this.foodItems = foodItems; }
+    public List<FoodProduct> getFoodItems() { return foodItems; }
+    public void setFoodItems(List<FoodProduct> foodItems) { this.foodItems = foodItems; }
 
-    public Set<EquipmentItem> getEquipmentItems() { return equipmentItems; }
-    public void setEquipmentItems(Set<EquipmentItem> equipmentItems) { this.equipmentItems = equipmentItems; }
+    public List<EquipmentItem> getEquipmentItems() { return equipmentItems; }
+    public void setEquipmentItems(List<EquipmentItem> equipmentItems) { this.equipmentItems = equipmentItems; }
 }

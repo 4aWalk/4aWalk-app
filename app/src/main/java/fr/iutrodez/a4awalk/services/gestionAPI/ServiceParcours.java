@@ -51,7 +51,7 @@ public class ServiceParcours {
      * Interface pour renvoyer le résultat de la création de la course
      */
     public interface CourseCreationCallback {
-        void onSuccess(String courseId);
+        void onSuccess(Course course); // CHANGEMENT : On renvoie l'objet Course complet
         void onError(VolleyError error);
     }
 
@@ -90,9 +90,11 @@ public class ServiceParcours {
         AppelAPI.post(url, token, requestBody, context, new AppelAPI.VolleyObjectCallback() {
             @Override
             public void onSuccess(JSONObject result) throws JSONException {
-                // L'API renvoie un objet contenant l'id de la course créée
-                String courseId = result.getString("id");
-                callback.onSuccess(courseId);
+                // On crée l'objet Course à partir du JSON complet renvoyé par l'API
+                Course course = createCourse(result);
+
+                // On renvoie l'objet entier au callback
+                callback.onSuccess(course);
             }
 
             @Override

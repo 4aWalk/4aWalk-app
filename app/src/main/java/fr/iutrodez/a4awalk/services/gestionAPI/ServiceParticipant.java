@@ -11,6 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.iutrodez.a4awalk.modeles.entites.Backpack;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
@@ -130,7 +132,28 @@ public class ServiceParticipant {
             p.setNiveau(Level.DEBUTANT);
             p.setMorphologie(Morphology.MOYENNE);
         }
+
+        JSONObject backpackJson = obj.optJSONObject("backpack");
+        if (backpackJson != null) {
+            Backpack backpack = new Backpack(p);
+            backpack.setId(backpackJson.optInt("id"));
+            backpack.setTotalMassKg(backpackJson.optDouble("poidsActuelKg", 0.0));
+
+            backpack.setEquipmentItems(new ArrayList<>(
+                    ServiceEquipment.extractEquipmentsForBackpack(
+                            backpackJson.optJSONArray("equipements"))));
+
+            backpack.setFoodItems(new ArrayList<>(
+                    ServiceFoodProduct.extractFoodForBackpack(
+                            backpackJson.optJSONArray("nourriture"))));
+
+            p.setBackpack(backpack);
+            Log.i("backpack", "equipements=" + backpack.getEquipmentItems().size()
+                    + " nourriture=" + backpack.getFoodItems().size());
+        }
+            Log.i("backpack", p.getBackpack().getEquipmentItems().toString());
+            Log.i("backpack", p.getBackpack().getFoodItems().toString());
+
         return p;
     }
-
 }

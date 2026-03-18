@@ -44,8 +44,10 @@ import java.util.List;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.SuiviParcour.SuiviParcours;
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
+import fr.iutrodez.a4awalk.modeles.entites.Course;
 import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
 import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
+import fr.iutrodez.a4awalk.modeles.entites.GeoCoordinate;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
@@ -751,17 +753,31 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         Toast.makeText(this, "Optimisation en cours...", Toast.LENGTH_SHORT).show();
 
-        ServiceOptimisation.optimiserRandonnee(this, tokenManager.getToken(), currentHike.getId(), new ServiceOptimisation.OptimisationCallback() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée optimisée avec succès !", Toast.LENGTH_LONG).show();
-            }
+        // Appel au service d'optimisation
+        ServiceOptimisation.optimiserRandonnee(
+                this,
+                tokenManager.getToken(),
+                currentHike.getId(),
+                new ServiceOptimisation.OptimisationCallback() {
 
-            @Override
-            public void onError(String message) {
-                Toast.makeText(ActiviteGestionRandonnee.this, "Échec de l'optimisation : " + message, Toast.LENGTH_LONG).show();
-            }
-        });
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Randonnée optimisée avec succès !", Toast.LENGTH_SHORT).show();
+
+                        // 1. On signale au Fragment parent que l'action a réussi
+                        setResult(Activity.RESULT_OK);
+
+                        // 2. On ferme l'activité pour retourner automatiquement sur le Fragment
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        // En cas d'erreur, on affiche simplement le message sans fermer l'activité
+                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur d'optimisation : " + message, Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
     }
 
     // --- METHODES POUR LES PRODUITS ALIMENTAIRES ---
@@ -990,7 +1006,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
             Toast.makeText(this, "Erreur lors de la récupération de la position.", Toast.LENGTH_SHORT).show();
         });
     }
-
     private void appelerAPIStartCourse(double lat, double lon) {
         if (currentHike == null || currentHike.getId() == 0) {
             btnStartCourse.setEnabled(true);
@@ -1001,21 +1016,46 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
         Toast.makeText(this, "Création de la course en cours...", Toast.LENGTH_SHORT).show();
 
         ServiceParcours.demarrerCourse(this, tokenManager.getToken(), currentHike.getId(), lat, lon, new ServiceParcours.CourseCreationCallback() {
+
+            // Le callback reçoit maintenant l'objet Course hydraté par l'API
             @Override
-            public void onSuccess(String courseId) {
+            public void onSuccess(Course courseCreee) {
                 btnStartCourse.setEnabled(true);
                 Toast.makeText(ActiviteGestionRandonnee.this, "Course démarrée avec succès !", Toast.LENGTH_SHORT).show();
 
-                // Lancement de l'activité de suivi avec l'ID de la course
                 Intent intent = new Intent(ActiviteGestionRandonnee.this, SuiviParcours.class);
-                intent.putExtra("courseId", courseId);
+
+                intent.putExtra("COURSE_ID", courseCreee.getId());
+                intent.putExtra("NOM_RANDONNEE", currentHike.getLibelle());
+                intent.putExtra("NOM_PARCOURS", "Parcours - " + currentHike.getLibelle());
+
+                // Formatage de la date renvoyée par l'API
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                if (courseCreee.getDateRealisation() != null) {
+                    intent.putExtra("DATE_REALISATION", courseCreee.getDateRealisation().format(formatter));
+                }
+
+                List<GeoCoordinate> trajetsAPI = courseCreee.getTrajetsRealises();
+
+                double[] latsArray = new double[trajetsAPI.size()];
+                double[] lonsArray = new double[trajetsAPI.size()];
+
+                for (int i = 0; i < trajetsAPI.size(); i++) {
+                    latsArray[i] = trajetsAPI.get(i).getLatitude();
+                    lonsArray[i] = trajetsAPI.get(i).getLongitude();
+                }
+
+                // Envoi des tableaux de coordonnées à l'Intent
+                intent.putExtra("LATITUDES", latsArray);
+                intent.putExtra("LONGITUDES", lonsArray);
+
                 startActivity(intent);
             }
 
             @Override
             public void onError(VolleyError error) {
                 btnStartCourse.setEnabled(true);
-                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors du démarrage de la course : " + error.toString(), Toast.LENGTH_LONG).show();
+                Toast.makeText(ActiviteGestionRandonnee.this, "Erreur lors du démarrage : " + error.toString(), Toast.LENGTH_LONG).show();
             }
         });
     }

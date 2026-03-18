@@ -113,7 +113,7 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     public void initialiseListeRandos(String token) {
         if (getContext() == null) return;
 
-        ServiceRandonnee.recupererRandonneesUtilisateur(requireContext(), token, user, false, new ServiceRandonnee.RandoCallback() {
+        ServiceRandonnee.recupererRandonneesUtilisateur(requireContext(), token, false, new ServiceRandonnee.RandoCallback() {
             @Override
             public void onSuccess(ArrayList<Hike> randonnees) {
                 listeRandos = randonnees;
@@ -169,7 +169,7 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
             Toast.makeText(getContext(), "Chargement des détails...", Toast.LENGTH_SHORT).show();
         }
 
-        ServiceRandonnee.recupererDetailsRandonnee(requireContext(), tokenManager.getToken(), hikeResume.getId(), user, true, new ServiceRandonnee.RandoDetailCallback() {
+        ServiceRandonnee.recupererDetailsRandonnee(requireContext(), tokenManager.getToken(), hikeResume.getId(), true, new ServiceRandonnee.RandoDetailCallback() {
             @Override
             public void onSuccess(Hike hikeDetailComplet) {
                 Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);

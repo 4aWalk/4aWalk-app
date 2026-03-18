@@ -225,4 +225,25 @@ public class ServiceEquipment {
                 }
         );
     }
+
+    /**
+     * Extrait la liste des équipements contenus dans le sac à dos d'un participant.
+     */
+    public static java.util.Set<EquipmentItem> extractEquipmentsForBackpack(JSONArray equipementsJson) {
+        java.util.Set<EquipmentItem> equipements = new java.util.HashSet<>();
+        if (equipementsJson != null) {
+            for (int j = 0; j < equipementsJson.length(); j++) {
+                JSONObject eqJson = equipementsJson.optJSONObject(j);
+                if (eqJson != null) {
+                    EquipmentItem item = new EquipmentItem();
+                    item.setId(eqJson.optInt("id"));
+                    item.setNom(eqJson.optString("nom"));
+                    item.setMasseGrammes(eqJson.optDouble("masseGrammes", 0.0));
+                    item.setNbItem(eqJson.optInt("nbItem", 1));
+                    equipements.add(item);
+                }
+            }
+        }
+        return equipements;
+    }
 }
