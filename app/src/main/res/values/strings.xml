@@ -1,3 +1,88 @@
 <resources>
     <string name="app_name">4aWalk</string>
+    <string name="logo_description">Logo de l application 4awaklk</string>
+
+    <!-- Affichage utilisateur connexion et inscription -->
+    <string-array name="niveau_array">
+        <item>Choisir votre niveau</item>
+    </string-array>
+
+    <string-array name="niveaux">
+        <item>Choisir le niveau</item>
+        <item>DEBUTANT</item>
+        <item>ENTRAINE</item>
+        <item>SPORTIF</item>
+    </string-array>
+
+    <string-array name="morphologie_array">
+        <item>Choisir votre morphologie</item>
+    </string-array>
+
+    <string-array name="morphologies">
+        <item>Choisir la morphologie</item>
+        <item>LEGERE</item>
+        <item>MOYENNE</item>
+        <item>FORTE</item>
+    </string-array>
+
+    <string name="retour">Retour</string>
+    <string name="TitreInscription">Créer un compte</string>
+    <string name="btnConnecter">Se connecter</string>
+    <string name="btnConnexion">Connexion</string>
+    <string name="btnInscrire">S inscrire</string>
+
+    <string name="recherche_rando">Rechercher une randonnée</string>
+    <string name="recherche_parcours">Rechercher un parcours</string>
+    <string name="onglet_parcours">Parcours</string>
+    <string name="onglet_randonnees">Randonnées</string>
+    <string name="hike_name">Nom:</string>
+    <string name="hike_start">Départ:</string>
+    <string name="hike_finish">Arrivée:</string>
+    <string name="hike_duration">Durée (en jours):</string>
+    <string name="participants">Participants:</string>
+    <string name="points_of_interest">Point(s) d\'intérêt(s): </string>
+    <string name="product">Produits: </string>
+    <string name="equipment">Equipement: </string>
+    <string name="data_error_message">Récupération des données impossibles. Veuillez réessayer</string>
+    <string name="no_hikes_message">Vous ne possédez aucune randonnée.</string>
+    <string name="no_course_message">Vous ne possédez aucun parcours.</string>
+    <string name="create_button_text">Valider</string>
+    <string name="longitude">longitude</string>
+    <string name="latitude">latitude</string>
+
+    <!-- Erreurs liées à la connexion utilisateur -->
+    <string name="erreur_donnees_util_connexion">Email ou mot de passe incorrect</string>
+    <string name="erreur_serveur">Erreur serveur</string>
+    <string name="erreur_acces">Accès refusé</string>
+    <string name="erreur_ressource">Ressource non trouvée</string>
+
+    <string name="titrePopup">Participant</string>
+    <string name="age">Âge</string>
+    <string name="besoinKCAL">Besoin kcal/jour</string>
+    <string name="besoinEAU">Besoin en eau (L)</string>
+    <string name="sac">Possède un sac à dos</string>
+    <string name="capacite">Capacité (kg) du sac</string>
+    <string name="ajouterP">Ajouter le participant</string>
+    <string name="btnSac">Voir le sac à dos</string>
+
+    <string name="btnAnnuler">Annuler</string>
+    <string name="btnValider">Valider</string>
+    <string name="btnAjouter">Ajouter</string>
+    <string name="btnSupprimer">Supprimer</string>
+    <string name="btnModifier">Modifier</string>
+    <string name="nom">Nom</string>
+    <string name="prenom">Prenom</string>
+    <string name="bouton_modifier_randonnee">Modifier la randonnée</string>
+    <string name="bouton_ajouter_randonnee">Ajouter la randonnée</string>
+    <string name="randonne_placeholder">Randonné 1</string>
+    <string name="parcours_placeholder">Parcours 1</string>
+    <string name="ajouter_un_participant">Ajouter un participant</string>
+    <string name="ajouter_un_point">Ajouter un point</string>
+    <string name="optimiser">Optimiser</string>
+    <string name="gestion_compte">Gestion du compte</string>
+    <string name="deconnexion">Déconnexion</string>
+    <string name="nourritures">Nourritures</string>
+    <string name="equipements">Équipements</string>
+    <string name="demarrer_parcours">Démarrer un parcours</string>
+
 </resources>

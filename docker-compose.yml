@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   sonarqube:
     image: sonarqube:community
@@ -15,11 +14,9 @@ services:
       - sonarqube_logs:/opt/sonarqube/logs
     networks:
       - walk-network
-
 networks:
   walk-network:
     driver: bridge
-
 volumes:
   sonarqube_data:
   sonarqube_extensions:

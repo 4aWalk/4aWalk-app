@@ -1,0 +1,248 @@
+package fr.iutrodez.a4awalk.modeles.entites;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.iutrodez.a4awalk.modeles.Person;
+import fr.iutrodez.a4awalk.modeles.enums.Level;
+import fr.iutrodez.a4awalk.modeles.enums.Morphology;
+
+/**
+ * Représente un participant à une randonnée.
+ * Implémente Parcelable pour permettre le transfert via Intent.
+ */
+public class Participant implements Person, Parcelable {
+
+    private int id;
+    private int idRando;
+    private String nom;
+    private String prenom;
+
+    private int age;
+    private Level niveau;
+    private Morphology morphologie;
+    private boolean creator;
+    private int besoinKcal;
+    private double besoinEauLitre;
+    private double capaciteEmportMaxKg;
+    private Backpack backpack;
+
+    // --- Constructeurs ---
+    public Participant() {
+    }
+
+    public Participant(String nom, String prenom, int age, Level niveau, Morphology morphologie, boolean creator,
+                       int besoinKcal, double besoinEauLitre, double capaciteEmportMaxKg, int idRando) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.age = age;
+        this.niveau = niveau;
+        this.morphologie = morphologie;
+        this.creator = creator;
+        this.besoinKcal = besoinKcal;
+        this.besoinEauLitre = besoinEauLitre;
+        this.capaciteEmportMaxKg = capaciteEmportMaxKg;
+        this.idRando = idRando;
+    }
+
+    // --- Implémentation Parcelable ---
+
+    protected Participant(Parcel in) {
+        id = in.readInt();
+        idRando = in.readInt();
+        nom = in.readString();
+        prenom = in.readString();
+        age = in.readInt();
+
+        String niveauStr = in.readString();
+        try { niveau = (niveauStr != null) ? Level.valueOf(niveauStr) : Level.DEBUTANT; }
+        catch (IllegalArgumentException e) { niveau = Level.DEBUTANT; }
+
+        String morphoStr = in.readString();
+        try { morphologie = (morphoStr != null) ? Morphology.valueOf(morphoStr) : Morphology.MOYENNE; }
+        catch (IllegalArgumentException e) { morphologie = Morphology.MOYENNE; }
+
+        creator = in.readByte() != 0;
+        besoinKcal = in.readInt();
+        besoinEauLitre = in.readDouble();
+        capaciteEmportMaxKg = in.readDouble();
+
+        // AJOUT : lecture du backpack
+        boolean hasBackpack = in.readByte() != 0;
+        if (hasBackpack) {
+            Backpack bp = new Backpack(this);
+            bp.setId(in.readInt());
+            bp.setTotalMassKg(in.readDouble());
+
+            // Equipements
+            int nbEquip = in.readInt();
+            List<EquipmentItem> equipments = new ArrayList<>();
+            for (int i = 0; i < nbEquip; i++) {
+                EquipmentItem eq = new EquipmentItem();
+                eq.setId(in.readInt());
+                eq.setNom(in.readString());
+                eq.setMasseGrammes(in.readDouble());
+                eq.setNbItem(in.readInt());
+                equipments.add(eq);
+            }
+            bp.setEquipmentItems(equipments);
+
+            // Nourriture
+            int nbFood = in.readInt();
+            List<FoodProduct> foods = new ArrayList<>();
+            for (int i = 0; i < nbFood; i++) {
+                FoodProduct fp = new FoodProduct();
+                fp.setId(in.readInt());
+                fp.setNom(in.readString());
+                fp.setMasseGrammes(in.readDouble());
+                fp.setNbItem(in.readInt());
+                foods.add(fp);
+            }
+            bp.setFoodItems(foods);
+
+            this.backpack = bp;
+        }
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(idRando);
+        dest.writeString(nom);
+        dest.writeString(prenom);
+        dest.writeInt(age);
+        dest.writeString(niveau != null ? niveau.name() : null);
+        dest.writeString(morphologie != null ? morphologie.name() : null);
+        dest.writeByte((byte) (creator ? 1 : 0));
+        dest.writeInt(besoinKcal);
+        dest.writeDouble(besoinEauLitre);
+        dest.writeDouble(capaciteEmportMaxKg);
+
+        // AJOUT : écriture du backpack
+        if (backpack != null) {
+            dest.writeByte((byte) 1);
+            dest.writeInt(backpack.getId());
+            dest.writeDouble(backpack.getTotalMassKg());
+
+            // Equipements
+            List<EquipmentItem> equipments = backpack.getEquipmentItems();
+            dest.writeInt(equipments != null ? equipments.size() : 0);
+            if (equipments != null) {
+                for (EquipmentItem eq : equipments) {
+                    dest.writeInt(eq.getId());
+                    dest.writeString(eq.getNom());
+                    dest.writeDouble(eq.getMasseGrammes());
+                    dest.writeInt(eq.getNbItem());
+                }
+            }
+
+            // Nourriture
+            List<FoodProduct> foods = backpack.getFoodItems();
+            dest.writeInt(foods != null ? foods.size() : 0);
+            if (foods != null) {
+                for (FoodProduct fp : foods) {
+                    dest.writeInt(fp.getId());
+                    dest.writeString(fp.getNom());
+                    dest.writeDouble(fp.getMasseGrammes());
+                    dest.writeInt(fp.getNbItem());
+                }
+            }
+        } else {
+            dest.writeByte((byte) 0);
+        }
+    }
+
+    public static final Creator<Participant> CREATOR = new Creator<Participant>() {
+        @Override
+        public Participant createFromParcel(Parcel in) {
+            return new Participant(in);
+        }
+
+        @Override
+        public Participant[] newArray(int size) {
+            return new Participant[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    // --- Override interface ---
+
+    @Override
+    public String getPrenom() { return prenom; }
+    @Override
+    public void setPrenom(String prenom) { this.prenom = prenom; }
+
+    @Override
+    public String getNom() {return this.nom;}
+    @Override
+    public void setNom(String nom) { this.nom = nom; }
+
+    @Override
+    public int getAge() {
+        return this.age;
+    }
+
+    @Override
+    public void setAge(int age) { this.age = age; }
+
+    @Override
+    public Level getNiveau() {
+        return this.niveau;
+    }
+
+    @Override
+    public void setNiveau(Level niveau) { this.niveau = niveau; }
+
+    @Override
+    public Morphology getMorphologie() {
+        return this.morphologie;
+    }
+
+    @Override
+    public void setMorphologie(Morphology morphologie) { this.morphologie = morphologie; }
+
+    // --- Getters et Setters ---
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public int getIdRando() {
+        return idRando;
+    }
+    public void setIdRando(int idRando) {
+        this.idRando = idRando;
+    }
+
+    public boolean getCreator() { return creator; }
+    public int getBesoinKcal() { return besoinKcal; }
+    public void setBesoinKcal(int besoinKcal) { this.besoinKcal = besoinKcal; }
+
+    public double getBesoinEauLitre() { return besoinEauLitre; }
+    public void setBesoinEauLitre(double besoinEauLitre) { this.besoinEauLitre = besoinEauLitre; }
+
+    public double getCapaciteEmportMaxKg() { return capaciteEmportMaxKg; }
+    public void setCapaciteEmportMaxKg(double capaciteEmportMaxKg) { this.capaciteEmportMaxKg = capaciteEmportMaxKg; }
+
+    public Backpack getBackpack() { return backpack; }
+    public void setBackpack(Backpack backpack) {
+        this.backpack = backpack;
+        if (backpack != null && backpack.getOwner() != this) {
+            backpack.setOwner(this);
+        }
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return prenom + " " + nom + " (" + age + " ans)";
+    }
+}

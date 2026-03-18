@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minWidth="350dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_titre_popup_fp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nouveau Produit Alimentaire"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"
+                android:gravity="center" />
+
+            <EditText
+                android:id="@+id/et_fp_nom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nom (Obligatoire)"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_fp_masse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Masse en g (50 à 5000)"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_fp_appellation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Appellation courante (Obligatoire)"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_fp_conditionnement"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Conditionnement (Obligatoire)"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_fp_kcal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Apport Kcal (50 à 3000)"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_fp_prix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Prix en € (>= 0)"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pour combien de personne(s) (1 à 3) :"
+                android:layout_marginTop="4dp" />
+
+            <Spinner
+                android:id="@+id/spinner_fp_nb_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Boutons HORS du ScrollView : toujours visibles en bas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#FFFFFF">
+
+        <Button
+            android:id="@+id/btn_fp_annuler"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Annuler"
+            android:backgroundTint="#808080" />
+
+        <Button
+            android:id="@+id/btn_fp_valider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/vert"
+            android:text="Ajouter" />
+    </LinearLayout>
+
+</LinearLayout>

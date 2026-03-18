@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/popup_background">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- En-tête : titre + bouton fermer -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/titrePopup"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black" />
+
+                <ImageButton
+                    android:id="@+id/btnClose"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@android:color/transparent"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:contentDescription="Fermer" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_mes_participants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Remplir depuis un participant existant :"
+                android:textStyle="italic"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginBottom="4dp"
+                android:visibility="gone"/>
+
+            <Spinner
+                android:id="@+id/spinner_mes_participants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/spinner"
+                android:popupBackground="@android:color/white"
+                android:visibility="gone"/>
+
+            <View
+                android:id="@+id/separateur_participants"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etNom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/nom"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:backgroundTint="@android:color/black"
+                android:inputType="textPersonName|textCapCharacters"
+                android:minHeight="48dp" />
+
+            <EditText
+                android:id="@+id/etPrenom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prenom"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:backgroundTint="@android:color/black"
+                android:inputType="textPersonName|textCapWords"
+                android:minHeight="48dp" />
+
+            <EditText
+                android:id="@+id/etAge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/age"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:backgroundTint="@android:color/black"
+                android:inputType="number"
+                android:minHeight="48dp" />
+
+            <Spinner
+                android:id="@+id/spinnerNiveau"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:entries="@array/niveaux"
+                android:background="@drawable/spinner"
+                android:popupBackground="@android:color/white" />
+
+            <Spinner
+                android:id="@+id/spinnerMorphologie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:entries="@array/morphologies"
+                android:background="@drawable/spinner"
+                android:popupBackground="@android:color/white" />
+
+            <EditText
+                android:id="@+id/etBesoinKcal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/besoinKCAL"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:backgroundTint="@android:color/black"
+                android:inputType="number"
+                android:minHeight="48dp" />
+
+            <EditText
+                android:id="@+id/etBesoinEau"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/besoinEAU"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:backgroundTint="@android:color/black"
+                android:inputType="numberDecimal"
+                android:minHeight="48dp" />
+
+            <CheckBox
+                android:id="@+id/cbSacADos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/sac"
+                android:textColor="@android:color/black"
+                android:buttonTint="@android:color/black"
+                android:layout_marginTop="8dp"
+                android:padding="8dp" />
+
+            <EditText
+                android:id="@+id/etCapacite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/capacite"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:backgroundTint="@android:color/black"
+                android:inputType="number"
+                android:layout_marginTop="4dp"
+                android:minHeight="48dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Boutons HORS du ScrollView : toujours visibles en bas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/popup_background">
+
+        <Button
+            android:id="@+id/btnAjouter"
+            android:text="@string/btnAjouter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/vert" />
+
+        <Button
+            android:id="@+id/btnVoirSac"
+            android:text="@string/btnSac"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/grey" />
+
+        <Button
+            android:id="@+id/btnSupprimer"
+            android:text="@string/btnSupprimer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/red" />
+    </LinearLayout>
+
+</LinearLayout>

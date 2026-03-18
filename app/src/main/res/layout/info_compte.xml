@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E8DCC4">
+
+    <!-- Inclusion du header -->
+    <include
+        android:id="@+id/mon_header"
+        layout="@layout/header"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Contenu principal -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_horizontal">
+
+            <!-- Image Profil -->
+            <ImageView
+                android:id="@+id/profile_image"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/user_icon"
+                android:scaleType="centerCrop"
+                android:background="#E8DCC4"/>
+
+            <!-- Nom avec bouton éditer -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="32dp">
+
+                <TextView
+                    android:id="@+id/user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bécogné Néo"
+                    android:textSize="24sp"
+                    android:textColor="#000000"
+                    android:textStyle="bold"/>
+
+                <ImageButton
+                    android:id="@+id/edit_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/update"
+                    android:background="@drawable/border_button"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Éditer"/>
+            </LinearLayout>
+
+            <!-- Adresse personnelle -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Adresse personnelle :"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/user_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="18 avenue durand de gros"
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:background="@drawable/underline_green"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Age -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Age :"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/user_age"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="21 ans"
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:background="@drawable/underline_green"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Email -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Email :"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/user_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="neo.becogne@iut-rodez.fr"
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:background="@drawable/underline_green"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Niveau -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Niveau :"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/user_level"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Entrainé"
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:background="@drawable/underline_green"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Morphologie -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Morphologie :"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/user_morphology"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Moyen"
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:background="@drawable/underline_green"
+                android:layout_marginBottom="24dp"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

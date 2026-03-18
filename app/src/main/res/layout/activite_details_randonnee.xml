@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E8DCC4">
+
+    <include
+        android:id="@+id/mon_header"
+        layout="@layout/header"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/marron"
+        app:layout_constraintTop_toBottomOf="@id/mon_header"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hike_details_margin"
+            android:paddingHorizontal="@dimen/hike_details_margin"
+            android:background="@color/marron_fonce"
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/hike_name"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+            <EditText
+                android:id="@+id/nom_rando"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:inputType="textCapSentences"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/hike_start"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/black"/>
+
+            <Button
+                android:id="@+id/btn_choisir_depart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📍 Choisir le point de départ"
+                android:backgroundTint="@color/orange"/>
+
+            <TextView
+                android:id="@+id/tv_coords_depart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:visibility="gone"/>
+
+            <!-- Gardez les EditText cachés pour compatibilité avec le code existant -->
+            <EditText
+                android:id="@+id/depart_rando_lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
+            <EditText
+                android:id="@+id/depart_rando_lon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/hike_finish"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/black"/>
+
+            <Button
+                android:id="@+id/btn_choisir_arrivee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📍 Choisir le point d'arrivée"
+                android:backgroundTint="@color/orange"/>
+
+            <TextView
+                android:id="@+id/tv_coords_arrivee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:visibility="gone"/>
+
+            <EditText
+                android:id="@+id/arrivee_rando_lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
+            <EditText
+                android:id="@+id/arrivee_rando_lon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:inputType="numberDecimal|numberSigned"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hike_duration"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
+                <Spinner
+                    android:id="@+id/spinner_jours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_poi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:id="@+id/points_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/points_of_interest"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
+
+                <fr.iutrodez.a4awalk.utils.NonScrollListView
+                    android:id="@+id/points_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+                <ImageButton
+                    android:id="@+id/btn_add_poi"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_add"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/ajouter_un_point"
+                    app:tint="@color/black"
+                    android:layout_gravity="center_horizontal"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_participants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:id="@+id/participants_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/participants"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
+
+                <fr.iutrodez.a4awalk.utils.NonScrollListView
+                    android:id="@+id/participants_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <ImageButton
+                    android:id="@+id/btn_add_participant"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_add"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/ajouter_un_participant"
+                    app:tint="@color/black"
+                    android:layout_gravity="center_horizontal"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_equipments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Équipements"
+                    android:textStyle="bold"
+                    android:textColor="@color/black" />
+
+                <fr.iutrodez.a4awalk.utils.NonScrollListView
+                    android:id="@+id/equipments_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btn_add_equipment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ajouter un équipement"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/orange"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_food_products"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Produits Alimentaires"
+                    android:textStyle="bold"
+                    android:textColor="@color/black" />
+                <fr.iutrodez.a4awalk.utils.NonScrollListView
+                    android:id="@+id/food_products_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+                <Button
+                    android:id="@+id/btn_add_food_product"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ajouter un produit"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/orange"/>
+
+            </LinearLayout>
+            <Button
+                android:id="@+id/btn_optimize_hike"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/optimiser"
+                android:layout_marginTop="30dp"
+                android:backgroundTint="@color/orange"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btn_start_course"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/demarrer_parcours"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/beige"
+                android:visibility="gone"/>
+            <Button
+                android:id="@+id/btn_save_hike"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enregistrer"
+                android:layout_marginTop="30dp"
+                android:backgroundTint="@color/vert" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
