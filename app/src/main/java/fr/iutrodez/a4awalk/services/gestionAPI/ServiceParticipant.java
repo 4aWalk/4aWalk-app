@@ -11,8 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.iutrodez.a4awalk.modeles.entites.Backpack;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
@@ -155,5 +153,9 @@ public class ServiceParticipant {
             Log.i("backpack", p.getBackpack().getFoodItems().toString());
 
         return p;
+    }
+
+    public static void getMyParticipants(Context context, String token, AppelAPI.VolleyCallback callback) {
+        AppelAPI.get(BASE_URL + "/participants/my", token, context, callback);
     }
 }
