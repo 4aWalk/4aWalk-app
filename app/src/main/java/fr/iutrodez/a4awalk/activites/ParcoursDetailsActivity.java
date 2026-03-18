@@ -68,7 +68,6 @@ public class ParcoursDetailsActivity extends HeaderActivity {
         bindViews();
         configureMap();
         loadCourseFromApi();
-        btnSupprimer.setOnClickListener(v -> ServiceParcours.terminerParcours(this, tokenManager.getToken(), currentCourse.getId()));
     }
 
     private void setupOsmdroidConfig() {
@@ -113,6 +112,28 @@ public class ParcoursDetailsActivity extends HeaderActivity {
                     currentCourse = ServiceParcours.createCourse(result);
                     displayCourseData(currentCourse);
                     loadHikeNameFromApi(currentCourse.getHikeId());
+
+                    btnSupprimer.setOnClickListener(v -> {
+                        if (currentCourse == null) return;
+
+                        if (currentCourse.isFinished()) {
+                            Toast.makeText(ParcoursDetailsActivity.this,
+                                    "Ce parcours est déjà terminé.", Toast.LENGTH_SHORT).show();
+                            btnSupprimer.setVisibility(View.GONE);
+                            return;
+                        }
+
+                        ServiceParcours.terminerParcours(
+                                ParcoursDetailsActivity.this,
+                                tokenManager.getToken(),
+                                currentCourse.getId()
+                        );
+                        btnSupprimer.setVisibility(View.GONE);
+                        btnReprendre.setVisibility(View.GONE);
+                        Toast.makeText(ParcoursDetailsActivity.this,
+                                "Parcours terminé ✔", Toast.LENGTH_SHORT).show();
+                    });
+
                 } catch (Exception e) {
                     Log.e(TAG, "Erreur parsing JSON Course", e);
                 }
@@ -120,7 +141,8 @@ public class ParcoursDetailsActivity extends HeaderActivity {
 
             @Override
             public void onError(VolleyError error) {
-                Toast.makeText(ParcoursDetailsActivity.this, "Impossible de charger le parcours", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ParcoursDetailsActivity.this,
+                        "Impossible de charger le parcours", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -191,10 +213,37 @@ public class ParcoursDetailsActivity extends HeaderActivity {
                 intent.putExtra("DATE_REALISATION", tvDate.getText().toString());
                 intent.putExtra("NOM_RANDONNEE", tvRandonnee.getText().toString());
                 intent.putExtra("NOM_PARCOURS", tvNomParcours.getText().toString());
+                intent.putExtra("HIKE_ID", course.getHikeId());
                 startActivity(intent);
             });
+
+            // Terminer visible seulement si pas encore fini
+            btnSupprimer.setVisibility(View.VISIBLE);
+            btnSupprimer.setOnClickListener(v -> {
+                if (currentCourse == null) return;
+
+                if (currentCourse.isFinished()) {
+                    Toast.makeText(ParcoursDetailsActivity.this,
+                            "Ce parcours est déjà terminé.", Toast.LENGTH_SHORT).show();
+                    btnSupprimer.setVisibility(View.GONE);
+                    return;
+                }
+
+                ServiceParcours.terminerParcours(
+                        ParcoursDetailsActivity.this,
+                        tokenManager.getToken(),
+                        currentCourse.getId()
+                );
+                btnSupprimer.setVisibility(View.GONE);
+                btnReprendre.setVisibility(View.GONE);
+                Toast.makeText(ParcoursDetailsActivity.this,
+                        "Parcours terminé ✔", Toast.LENGTH_SHORT).show();
+            });
+
         } else {
+            // Course déjà terminée : on cache les deux boutons
             btnReprendre.setVisibility(View.GONE);
+            btnSupprimer.setVisibility(View.GONE);
         }
 
         // --- Affichage de la carte ---
@@ -204,12 +253,10 @@ public class ParcoursDetailsActivity extends HeaderActivity {
             return;
         }
 
-        // 1. Centrer la carte sur le premier point du trajet
         GeoCoordinate premierPoint = trajets.get(0);
         map.getController().setZoom(14.5);
         map.getController().setCenter(new GeoPoint(premierPoint.getLatitude(), premierPoint.getLongitude()));
 
-        // 2. Ajouter un marqueur pour chaque point de trajetsRealises
         for (int i = 0; i < trajets.size(); i++) {
             GeoCoordinate coord = trajets.get(i);
             GeoPoint geoPoint = new GeoPoint(coord.getLatitude(), coord.getLongitude());
@@ -221,26 +268,14 @@ public class ParcoursDetailsActivity extends HeaderActivity {
             map.getOverlays().add(marker);
         }
 
-        GeoPoint pointDepart;
-        if (course.getDepart() != null) {
-            pointDepart = new GeoPoint(
-                    course.getDepart().getLatitude(),
-                    course.getDepart().getLongitude()
-            );
-        } else {
-            pointDepart = new GeoPoint(premierPoint.getLatitude(), premierPoint.getLongitude());
-        }
+        GeoPoint pointDepart = course.getDepart() != null
+                ? new GeoPoint(course.getDepart().getLatitude(), course.getDepart().getLongitude())
+                : new GeoPoint(premierPoint.getLatitude(), premierPoint.getLongitude());
 
         GeoCoordinate dernierPoint = trajets.get(trajets.size() - 1);
-        GeoPoint pointArrivee;
-        if (course.getArrivee() != null) {
-            pointArrivee = new GeoPoint(
-                    course.getArrivee().getLatitude(),
-                    course.getArrivee().getLongitude()
-            );
-        } else {
-            pointArrivee = new GeoPoint(dernierPoint.getLatitude(), dernierPoint.getLongitude());
-        }
+        GeoPoint pointArrivee = course.getArrivee() != null
+                ? new GeoPoint(course.getArrivee().getLatitude(), course.getArrivee().getLongitude())
+                : new GeoPoint(dernierPoint.getLatitude(), dernierPoint.getLongitude());
 
         ajouterMarkersDepartArrivee(pointDepart, pointArrivee);
     }

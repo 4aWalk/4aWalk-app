@@ -44,11 +44,12 @@ import java.util.List;
 import java.util.Map;
 
 import fr.iutrodez.a4awalk.R;
+import fr.iutrodez.a4awalk.activites.HeaderActivity;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
 
-public class SuiviParcours extends AppCompatActivity {
+public class SuiviParcours extends HeaderActivity {
 
     // ===== Constantes API =====
     private static final String COURSE_ID_FALLBACK = "6989e2f5a5b0b8078ee29a24";
@@ -102,6 +103,8 @@ public class SuiviParcours extends AppCompatActivity {
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
         setContentView(R.layout.details_parcours);
+
+        configurerToolbar();
 
         tokenManager = new TokenManager(this);
         // ===== Récupération du courseId depuis l'Intent =====
@@ -164,20 +167,20 @@ public class SuiviParcours extends AppCompatActivity {
         double[] longitudes = getIntent().getDoubleArrayExtra("LONGITUDES");
 
         if (latitudes != null && longitudes != null && latitudes.length == longitudes.length) {
+            // Cas normal : données passées par Intent
             for (int i = 0; i < latitudes.length; i++) {
                 parcoursPoints.add(new GeoPoint(latitudes[i], longitudes[i]));
             }
+            mapManager.calculerItineraire(parcoursPoints);
+            if (!parcoursPoints.isEmpty()) {
+                mapView.getController().setZoom(15.0);
+                mapView.getController().setCenter(parcoursPoints.get(0));
+            }
+            afficherPOIsRandonnee();
+        } else {
+            // Cas reprise : on recharge depuis l'API
+            chargerParcoursDepuisAPI();
         }
-
-        // mapManager.addMarkers(parcoursPoints); ← ligne supprimée
-        mapManager.calculerItineraire(parcoursPoints);
-
-        if (!parcoursPoints.isEmpty()) {
-            mapView.getController().setZoom(15.0);
-            mapView.getController().setCenter(parcoursPoints.get(0));
-        }
-
-        afficherPOIsRandonnee();
     }
 
     private void afficherPOIsRandonnee() {
@@ -582,5 +585,106 @@ public class SuiviParcours extends AppCompatActivity {
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);
         return bitmap;
+    }
+
+    private void chargerParcoursDepuisAPI() {
+        String url = "http://98.94.8.220:8080/courses/" + currentCourseId;
+
+        AppelAPI.get(url, tokenManager.getToken(), this, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                try {
+                    parcoursPoints.clear();
+                    org.json.JSONArray path = result.optJSONArray("path");
+                    if (path != null) {
+                        for (int i = 0; i < path.length(); i++) {
+                            JSONObject pt = path.getJSONObject(i);
+                            parcoursPoints.add(new GeoPoint(
+                                    pt.getDouble("latitude"),
+                                    pt.getDouble("longitude")
+                            ));
+                        }
+                    }
+
+                    mapManager.calculerItineraire(parcoursPoints);
+                    if (!parcoursPoints.isEmpty()) {
+                        mapView.getController().setZoom(15.0);
+                        mapView.getController().setCenter(parcoursPoints.get(0));
+                    }
+
+                    // Charger les POIs du hike associé
+                    int hikeId = result.optInt("hikeId", 0);
+                    if (hikeId != 0) {
+                        chargerPOIsDepuisHike(hikeId);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(SuiviParcours.this,
+                        "Impossible de charger le tracé", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void chargerPOIsDepuisHike(int hikeId) {
+        String url = "http://98.94.8.220:8080/hikes/" + hikeId;
+
+        AppelAPI.get(url, tokenManager.getToken(), this, new AppelAPI.VolleyObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject result) throws JSONException {
+                poiPoints.clear();
+                poiNoms.clear();
+
+                // Départ
+                if (!result.isNull("depart")) {
+                    JSONObject dep = result.getJSONObject("depart");
+                    double lat = dep.getDouble("latitude");
+                    double lon = dep.getDouble("longitude");
+                    String nom = dep.optString("nom", "Départ");
+                    ajouterMarkerPOI(lat, lon, nom, R.drawable.ic_marker_depart);
+                    poiPoints.add(new GeoPoint(lat, lon));
+                    poiNoms.add(nom);
+                }
+
+                // Arrivée
+                if (!result.isNull("arrivee")) {
+                    JSONObject arr = result.getJSONObject("arrivee");
+                    double lat = arr.getDouble("latitude");
+                    double lon = arr.getDouble("longitude");
+                    String nom = arr.optString("nom", "Arrivée");
+                    ajouterMarkerPOI(lat, lon, nom, R.drawable.ic_marker_arrivee);
+                    poiPoints.add(new GeoPoint(lat, lon));
+                    poiNoms.add(nom);
+                }
+
+                // POIs optionnels
+                JSONArray optPoints = result.optJSONArray("optionalPoints");
+                if (optPoints != null) {
+                    for (int i = 0; i < optPoints.length(); i++) {
+                        JSONObject poi = optPoints.getJSONObject(i);
+                        double lat = poi.getDouble("latitude");
+                        double lon = poi.getDouble("longitude");
+                        String nom = poi.optString("nom", "POI " + (i + 1));
+                        ajouterMarkerPOI(lat, lon, nom, R.drawable.ic_marker_poi);
+                        poiPoints.add(new GeoPoint(lat, lon));
+                        poiNoms.add(nom);
+                    }
+                }
+
+                // Réinitialiser les alertes avec le bon nombre de POIs
+                poiAlerted = new boolean[poiPoints.size()];
+            }
+
+            @Override
+            public void onError(VolleyError error) {
+                Toast.makeText(SuiviParcours.this,
+                        "Impossible de charger les POIs", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
