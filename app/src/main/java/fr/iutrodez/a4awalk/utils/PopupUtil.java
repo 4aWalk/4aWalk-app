@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import fr.iutrodez.a4awalk.R;
 
-
 public class PopupUtil {
 
     public interface PopupCallback {
@@ -41,5 +40,3 @@ public class PopupUtil {
         dialog.show();
     }
 }
-
-

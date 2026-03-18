@@ -9,9 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.AlertDialog;
-import org.json.JSONObject;
-import fr.iutrodez.a4awalk.services.AppelAPI;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -22,7 +19,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.VolleyError;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.List;
 
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.activites.ActiviteGestionRandonnee;
@@ -30,7 +30,10 @@ import fr.iutrodez.a4awalk.adaptateurs.ItemRandoAdapter;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
 import fr.iutrodez.a4awalk.modeles.entites.TokenManager;
 import fr.iutrodez.a4awalk.modeles.entites.User;
+import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParcours;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceRandonnee;
+import fr.iutrodez.a4awalk.utils.PopupUtil;
 
 public class FragmentListeRandonnees extends Fragment implements View.OnClickListener {
 
@@ -42,7 +45,6 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     private User user;
     private TokenManager tokenManager;
 
-    // Lanceur d'activité qui écoute le retour (Création OU Modification)
     private ActivityResultLauncher<Intent> randoResultLauncher;
 
     public static FragmentListeRandonnees newInstance(User user) {
@@ -57,7 +59,6 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialisation du lanceur
         randoResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -92,17 +93,14 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
 
         randoRecyclerView = vueDuFragment.findViewById(R.id.liste_rando);
         messageView = vueDuFragment.findViewById(R.id.empty_message);
-
         randoRecyclerView.setLayoutManager(new LinearLayoutManager(vueDuFragment.getContext()));
 
-        // Premier chargement
         initialiseListeRandos(tokenManager.getToken());
 
-        // Bouton Flottant
         fab = vueDuFragment.findViewById(R.id.fab_add_hike);
         fab.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
-            intent.putExtra("ID_PAGE", 2); // Mode Création
+            intent.putExtra("ID_PAGE", 2);
             intent.putExtra("USER_DATA", user);
             randoResultLauncher.launch(intent);
         });
@@ -144,20 +142,17 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
 
             @Override
             public void onRandoClick(Hike hikeResume) {
-                // Clic sur la carte : Consultation (ID_PAGE = 1)
                 ouvrirRandonnee(hikeResume, 1);
             }
 
             @Override
             public void onEditClick(Hike hikeResume) {
-                // Clic sur l'icône Modifier : Modification (ID_PAGE = 3)
                 ouvrirRandonnee(hikeResume, 3);
             }
 
             @Override
             public void onDeleteClick(Hike hikeResume) {
-                // Clic sur l'icône Supprimer : Affichage de la confirmation
-                afficherConfirmationSuppression(hikeResume);
+                demanderSuppressionRandonnee(hikeResume);
             }
         });
 
@@ -173,10 +168,9 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
             @Override
             public void onSuccess(Hike hikeDetailComplet) {
                 Intent intent = new Intent(getActivity(), ActiviteGestionRandonnee.class);
-                intent.putExtra("ID_PAGE", idPageAction); // 1 pour Consultation, 3 pour Modification
+                intent.putExtra("ID_PAGE", idPageAction);
                 intent.putExtra("HIKE_OBJECT", hikeDetailComplet);
                 intent.putExtra("USER_DATA", user);
-
                 randoResultLauncher.launch(intent);
             }
 
@@ -189,14 +183,52 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
         });
     }
 
-    private void afficherConfirmationSuppression(Hike rando) {
-        String nomRando = rando != null && rando.getLibelle() != null ? rando.getLibelle() : "cette randonnée";
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Confirmation de suppression")
-                .setMessage("Etes-vous sûr de vouloir supprimer la randonnée " + nomRando + " ?")
-                .setPositiveButton("Oui", (dialog, which) -> supprimerRandonnee(rando))
-                .setNegativeButton("Non", null)
-                .show();
+    // =========================================================
+    // =========== SUPPRESSION AVEC VÉRIFICATION PARCOURS ======
+    // =========================================================
+
+    private void demanderSuppressionRandonnee(Hike hike) {
+        if (getActivity() == null) return;
+
+        ServiceParcours.getCoursesLieesARandonnee(
+                requireContext(),
+                tokenManager.getToken(),
+                hike.getId(),
+                new ServiceParcours.CoursesCallback() {
+
+                    @Override
+                    public void onSuccess(List<String> courseIds) {
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            String message = courseIds.isEmpty()
+                                    ? "Voulez-vous supprimer la randonnée ?"
+                                    : "⚠️ Cette randonnée possède " + courseIds.size()
+                                    + " parcours réalisé(s) qui seront aussi supprimés.";
+
+                            PopupUtil.showDeletePopup(
+                                    getActivity(),
+                                    message,
+                                    hike.getLibelle(),
+                                    () -> supprimerRandonnee(hike)
+                            );
+                        });
+                    }
+
+                    @Override
+                    public void onError(VolleyError error) {
+                        // Erreur API : on laisse quand même supprimer sans avertissement
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() ->
+                                PopupUtil.showDeletePopup(
+                                        getActivity(),
+                                        "Voulez-vous supprimer la randonnée ?",
+                                        hike.getLibelle(),
+                                        () -> supprimerRandonnee(hike)
+                                )
+                        );
+                    }
+                }
+        );
     }
 
     private void supprimerRandonnee(Hike rando) {
@@ -206,7 +238,6 @@ public class FragmentListeRandonnees extends Fragment implements View.OnClickLis
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Randonnée supprimée avec succès", Toast.LENGTH_SHORT).show();
                 }
-                // On rafraîchit la liste pour faire disparaître l'élément supprimé
                 initialiseListeRandos(tokenManager.getToken());
             }
 
