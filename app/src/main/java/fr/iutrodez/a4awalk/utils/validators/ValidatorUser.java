@@ -1,11 +1,14 @@
 package fr.iutrodez.a4awalk.utils.validators;
 
-import android.util.Patterns;
 import java.util.regex.Pattern;
 
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
 
-public class Validator {
+public class ValidatorUser {
+
+    // Regex pour l'email
+    private static final String EMAIL_REGEX = "^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
     // Regex pour le mot de passe : min 8 caractères, 1 majuscule, 1 caractère spécial
     private static final String PASSWORD_REGEX = "^(?=.*[A-Z])(?=.*[!@#$%^&*()]).{8,}$";
@@ -46,7 +49,7 @@ public class Validator {
             return new ValidationResult(false, "confirmPassword", "Veuillez confirmer le mot de passe", 0);
 
         // ---- Vérification email ----
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches())
+        if (!EMAIL_PATTERN.matcher(email).matches())
             return new ValidationResult(false, "email", "Email invalide", 0);
 
         // ---- Vérification âge ----

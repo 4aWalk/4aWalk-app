@@ -38,8 +38,12 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
     private Intent intentionRecu;
     private TokenManager tokenManager;
 
-    public static FragmentListeParcours newInstance() {
-        return new FragmentListeParcours();
+    public static FragmentListeParcours newInstance(User user) {
+        FragmentListeParcours fragment = new FragmentListeParcours();
+        Bundle args = new Bundle();
+        args.putParcelable("USER_DATA", user);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -48,8 +52,13 @@ public class FragmentListeParcours extends Fragment implements View.OnClickListe
         View vueDuFragment = inflater.inflate(R.layout.fragment_liste_parcours, container, false);
 
         // Initialisation User
-        intentionRecu = requireActivity().getIntent();
-        user = intentionRecu.getParcelableExtra("USER_DATA");
+        if (getArguments() != null) {
+            user = getArguments().getParcelable("USER_DATA");
+        }
+        if (user == null) {
+            intentionRecu = requireActivity().getIntent();
+            user = intentionRecu.getParcelableExtra("USER_DATA");
+        }
         listeParcours = new ArrayList<>();
 
         parcoursRecyclerView = vueDuFragment.findViewById(R.id.liste_parcours);

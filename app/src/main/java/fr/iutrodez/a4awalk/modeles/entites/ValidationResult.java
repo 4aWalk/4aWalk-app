@@ -12,4 +12,20 @@ public class ValidationResult {
         this.message = message;
         this.age = age;
     }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public int getAge() {
+        return age;
+    }
 }

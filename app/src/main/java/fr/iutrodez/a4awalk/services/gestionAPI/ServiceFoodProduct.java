@@ -80,63 +80,6 @@ public class ServiceFoodProduct {
         return foodList;
     }
 
-    /**
-     * Synchronise les produits alimentaires d'une randonnée.
-     * Compare la liste originale avec la liste temporaire et effectue les appels API nécessaires.
-     */
-    public static void synchroniserFoodProducts(Context context, String token, int hikeId,
-                                                List<FoodProduct> originaux, List<FoodProduct> temporaires) {
-
-        // 1. Trouver les AJOUTS (présents dans temporaires, absents dans originaux)
-        for (FoodProduct temp : temporaires) {
-            boolean existeDeja = false;
-            for (FoodProduct orig : originaux) {
-                if (temp.getId() == orig.getId()) {
-                    existeDeja = true;
-                    break;
-                }
-            }
-            if (!existeDeja) {
-                // Le produit a été ajouté, on fait le POST
-                lierFoodProductARandonnee(context, token, hikeId, temp.getId(), new AppelAPI.VolleyObjectCallback() {
-                    @Override public void onSuccess(JSONObject result) {
-                        Log.i("ServiceFoodProduct", "Produit " + temp.getId() + " lié avec succès.");
-                    }
-                    @Override public void onError(VolleyError error) {
-                        Log.e("ServiceFoodProduct", "Erreur lors de la liaison du produit " + temp.getId());
-                    }
-                });
-            }
-        }
-
-        // 2. Trouver les SUPPRESSIONS (présents dans originaux, absents dans temporaires)
-        for (FoodProduct orig : originaux) {
-            boolean estConserve = false;
-            for (FoodProduct temp : temporaires) {
-                if (orig.getId() == temp.getId()) {
-                    estConserve = true;
-                    break;
-                }
-            }
-            if (!estConserve) {
-                // Le produit a été retiré, on fait le DELETE
-                retirerFoodProductDeRandonnee(context, token, hikeId, orig.getId(), new AppelAPI.VolleyObjectCallback() {
-                    @Override public void onSuccess(JSONObject result) {
-                        Log.i("ServiceFoodProduct", "Produit " + orig.getId() + " retiré avec succès.");
-                    }
-                    @Override public void onError(VolleyError error) {
-                        // Gestion du cas où le DELETE renvoie un 204 No Content
-                        if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
-                            Log.i("ServiceFoodProduct", "Produit " + orig.getId() + " retiré avec succès (204).");
-                        } else {
-                            Log.e("ServiceFoodProduct", "Erreur lors du retrait du produit " + orig.getId());
-                        }
-                    }
-                });
-            }
-        }
-    }
-
     // Méthode existante conservée pour l'appel brut à l'API
     public static void creerFoodProduct(Context context, String token, FoodProduct fp, AppelAPI.VolleyObjectCallback callback) {
         String url = BASE_URL + "/foods";
@@ -189,5 +132,103 @@ public class ServiceFoodProduct {
             }
         }
         return nourritures;
+    }
+
+    /**
+     * Synchronise les produits alimentaires d'une randonnée avec l'API.
+     * Compare la liste originale avec la liste temporaire et effectue les appels API (POST/DELETE) nécessaires SÉQUENTIELLEMENT.
+     */
+    public static void synchroniserFoodProducts(Context context, String token, int hikeId,
+                                                List<FoodProduct> originaux, List<FoodProduct> temporaires) {
+
+        // 1. Construire la liste des produits à AJOUTER
+        List<FoodProduct> aAjouter = new ArrayList<>();
+        for (FoodProduct temp : temporaires) {
+            boolean existeDeja = false;
+            for (FoodProduct orig : originaux) {
+                if (temp.getId() == orig.getId()) {
+                    existeDeja = true;
+                    break;
+                }
+            }
+            if (!existeDeja) aAjouter.add(temp);
+        }
+
+        // 2. Construire la liste des produits à SUPPRIMER
+        List<FoodProduct> aSupprimer = new ArrayList<>();
+        for (FoodProduct orig : originaux) {
+            boolean estConserve = false;
+            for (FoodProduct temp : temporaires) {
+                if (orig.getId() == temp.getId()) {
+                    estConserve = true;
+                    break;
+                }
+            }
+            if (!estConserve) aSupprimer.add(orig);
+        }
+
+        // 3. Lancer les ajouts séquentiellement, puis les suppressions séquentiellement
+        ajouterSequentiellement(context, token, hikeId, aAjouter, 0, () ->
+                supprimerSequentiellement(context, token, hikeId, aSupprimer, 0)
+        );
+    }
+
+    private static void ajouterSequentiellement(Context context, String token, int hikeId,
+                                                List<FoodProduct> liste, int index,
+                                                Runnable onTermine) {
+        // Condition d'arrêt : on a parcouru toute la liste
+        if (index >= liste.size()) {
+            if (onTermine != null) onTermine.run();
+            return;
+        }
+
+        FoodProduct fp = liste.get(index);
+        lierFoodProductARandonnee(context, token, hikeId, fp.getId(),
+                new AppelAPI.VolleyObjectCallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Log.i("ServiceFoodProduct", "Produit " + fp.getId() + " lié avec succès.");
+                        // On lance le produit suivant
+                        ajouterSequentiellement(context, token, hikeId, liste, index + 1, onTermine);
+                    }
+
+                    @Override
+                    public void onError(VolleyError error) {
+                        Log.e("ServiceFoodProduct", "Erreur lors de la liaison du produit " + fp.getId());
+                        // On lance quand même le suivant pour ne pas bloquer toute la file
+                        ajouterSequentiellement(context, token, hikeId, liste, index + 1, onTermine);
+                    }
+                }
+        );
+    }
+
+    private static void supprimerSequentiellement(Context context, String token, int hikeId,
+                                                  List<FoodProduct> liste, int index) {
+        // Condition d'arrêt : on a parcouru toute la liste
+        if (index >= liste.size()) return;
+
+        FoodProduct fp = liste.get(index);
+        retirerFoodProductDeRandonnee(context, token, hikeId, fp.getId(),
+                new AppelAPI.VolleyObjectCallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Log.i("ServiceFoodProduct", "Produit " + fp.getId() + " retiré avec succès.");
+                        // On lance la suppression suivante
+                        supprimerSequentiellement(context, token, hikeId, liste, index + 1);
+                    }
+
+                    @Override
+                    public void onError(VolleyError error) {
+                        // Gestion spécifique du code 204 No Content
+                        if (error.networkResponse != null && error.networkResponse.statusCode == 204) {
+                            Log.i("ServiceFoodProduct", "Produit " + fp.getId() + " retiré avec succès (204).");
+                        } else {
+                            Log.e("ServiceFoodProduct", "Erreur lors du retrait du produit " + fp.getId());
+                        }
+                        // On continue avec le suivant
+                        supprimerSequentiellement(context, token, hikeId, liste, index + 1);
+                    }
+                }
+        );
     }
 }

@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -172,7 +173,9 @@ public class ServiceParcours {
         // Parsing de la date ISO-8601 ("2026-02-05T08:19:12.027")
         String dateStr = courseJson.optString("dateRealisation", null);
         if (dateStr != null && !dateStr.isEmpty()) {
-            course.setDateRealisation(LocalDateTime.parse(dateStr));
+            course.setDateRealisation(LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        } else {
+            course.setDateRealisation(null);
         }
 
         // --- DEPART & ARRIVEE (Gestion du null) ---

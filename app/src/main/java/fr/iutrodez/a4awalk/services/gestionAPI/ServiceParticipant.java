@@ -107,7 +107,7 @@ public class ServiceParticipant {
     }
 
     public static Participant parseParticipant(JSONObject obj) throws JSONException {
-        // [Garder le même code que tu as actuellement pour parseParticipant]
+
         Participant p = new Participant();
         p.setId(obj.getInt("id"));
         p.setPrenom(obj.optString("prenom", ""));

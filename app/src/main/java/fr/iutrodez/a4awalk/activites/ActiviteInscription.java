@@ -15,7 +15,7 @@ import java.util.List;
 
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceInscription;
 import fr.iutrodez.a4awalk.modeles.entites.ValidationResult;
-import fr.iutrodez.a4awalk.utils.validators.Validator;
+import fr.iutrodez.a4awalk.utils.validators.ValidatorUser;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
@@ -48,7 +48,7 @@ public class ActiviteInscription extends AppCompatActivity {
             String niveau = spinnerNiveau.getSelectedItem().toString();
             String morphologie = spinnerMorphologie.getSelectedItem().toString();
 
-            ValidationResult result = Validator.validate(
+            ValidationResult result = ValidatorUser.validate(
                     nom, prenom, ageStr, adresse, email, password, confirmPassword, niveau, morphologie
             );
 

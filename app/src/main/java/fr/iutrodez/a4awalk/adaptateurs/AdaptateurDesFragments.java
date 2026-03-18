@@ -23,7 +23,7 @@ public class AdaptateurDesFragments extends FragmentStateAdapter {
             case 0:
                 return FragmentListeRandonnees.newInstance(user);
             case 1:
-                return FragmentListeParcours.newInstance();
+                return FragmentListeParcours.newInstance(user);
             default:
                 return null;
         }

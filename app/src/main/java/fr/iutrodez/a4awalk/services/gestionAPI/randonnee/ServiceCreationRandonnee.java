@@ -61,7 +61,6 @@ public class ServiceCreationRandonnee {
                                                       String nomA, String descriptionA, double latitudeA, double longitudeA) {
         JSONObject json = new JSONObject();
         try {
-
             json.put("libelle", libelle);
             json.put("dureeJours", duree);
 
