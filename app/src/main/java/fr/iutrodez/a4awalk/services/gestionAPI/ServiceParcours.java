@@ -25,7 +25,7 @@ public class ServiceParcours {
 
     private static final String BASE_URL = "http://98.94.8.220:8080";
 
-    public static void terminerParcours(Context context, String id, String token) {
+    public static void terminerParcours(Context context, String token,String id) {
         String url = BASE_URL + "/courses/" + id + "/finish";
         AppelAPI.put(url, token, null, context, new AppelAPI.VolleyObjectCallback() {
             @Override
@@ -76,7 +76,6 @@ public class ServiceParcours {
             point1.put("latitude", latitude);
             point1.put("longitude", longitude);
 
-            // Point 2 : Position quasiment à côté (+ 0.0001 degré)
             JSONObject point2 = new JSONObject();
             point2.put("latitude", latitude + 0.0001);
             point2.put("longitude", longitude + 0.0001);

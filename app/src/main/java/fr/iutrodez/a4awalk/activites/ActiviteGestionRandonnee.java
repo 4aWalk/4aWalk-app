@@ -1009,7 +1009,6 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
 
         ServiceParcours.demarrerCourse(this, tokenManager.getToken(), currentHike.getId(), lat, lon, new ServiceParcours.CourseCreationCallback() {
 
-            // Le callback reçoit maintenant l'objet Course hydraté par l'API
             @Override
             public void onSuccess(Course courseCreee) {
                 btnStartCourse.setEnabled(true);
@@ -1041,6 +1040,39 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                 intent.putExtra("LATITUDES", latsArray);
                 intent.putExtra("LONGITUDES", lonsArray);
 
+                // Départ de la randonnée
+                PointOfInterest dep = currentHike.getDepart();
+                if (dep != null) {
+                    intent.putExtra("HIKE_DEPART_LAT", dep.getLatitude());
+                    intent.putExtra("HIKE_DEPART_LON", dep.getLongitude());
+                    intent.putExtra("HIKE_DEPART_NOM", dep.getNom());
+                }
+
+// Arrivée de la randonnée
+                PointOfInterest arr = currentHike.getArrivee();
+                if (arr != null) {
+                    intent.putExtra("HIKE_ARRIVEE_LAT", arr.getLatitude());
+                    intent.putExtra("HIKE_ARRIVEE_LON", arr.getLongitude());
+                    intent.putExtra("HIKE_ARRIVEE_NOM", arr.getNom());
+                }
+
+// Points optionnels
+                List<PointOfInterest> optPoints = currentHike.getOptionalPoints();
+                if (optPoints != null && !optPoints.isEmpty()) {
+                    double[] poiLats = new double[optPoints.size()];
+                    double[] poiLons  = new double[optPoints.size()];
+                    String[] poiNoms  = new String[optPoints.size()];
+                    for (int i = 0; i < optPoints.size(); i++) {
+                        poiLats[i] = optPoints.get(i).getLatitude();
+                        poiLons[i]  = optPoints.get(i).getLongitude();
+                        poiNoms[i]  = optPoints.get(i).getNom();
+                    }
+                    intent.putExtra("HIKE_POI_LATS", poiLats);
+                    intent.putExtra("HIKE_POI_LONS", poiLons);
+                    intent.putExtra("HIKE_POI_NOMS", poiNoms);
+                }
+// Passer aussi le hikeId pour que SuiviParcours puisse recharger si besoin
+                intent.putExtra("HIKE_ID", currentHike.getId());
                 startActivity(intent);
             }
 

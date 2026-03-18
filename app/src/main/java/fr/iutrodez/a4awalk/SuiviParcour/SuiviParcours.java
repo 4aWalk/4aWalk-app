@@ -33,6 +33,7 @@ import org.json.JSONObject;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -165,6 +166,55 @@ public class SuiviParcours extends AppCompatActivity {
             mapView.getController().setZoom(15.0);
             mapView.getController().setCenter(parcoursPoints.get(0));
         }
+    }
+
+    private void afficherPOIsRandonnee() {
+        // Départ de la randonnée
+        double hikeDepartLat = getIntent().getDoubleExtra("HIKE_DEPART_LAT", Double.NaN);
+        double hikeDepartLon = getIntent().getDoubleExtra("HIKE_DEPART_LON", Double.NaN);
+        String hikeDepartNom = getIntent().getStringExtra("HIKE_DEPART_NOM");
+        if (!Double.isNaN(hikeDepartLat)) {
+            ajouterMarkerPOI(hikeDepartLat, hikeDepartLon,
+                    hikeDepartNom != null ? hikeDepartNom : "Départ");
+        }
+
+        // Arrivée de la randonnée
+        double hikeArriveeLat = getIntent().getDoubleExtra("HIKE_ARRIVEE_LAT", Double.NaN);
+        double hikeArriveeLon = getIntent().getDoubleExtra("HIKE_ARRIVEE_LON", Double.NaN);
+        String hikeArriveeNom = getIntent().getStringExtra("HIKE_ARRIVEE_NOM");
+        if (!Double.isNaN(hikeArriveeLat)) {
+            ajouterMarkerPOI(hikeArriveeLat, hikeArriveeLon,
+                    hikeArriveeNom != null ? hikeArriveeNom : "Arrivée");
+        }
+
+        // Points d'intérêt optionnels
+        double[] poiLats = getIntent().getDoubleArrayExtra("HIKE_POI_LATS");
+        double[] poiLons  = getIntent().getDoubleArrayExtra("HIKE_POI_LONS");
+        String[] poiNoms  = getIntent().getStringArrayExtra("HIKE_POI_NOMS");
+        if (poiLats != null && poiLons != null) {
+            for (int i = 0; i < poiLats.length; i++) {
+                String nom = (poiNoms != null && i < poiNoms.length) ? poiNoms[i] : "POI " + (i + 1);
+                ajouterMarkerPOI(poiLats[i], poiLons[i], nom);
+            }
+        }
+    }
+
+    private void ajouterMarkerPOI(double lat, double lon, String titre) {
+        GeoPoint point = new GeoPoint(lat, lon);
+        Marker marker = new Marker(mapView);
+        marker.setPosition(point);
+        marker.setTitle(titre);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+
+        // Marker OSMdroid par défaut, teinté avec la couleur voulue
+        Drawable icon = ContextCompat.getDrawable(this, org.osmdroid.library.R.drawable.marker_default);
+        if (icon != null) {
+            icon = icon.mutate();
+            marker.setIcon(icon);
+        }
+
+        mapView.getOverlays().add(marker);
+        mapView.invalidate();
     }
 
     private void initDistanceManager() {
