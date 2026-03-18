@@ -84,7 +84,7 @@ public class PopUpParticipant {
                 setupModeCreation(context, dialog, views, token, hikeId, participant, callback);
                 break;
             case CONSULTATION:
-                setupModeConsultation(views, participant);
+                setupModeConsultation(context, views, participant);
                 break;
             case MODIFICATION:
                 setupModeModification(context, dialog, views, token, hikeId, participant, callback);
@@ -93,10 +93,6 @@ public class PopUpParticipant {
 
         // Actions communes
         views.btnClose.setOnClickListener(v -> dialog.dismiss());
-        views.btnVoirSac.setOnClickListener(v -> {
-            Intent intent = new Intent(context, SacActivity.class);
-            context.startActivity(intent);
-        });
 
         dialog.show();
         appliquerDimensionsDialog(context, dialog);
@@ -163,13 +159,15 @@ public class PopUpParticipant {
         );
     }
 
-    private static void setupModeConsultation(ParticipantViewHolder views, Participant participant) {
+    private static void setupModeConsultation(Context context, ParticipantViewHolder views, Participant participant) {
         if (participant == null) return;
         remplirChamps(views, participant);
         verrouillerChamps(views);
         views.btnAction.setVisibility(View.GONE);
         views.btnSupprimer.setVisibility(View.GONE);
         views.cbSacADos.setEnabled(false);
+
+        configurerBoutonSacADos(context, views, participant);
     }
 
     private static void setupModeModification(Context context, Dialog dialog, ParticipantViewHolder views,
@@ -180,14 +178,10 @@ public class PopUpParticipant {
         remplirChamps(views, participant);
         views.btnAction.setText(R.string.btnModifier);
         views.btnAction.setVisibility(View.VISIBLE);
-        views.btnVoirSac.setVisibility(View.GONE);
         views.btnSupprimer.setVisibility(View.VISIBLE);
 
         // Chargement des participants existants
         chargerEtAfficherMesParticipants(context, token, views);
-
-        // Appel de notre nouvelle méthode (au lieu de views.btnVoirSac.setVisibility(View.GONE))
-        configurerBoutonSacADos(context, views, participant);
 
         views.btnAction.setOnClickListener(v ->
                 traiterSoumission(context, dialog, views, hikeId, participant.getId(), callback, true)
