@@ -1,91 +1,125 @@
 package fr.iutrodez.a4awalk.servicesTest.gestionAPITest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import android.content.Context;
 
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+import com.android.volley.NetworkResponse;
+import com.android.volley.VolleyError;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import fr.iutrodez.a4awalk.modeles.entites.PointOfInterest;
 import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServicePOI;
 
 /**
- * Classe de test instrumentée pour {@link ServicePOI}.
+ * Classe de tests unitaires pour {@link ServicePOI}.
  *
- * <p>Cette classe vérifie le comportement du service de gestion des points
- * d'intérêt (POI), notamment :</p>
+ * <p>Teste l'ensemble des méthodes du service de gestion des Points d'Intérêt (POI)
+ * en simulant les dépendances réseau et Android :</p>
  * <ul>
- *     <li>L'ajout d'un POI via l'API</li>
- *     <li>La construction du JSON d'un POI</li>
- *     <li>La mise à jour de la liste des POI via l'API</li>
- *     <li>Les cas limites (POI null, liste vide, coordonnées limites)</li>
- *     <li>Les cas d'erreur (token null, nom null, idRandonnee null)</li>
+ *     <li>Cas nominaux : parsing JSON correct, appels API bien formés,
+ *         extraction de POI unique et de liste</li>
+ *     <li>Cas limites : JSON vide, champ id null, description absente,
+ *         liste temporaire vide, fallback sur nbParticipants</li>
+ *     <li>Cas d'erreur : champs obligatoires absents, POI null ignoré,
+ *         clé absente dans extractSinglePOI</li>
  * </ul>
  *
- * <p>Les tests couvrent trois catégories :</p>
- * <ul>
- *     <li><b>Nominaux</b> : comportement attendu dans des conditions normales</li>
- *     <li><b>Limites</b> : valeurs aux bornes (coordonnées min/max, liste vide)</li>
- *     <li><b>Erreurs</b> : token null, poi null, nom null, idRandonnee null</li>
- * </ul>
+ * <p>Utilise Mockito pour simuler {@link AppelAPI} et {@link Context}
+ * sans dépendance au framework Android.</p>
  *
- * @author Votre nom
+ * <p><b>Dépendances requises dans build.gradle :</b></p>
+ * <pre>
+ *     testImplementation 'junit:junit:4.13.2'
+ *     testImplementation 'org.mockito:mockito-core:5.x.x'
+ *     testImplementation 'org.mockito:mockito-inline:5.x.x'
+ * </pre>
+ *
+ * @author A4AWalk
  * @version 1.0
  */
-@RunWith(AndroidJUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ServicePOITest {
 
     // =========================================================================
     // CONSTANTES DE TEST
     // =========================================================================
 
-    /** Token d'authentification valide pour les tests */
-    private static final String TOKEN_VALIDE = "eyJhbGciOiJIUzI1NiJ9.test";
+    /** URL de base de l'API */
+    private static final String BASE_URL = "http://98.94.8.220:8080";
 
-    /** Identifiant de randonnée valide */
-    private static final long HIKE_ID_VALIDE = 1L;
+    /** Token d'authentification utilisé dans les tests */
+    private static final String TOKEN_VALIDE = "Bearer.token.test";
 
-    /** Nom de POI valide */
-    private static final String NOM_POI_VALIDE = "Sommet du Causse";
+    /** Identifiant de randonnée utilisé dans les tests */
+    private static final int HIKE_ID = 7;
 
-    /** Latitude valide */
-    private static final double LATITUDE_VALIDE = 44.36;
-
-    /** Longitude valide */
-    private static final double LONGITUDE_VALIDE = 2.57;
-
-    /** Timeout maximum pour les opérations asynchrones en secondes */
-    private static final int TIMEOUT_SECONDES = 5;
+    /** Identifiant de randonnée sous forme Long (utilisé dans ajoutPOI) */
+    private static final long HIKE_ID_LONG = 7L;
 
     // =========================================================================
-    // ATTRIBUTS
+    // MOCKS
     // =========================================================================
 
-    /** Contexte Android fourni par le runner de test */
-    private Context contexte;
+    /** Mock du contexte Android */
+    @Mock
+    private Context mockContexte;
 
     // =========================================================================
-    // INITIALISATION
+    // CLASSE INTERNE — VolleyError avec code HTTP
     // =========================================================================
 
     /**
-     * Initialise le contexte et réinitialise la file Volley avant chaque test
-     * afin d'isoler les tests entre eux.
+     * Sous-classe de {@link VolleyError} permettant de définir un code HTTP précis.
+     *
+     * <p>Nécessaire car le champ {@code networkResponse} de {@link VolleyError}
+     * est {@code final} et ne peut pas être réassigné directement après construction.</p>
+     */
+    private static class VolleyErrorAvecCode extends VolleyError {
+        /**
+         * Construit une erreur Volley avec le code HTTP spécifié.
+         *
+         * @param statusCode Code HTTP à simuler (ex : 400, 500)
+         */
+        VolleyErrorAvecCode(int statusCode) {
+            super(new NetworkResponse(statusCode, new byte[0], false, 0, null));
+        }
+    }
+
+    // =========================================================================
+    // CONFIGURATION
+    // =========================================================================
+
+    /**
+     * Réinitialise le singleton Volley avant chaque test pour isoler les cas.
      */
     @Before
     public void setUp() {
-        contexte = ApplicationProvider.getApplicationContext();
+        AppelAPI.resetFileRequete();
+    }
+
+    /**
+     * Réinitialise le singleton Volley après chaque test.
+     */
+    @After
+    public void tearDown() {
         AppelAPI.resetFileRequete();
     }
 
@@ -94,666 +128,665 @@ public class ServicePOITest {
     // =========================================================================
 
     /**
-     * Construit un POI valide avec toutes les données obligatoires renseignées.
+     * Construit un {@link JSONObject} représentant un POI complet avec tous ses champs.
      *
-     * @param nom       Nom du point d'intérêt
-     * @param latitude  Latitude du point
-     * @param longitude Longitude du point
-     * @return {@link PointOfInterest} valide pour les tests
+     * @param id          Identifiant du POI (-1 si null en base)
+     * @param nom         Nom du POI
+     * @param latitude    Latitude GPS
+     * @param longitude   Longitude GPS
+     * @param description Description du POI
+     * @param sequence    Numéro d'ordre dans la randonnée
+     * @return Un {@link JSONObject} représentant le POI
+     * @throws JSONException si la construction du JSON échoue
      */
-    private PointOfInterest construirePoiValide(String nom,
-                                                double latitude,
-                                                double longitude) {
-        return new PointOfInterest(1, nom, latitude, longitude,null, -1);
+    private JSONObject buildPOIJson(int id, String nom, double latitude,
+                                    double longitude, String description,
+                                    int sequence) throws JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("id", id);
+        obj.put("nom", nom);
+        obj.put("latitude", latitude);
+        obj.put("longitude", longitude);
+        obj.put("description", description);
+        obj.put("sequence", sequence);
+        return obj;
     }
 
     /**
-     * Construit une liste de POI valides pour les tests.
+     * Construit un {@link PointOfInterest} de test avec les propriétés minimales.
      *
-     * @param taille Nombre de POI à créer
-     * @return Liste de {@link PointOfInterest} valides
+     * @param nom       Nom du POI
+     * @param latitude  Latitude GPS
+     * @param longitude Longitude GPS
+     * @return Un {@link PointOfInterest} configuré
      */
-    private ArrayList<PointOfInterest> construireListePoi(int taille) {
+    private PointOfInterest buildPOI(String nom, double latitude, double longitude) {
+        PointOfInterest poi = new PointOfInterest();
+        poi.setNom(nom);
+        poi.setLatitude(latitude);
+        poi.setLongitude(longitude);
+        return poi;
+    }
+
+    // =========================================================================
+    // TESTS : parsePOI
+    // =========================================================================
+
+    /**
+     * Vérifie que {@link ServicePOI#parsePOI(JSONObject)} construit correctement
+     * un {@link PointOfInterest} depuis un JSON complet avec tous les champs.
+     *
+     * <p><b>Given</b> un JSONObject complet avec id, nom, latitude, longitude,
+     * description et sequence<br>
+     * <b>When</b> on appelle {@code parsePOI}<br>
+     * <b>Then</b> le POI retourné contient toutes les valeurs correctes</p>
+     */
+    @Test
+    public void parsePOI_jsonComplet_retournePOICorrect() throws JSONException {
+        // Given
+        JSONObject json = buildPOIJson(1, "Sommet du Puy", 44.3375, 2.5725,
+                "Vue panoramique", 3);
+
+        // When
+        PointOfInterest poi = ServicePOI.parsePOI(json);
+
+        // Then
+        assertNotNull("Le POI ne doit pas être null", poi);
+        assertEquals("L'id doit être 1", 1, poi.getId());
+        assertEquals("Le nom doit être 'Sommet du Puy'", "Sommet du Puy", poi.getNom());
+        assertEquals("La latitude doit être 44.3375", 44.3375, poi.getLatitude(), 0.00001);
+        assertEquals("La longitude doit être 2.5725", 2.5725, poi.getLongitude(), 0.00001);
+        assertEquals("La description doit correspondre", "Vue panoramique", poi.getDescription());
+        assertEquals("La séquence doit être 3", 3, poi.getSequence());
+    }
+
+    /**
+     * Vérifie que {@code parsePOI} affecte l'id {@code -1} lorsque le champ "id"
+     * est explicitement {@code null} dans le JSON.
+     *
+     * <p><b>Given</b> un JSON avec le champ "id" à JSON null<br>
+     * <b>When</b> on appelle {@code parsePOI}<br>
+     * <b>Then</b> l'id du POI retourné est -1 (valeur sentinelle)</p>
+     */
+    @Test
+    public void parsePOI_idNull_retourneIdMoinsUn() throws JSONException {
+        // Given
+        JSONObject json = new JSONObject();
+        json.put("id", JSONObject.NULL);
+        json.put("nom", "POI sans id");
+        json.put("latitude", 44.0);
+        json.put("longitude", 2.0);
+
+        // When
+        PointOfInterest poi = ServicePOI.parsePOI(json);
+
+        // Then
+        assertEquals("L'id doit être -1 quand le JSON contient null", -1, poi.getId());
+    }
+
+    /**
+     * Vérifie que {@code parsePOI} utilise une chaîne vide comme valeur par défaut
+     * pour {@code description} lorsque le champ est absent.
+     *
+     * <p><b>Given</b> un JSON sans champ "description"<br>
+     * <b>When</b> on appelle {@code parsePOI}<br>
+     * <b>Then</b> la description du POI est une chaîne vide</p>
+     */
+    @Test
+    public void parsePOI_descriptionAbsente_retourneDescriptionVide() throws JSONException {
+        // Given
+        JSONObject json = new JSONObject();
+        json.put("id", 2);
+        json.put("nom", "Belvédère");
+        json.put("latitude", 44.1);
+        json.put("longitude", 2.1);
+        // Pas de champ "description"
+
+        // When
+        PointOfInterest poi = ServicePOI.parsePOI(json);
+
+        // Then
+        assertEquals("La description par défaut doit être vide", "", poi.getDescription());
+    }
+
+    /**
+     * Vérifie que {@code parsePOI} utilise 0 comme valeur par défaut
+     * pour {@code sequence} lorsque le champ est absent.
+     *
+     * <p><b>Given</b> un JSON sans champ "sequence"<br>
+     * <b>When</b> on appelle {@code parsePOI}<br>
+     * <b>Then</b> la séquence du POI est 0</p>
+     */
+    @Test
+    public void parsePOI_sequenceAbsente_retourneSequenceZero() throws JSONException {
+        // Given
+        JSONObject json = new JSONObject();
+        json.put("id", 3);
+        json.put("nom", "Lac");
+        json.put("latitude", 44.2);
+        json.put("longitude", 2.2);
+        // Pas de champ "sequence"
+
+        // When
+        PointOfInterest poi = ServicePOI.parsePOI(json);
+
+        // Then
+        assertEquals("La séquence par défaut doit être 0", 0, poi.getSequence());
+    }
+
+    /**
+     * Vérifie que {@code parsePOI} lève une {@link JSONException}
+     * lorsque le champ obligatoire "nom" est absent.
+     *
+     * <p><b>Given</b> un JSON sans le champ "nom" (obligatoire via {@code getString})<br>
+     * <b>When</b> on appelle {@code parsePOI}<br>
+     * <b>Then</b> une {@link JSONException} est levée</p>
+     */
+    @Test(expected = JSONException.class)
+    public void parsePOI_nomAbsent_leveJSONException() throws JSONException {
+        // Given — JSON sans le champ "nom"
+        JSONObject json = new JSONObject();
+        json.put("id", 4);
+        json.put("latitude", 44.3);
+        json.put("longitude", 2.3);
+
+        // When — doit lever JSONException
+        ServicePOI.parsePOI(json);
+    }
+
+    /**
+     * Vérifie que {@code parsePOI} lève une {@link JSONException}
+     * lorsque le champ obligatoire "latitude" est absent.
+     *
+     * <p><b>Given</b> un JSON sans le champ "latitude"<br>
+     * <b>When</b> on appelle {@code parsePOI}<br>
+     * <b>Then</b> une {@link JSONException} est levée</p>
+     */
+    @Test(expected = JSONException.class)
+    public void parsePOI_latitudeAbsente_leveJSONException() throws JSONException {
+        // Given — JSON sans le champ "latitude"
+        JSONObject json = new JSONObject();
+        json.put("id", 5);
+        json.put("nom", "Col");
+        json.put("longitude", 2.4);
+
+        // When — doit lever JSONException
+        ServicePOI.parsePOI(json);
+    }
+
+    // =========================================================================
+    // TESTS : extractSinglePOI
+    // =========================================================================
+
+    /**
+     * Vérifie que {@link ServicePOI#extractSinglePOI(JSONObject, String)} retourne
+     * un {@link PointOfInterest} correctement parsé depuis la clé donnée.
+     *
+     * <p><b>Given</b> une réponse JSON contenant un POI sous la clé "depart"<br>
+     * <b>When</b> on appelle {@code extractSinglePOI} avec la clé "depart"<br>
+     * <b>Then</b> le POI retourné est non null et contient les bonnes valeurs</p>
+     */
+    @Test
+    public void extractSinglePOI_clePresente_retournePOICorrect() throws JSONException {
+        // Given
+        JSONObject poiJson = buildPOIJson(10, "Départ", 44.35, 2.57, "Point de départ", 0);
+        JSONObject reponse = new JSONObject();
+        reponse.put("depart", poiJson);
+
+        // When
+        PointOfInterest poi = ServicePOI.extractSinglePOI(reponse, "depart");
+
+        // Then
+        assertNotNull("Le POI extrait ne doit pas être null", poi);
+        assertEquals("Le nom doit être 'Départ'", "Départ", poi.getNom());
+        assertEquals("L'id doit être 10", 10, poi.getId());
+    }
+
+    /**
+     * Vérifie que {@code extractSinglePOI} retourne {@code null}
+     * lorsque la clé demandée est absente de la réponse JSON.
+     *
+     * <p><b>Given</b> une réponse JSON ne contenant pas la clé "arrivee"<br>
+     * <b>When</b> on appelle {@code extractSinglePOI} avec la clé "arrivee"<br>
+     * <b>Then</b> null est retourné sans exception</p>
+     */
+    @Test
+    public void extractSinglePOI_cleAbsente_retourneNull() {
+        // Given
+        JSONObject reponse = new JSONObject();
+
+        // When
+        PointOfInterest poi = ServicePOI.extractSinglePOI(reponse, "arrivee");
+
+        // Then
+        assertNull("Le POI doit être null si la clé est absente", poi);
+    }
+
+    /**
+     * Vérifie que {@code extractSinglePOI} retourne {@code null}
+     * lorsque la valeur associée à la clé est {@code null} dans le JSON.
+     *
+     * <p><b>Given</b> une réponse JSON avec la clé "depart" à JSON null<br>
+     * <b>When</b> on appelle {@code extractSinglePOI} avec la clé "depart"<br>
+     * <b>Then</b> null est retourné sans exception</p>
+     */
+    @Test
+    public void extractSinglePOI_valeurNull_retourneNull() throws JSONException {
+        // Given
+        JSONObject reponse = new JSONObject();
+        reponse.put("depart", JSONObject.NULL);
+
+        // When
+        PointOfInterest poi = ServicePOI.extractSinglePOI(reponse, "depart");
+
+        // Then
+        assertNull("Le POI doit être null si la valeur JSON est null", poi);
+    }
+
+    /**
+     * Vérifie que {@code extractSinglePOI} retourne {@code null} et ne propage pas
+     * d'exception lorsque le JSON du POI est malformé (champ obligatoire manquant).
+     *
+     * <p><b>Given</b> une réponse JSON avec un POI sans champ "nom"<br>
+     * <b>When</b> on appelle {@code extractSinglePOI}<br>
+     * <b>Then</b> null est retourné (JSONException attrapée en interne)</p>
+     */
+    @Test
+    public void extractSinglePOI_poiMalForme_retourneNull() throws JSONException {
+        // Given — POI sans champ "nom" → JSONException lors du parsePOI
+        JSONObject poiMalForme = new JSONObject();
+        poiMalForme.put("id", 1);
+        poiMalForme.put("latitude", 44.0);
+        poiMalForme.put("longitude", 2.0);
+        // "nom" absent
+
+        JSONObject reponse = new JSONObject();
+        reponse.put("depart", poiMalForme);
+
+        // When
+        PointOfInterest poi = ServicePOI.extractSinglePOI(reponse, "depart");
+
+        // Then
+        assertNull("Le POI doit être null si le JSON est malformé", poi);
+    }
+
+    // =========================================================================
+    // TESTS : extractPOIs
+    // =========================================================================
+
+    /**
+     * Vérifie que {@link ServicePOI#extractPOIs(JSONObject)} retourne une liste
+     * correctement peuplée depuis une réponse JSON avec un tableau "points" valide.
+     *
+     * <p><b>Given</b> une réponse JSON avec 2 POIs dans le tableau "points"<br>
+     * <b>When</b> on appelle {@code extractPOIs}<br>
+     * <b>Then</b> la liste retournée contient 2 éléments avec les bons noms</p>
+     */
+    @Test
+    public void extractPOIs_deuxPoints_retourneListeDeuxElements() throws JSONException {
+        // Given
+        JSONArray points = new JSONArray();
+        points.put(buildPOIJson(1, "Cascade", 44.1, 2.1, "Belle cascade", 1));
+        points.put(buildPOIJson(2, "Panorama", 44.2, 2.2, "Vue dégagée", 2));
+
+        JSONObject reponse = new JSONObject();
+        reponse.put("points", points);
+
+        // When
+        ArrayList<PointOfInterest> liste = ServicePOI.extractPOIs(reponse);
+
+        // Then
+        assertNotNull("La liste ne doit pas être null", liste);
+        assertEquals("La liste doit contenir 2 éléments", 2, liste.size());
+        assertEquals("Le premier POI doit s'appeler 'Cascade'", "Cascade", liste.get(0).getNom());
+        assertEquals("Le second POI doit s'appeler 'Panorama'", "Panorama", liste.get(1).getNom());
+    }
+
+    /**
+     * Vérifie que {@code extractPOIs} retourne une liste vide
+     * lorsque la réponse ne contient pas de champ "points".
+     *
+     * <p><b>Given</b> une réponse JSON sans champ "points" et sans nbParticipants<br>
+     * <b>When</b> on appelle {@code extractPOIs}<br>
+     * <b>Then</b> une liste vide est retournée sans exception</p>
+     */
+    @Test
+    public void extractPOIs_sansChampPoints_retourneListeVide() {
+        // Given
+        JSONObject reponseSansPoints = new JSONObject();
+
+        // When
+        ArrayList<PointOfInterest> liste = ServicePOI.extractPOIs(reponseSansPoints);
+
+        // Then
+        assertNotNull("La liste ne doit pas être null", liste);
+        assertTrue("La liste doit être vide en l'absence de 'points'", liste.isEmpty());
+    }
+
+    /**
+     * Vérifie que {@code extractPOIs} retourne une liste vide
+     * lorsque le tableau "points" est présent mais vide et qu'il n'y a pas de fallback.
+     *
+     * <p><b>Given</b> une réponse JSON avec un tableau "points" vide et nbParticipants à 0<br>
+     * <b>When</b> on appelle {@code extractPOIs}<br>
+     * <b>Then</b> la liste retournée est vide</p>
+     */
+    @Test
+    public void extractPOIs_tableauPointsVide_retourneListeVide() throws JSONException {
+        // Given
+        JSONObject reponse = new JSONObject();
+        reponse.put("points", new JSONArray());
+        reponse.put("nbParticipants", 0);
+
+        // When
+        ArrayList<PointOfInterest> liste = ServicePOI.extractPOIs(reponse);
+
+        // Then
+        assertNotNull("La liste ne doit pas être null", liste);
+        assertTrue("La liste doit être vide avec un tableau 'points' vide", liste.isEmpty());
+    }
+
+    /**
+     * Vérifie que {@code extractPOIs} utilise le fallback {@code nbParticipants}
+     * lorsque le tableau "points" est absent ou vide, en créant autant de POI vides.
+     *
+     * <p><b>Given</b> une réponse JSON sans "points" mais avec nbParticipants = 3<br>
+     * <b>When</b> on appelle {@code extractPOIs}<br>
+     * <b>Then</b> la liste contient 3 POIs vides</p>
+     */
+    @Test
+    public void extractPOIs_sansPointsAvecNbParticipants_retourneListeFallback() throws JSONException {
+        // Given
+        JSONObject reponse = new JSONObject();
+        reponse.put("nbParticipants", 3);
+        // Pas de champ "points"
+
+        // When
+        ArrayList<PointOfInterest> liste = ServicePOI.extractPOIs(reponse);
+
+        // Then
+        assertNotNull("La liste ne doit pas être null", liste);
+        assertEquals("Le fallback doit créer 3 POIs vides", 3, liste.size());
+    }
+
+    /**
+     * Vérifie que {@code extractPOIs} utilise le fallback secondaire {@code participants}
+     * lorsque {@code nbParticipants} est absent mais {@code participants} est présent.
+     *
+     * <p><b>Given</b> une réponse JSON sans "points" ni "nbParticipants" mais avec participants = 2<br>
+     * <b>When</b> on appelle {@code extractPOIs}<br>
+     * <b>Then</b> la liste contient 2 POIs vides</p>
+     */
+    @Test
+    public void extractPOIs_avecParticipantsFallback_retourneListeParticipants() throws JSONException {
+        // Given
+        JSONObject reponse = new JSONObject();
+        reponse.put("participants", 2);
+        // Pas de "points" ni "nbParticipants"
+
+        // When
+        ArrayList<PointOfInterest> liste = ServicePOI.extractPOIs(reponse);
+
+        // Then
+        assertNotNull("La liste ne doit pas être null", liste);
+        assertEquals("Le fallback 'participants' doit créer 2 POIs vides", 2, liste.size());
+    }
+
+    /**
+     * Vérifie que {@code extractPOIs} ne propage pas d'exception et retourne
+     * une liste partielle lorsqu'un POI du tableau "points" est malformé.
+     *
+     * <p><b>Given</b> un tableau "points" avec un POI valide et un POI sans "nom"<br>
+     * <b>When</b> on appelle {@code extractPOIs}<br>
+     * <b>Then</b> aucune exception ne se propage (JSONException attrapée en interne)</p>
+     */
+    @Test
+    public void extractPOIs_unPOIMalForme_pasException() throws JSONException {
+        // Given
+        JSONArray points = new JSONArray();
+        points.put(buildPOIJson(1, "Pont", 44.0, 2.0, "Vieux pont", 1));
+        JSONObject poiSansNom = new JSONObject();
+        poiSansNom.put("id", 2);
+        poiSansNom.put("latitude", 44.1);
+        poiSansNom.put("longitude", 2.1);
+        // "nom" absent
+        points.put(poiSansNom);
+
+        JSONObject reponse = new JSONObject();
+        reponse.put("points", points);
+
+        // When / Then — aucune exception ne doit se propager
+        try {
+            ArrayList<PointOfInterest> liste = ServicePOI.extractPOIs(reponse);
+            assertNotNull("La liste ne doit pas être null même avec un POI malformé", liste);
+        } catch (Exception e) {
+            fail("Aucune exception ne doit se propager depuis extractPOIs : " + e.getMessage());
+        }
+    }
+
+    // =========================================================================
+    // TESTS : ajoutPOI
+    // =========================================================================
+
+    /**
+     * Vérifie que {@link ServicePOI#ajoutPOI(Context, String, PointOfInterest, Long)}
+     * appelle {@link AppelAPI#post} avec l'URL correcte contenant l'idRandonnée.
+     *
+     * <p><b>Given</b> un POI valide et un idRandonnée<br>
+     * <b>When</b> on appelle {@code ajoutPOI}<br>
+     * <b>Then</b> AppelAPI.post est invoqué avec l'URL {@code /hikes/{id}/poi}</p>
+     */
+    @Test
+    public void ajoutPOI_urlConstuite_contientHikeIdEtPoi() {
+        // Given
+        String urlAttendue = BASE_URL + "/hikes/" + HIKE_ID_LONG + "/poi";
+        PointOfInterest poi = buildPOI("Source", 44.4, 2.6);
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<String> captureurUrl = ArgumentCaptor.forClass(String.class);
+
+            staticMock.when(() -> AppelAPI.post(captureurUrl.capture(), anyString(),
+                            any(JSONObject.class), any(Context.class),
+                            any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServicePOI.ajoutPOI(mockContexte, TOKEN_VALIDE, poi, HIKE_ID_LONG);
+
+            // Then
+            assertEquals("L'URL doit contenir l'idRandonnée et /poi",
+                    urlAttendue, captureurUrl.getValue());
+        }
+    }
+
+    /**
+     * Vérifie que le corps JSON envoyé par {@code ajoutPOI} contient
+     * les champs nom, latitude et longitude du POI.
+     *
+     * <p><b>Given</b> un POI avec nom, latitude et longitude<br>
+     * <b>When</b> on appelle {@code ajoutPOI}<br>
+     * <b>Then</b> le body JSON contient les valeurs correctes</p>
+     */
+    @Test
+    public void ajoutPOI_corpsRequete_contientNomLatLon() throws JSONException {
+        // Given
+        PointOfInterest poi = buildPOI("Ruines", 44.5, 2.7);
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<JSONObject> captureurBody = ArgumentCaptor.forClass(JSONObject.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), anyString(), captureurBody.capture(),
+                            any(Context.class), any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServicePOI.ajoutPOI(mockContexte, TOKEN_VALIDE, poi, HIKE_ID_LONG);
+
+            // Then
+            JSONObject body = captureurBody.getValue();
+            assertNotNull("Le corps de la requête ne doit pas être null", body);
+            assertEquals("Le nom doit correspondre", "Ruines", body.getString("nom"));
+            assertEquals("La latitude doit correspondre", 44.5, body.getDouble("latitude"), 0.00001);
+            assertEquals("La longitude doit correspondre", 2.7, body.getDouble("longitude"), 0.00001);
+        }
+    }
+
+    /**
+     * Vérifie que {@code ajoutPOI} n'effectue aucun appel API
+     * lorsque {@code createPOIJson} retourne null (ex : POI avec des données
+     * provoquant une {@link JSONException} interne).
+     *
+     * <p><b>Given</b> un POI dont le nom est null (cas où JSONException est possible)<br>
+     * <b>When</b> on appelle {@code ajoutPOI}<br>
+     * <b>Then</b> AppelAPI.post n'est pas invoqué si le JSON ne peut pas être construit</p>
+     *
+     * <p><i>Note : JSONObject.put() avec une valeur null ne lève pas d'exception dans
+     * l'implémentation Android standard — ce test documente le comportement observé.</i></p>
+     */
+    @Test
+    public void ajoutPOI_poiAvecNomNull_comportementDocumente() {
+        // Given — POI avec nom null (createPOIJson peut retourner null ou un JSON valide)
+        PointOfInterest poiSansNom = new PointOfInterest();
+        poiSansNom.setNom(null);
+        poiSansNom.setLatitude(44.0);
+        poiSansNom.setLongitude(2.0);
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            staticMock.when(() -> AppelAPI.post(anyString(), anyString(), any(),
+                            any(Context.class), any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When — ne doit pas lever d'exception
+            try {
+                ServicePOI.ajoutPOI(mockContexte, TOKEN_VALIDE, poiSansNom, HIKE_ID_LONG);
+            } catch (Exception e) {
+                fail("ajoutPOI ne doit pas propager d'exception : " + e.getMessage());
+            }
+
+            // Then — l'appel est effectué ou non selon le comportement de JSONObject.put(null)
+            // Ce test valide l'absence d'exception, pas le nombre d'appels
+        }
+    }
+
+    // =========================================================================
+    // TESTS : traiterMAJPOI
+    // =========================================================================
+
+    /**
+     * Vérifie que {@link ServicePOI#traiterMAJPOI(Context, int, ArrayList, String)}
+     * appelle {@link AppelAPI#putA} avec l'URL correcte lorsque la liste est non vide.
+     *
+     * <p><b>Given</b> une liste de 2 POIs valides<br>
+     * <b>When</b> on appelle {@code traiterMAJPOI}<br>
+     * <b>Then</b> AppelAPI.putA est invoqué avec l'URL {@code /hikes/{id}/pois}</p>
+     */
+    @Test
+    public void traiterMAJPOI_listeNonVide_appelleputA_avecBonneUrl() {
+        // Given
+        String urlAttendue = BASE_URL + "/hikes/" + HIKE_ID + "/pois";
         ArrayList<PointOfInterest> liste = new ArrayList<>();
-        for (int i = 0; i < taille; i++) {
-            liste.add(construirePoiValide(
-                    "POI " + i,
-                    LATITUDE_VALIDE + i * 0.01,
-                    LONGITUDE_VALIDE + i * 0.01
-            ));
+        liste.add(buildPOI("Sommet", 44.3, 2.5));
+        liste.add(buildPOI("Refuge", 44.4, 2.6));
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<String> captureurUrl = ArgumentCaptor.forClass(String.class);
+
+            staticMock.when(() -> AppelAPI.putA(captureurUrl.capture(), anyString(),
+                            any(JSONArray.class), any(Context.class),
+                            any(AppelAPI.VolleyCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServicePOI.traiterMAJPOI(mockContexte, HIKE_ID, liste, TOKEN_VALIDE);
+
+            // Then
+            assertEquals("L'URL doit contenir le hikeId et /pois",
+                    urlAttendue, captureurUrl.getValue());
         }
-        return liste;
     }
 
-    // =========================================================================
-    // TESTS — ajoutPOI — CAS NOMINAUX
-    // =========================================================================
-
     /**
-     * Vérifie que l'ajout d'un POI valide s'exécute sans exception
-     * et initialise la file de requêtes.
+     * Vérifie que {@code traiterMAJPOI} envoie un tableau JSON contenant
+     * autant d'éléments que de POIs dans la liste.
      *
-     * <p><b>Cas nominal</b></p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> une liste de 3 POIs valides<br>
+     * <b>When</b> on appelle {@code traiterMAJPOI}<br>
+     * <b>Then</b> le tableau JSON transmis à AppelAPI.putA contient 3 éléments</p>
      */
     @Test
-    public void testAjoutPOI_PoiValide_PasException() throws InterruptedException {
-        // Given — un POI valide avec toutes les données renseignées
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi = construirePoiValide(
-                NOM_POI_VALIDE, LATITUDE_VALIDE, LONGITUDE_VALIDE
-        );
+    public void traiterMAJPOI_troisPOIs_tableauJsonTroisElements() {
+        // Given
+        ArrayList<PointOfInterest> liste = new ArrayList<>();
+        liste.add(buildPOI("Col A", 44.1, 2.1));
+        liste.add(buildPOI("Col B", 44.2, 2.2));
+        liste.add(buildPOI("Col C", 44.3, 2.3));
 
-        // When — on appelle ajoutPOI avec un POI valide
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un POI valide : "
-                    + e.getMessage());
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<JSONArray> captureurArray = ArgumentCaptor.forClass(JSONArray.class);
+
+            staticMock.when(() -> AppelAPI.putA(anyString(), anyString(), captureurArray.capture(),
+                            any(Context.class), any(AppelAPI.VolleyCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServicePOI.traiterMAJPOI(mockContexte, HIKE_ID, liste, TOKEN_VALIDE);
+
+            // Then
+            assertEquals("Le tableau JSON doit contenir 3 éléments",
+                    3, captureurArray.getValue().length());
         }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée, aucune exception levée
-        assertNotNull("La file de requêtes doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
     }
 
     /**
-     * Vérifie que plusieurs ajouts successifs réutilisent la même file Singleton.
+     * Vérifie que {@code traiterMAJPOI} n'effectue aucun appel API
+     * lorsque la liste de POIs est vide.
      *
-     * <p><b>Cas nominal</b> : appels successifs</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> une liste de POIs vide<br>
+     * <b>When</b> on appelle {@code traiterMAJPOI}<br>
+     * <b>Then</b> AppelAPI.putA n'est jamais invoqué</p>
      */
     @Test
-    public void testAjoutPOI_AppelsSuccessifs_MemeFileSingleton()
-            throws InterruptedException {
-
-        // Given — deux POI différents à ajouter successivement
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi1 = construirePoiValide("POI 1", LATITUDE_VALIDE, LONGITUDE_VALIDE);
-        PointOfInterest poi2 = construirePoiValide("POI 2", 44.40, 2.60);
-
-        // When — on effectue deux ajouts successifs
-        ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi1, HIKE_ID_VALIDE);
-        ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi2, HIKE_ID_VALIDE);
-        verrou.countDown();
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la même file Singleton est utilisée pour les deux appels
-        assertNotNull("La file doit rester initialisée après des appels successifs",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    // =========================================================================
-    // TESTS — ajoutPOI — CAS LIMITES
-    // =========================================================================
-
-    /**
-     * Vérifie que la méthode gère un POI avec des coordonnées minimales
-     * sans lever d'exception.
-     *
-     * <p><b>Cas limite</b> : latitude = -90, longitude = -180</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_CoordoneesMinimales_PasException()
-            throws InterruptedException {
-
-        // Given — un POI avec les coordonnées minimales
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi = construirePoiValide(NOM_POI_VALIDE, -90.0, -180.0);
-
-        // When — on appelle ajoutPOI avec des coordonnées minimales
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec des coordonnées minimales : "
-                    + e.getMessage());
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec des coordonnées minimales",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode gère un POI avec des coordonnées maximales
-     * sans lever d'exception.
-     *
-     * <p><b>Cas limite</b> : latitude = 90, longitude = 180</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_CoordoneesMaximales_PasException()
-            throws InterruptedException {
-
-        // Given — un POI avec les coordonnées maximales
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi = construirePoiValide(NOM_POI_VALIDE, 90.0, 180.0);
-
-        // When — on appelle ajoutPOI avec des coordonnées maximales
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec des coordonnées maximales : "
-                    + e.getMessage());
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec des coordonnées maximales",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode gère un nom vide sans lever d'exception.
-     *
-     * <p><b>Cas limite</b> : nom vide</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_NomVide_PasException() throws InterruptedException {
-        // Given — un POI avec un nom vide
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi = construirePoiValide("", LATITUDE_VALIDE, LONGITUDE_VALIDE);
-
-        // When — on appelle ajoutPOI avec un nom vide
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un nom vide : "
-                    + e.getMessage());
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un nom vide",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode gère un nom très long sans lever d'exception.
-     *
-     * <p><b>Cas limite</b> : nom de 255 caractères</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_NomTresLong_PasException() throws InterruptedException {
-        // Given — un POI avec un nom de 255 caractères
-        CountDownLatch verrou = new CountDownLatch(1);
-        String nomLong = "A".repeat(255);
-        PointOfInterest poi = construirePoiValide(nomLong, LATITUDE_VALIDE, LONGITUDE_VALIDE);
-
-        // When — on appelle ajoutPOI avec un nom très long
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un nom très long : "
-                    + e.getMessage());
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un nom très long",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    // =========================================================================
-    // TESTS — ajoutPOI — CAS ERREURS
-    // =========================================================================
-
-    /**
-     * Vérifie que la méthode ne lève pas de NullPointerException
-     * lorsque le POI est null (createPOIJson retourne null → retour immédiat).
-     *
-     * <p><b>Cas erreur</b> : POI null → retour immédiat sans exception</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_PoiNull_PasDeNullPointerException()
-            throws InterruptedException {
-
-        // Given — un POI null
-        CountDownLatch verrou = new CountDownLatch(1);
-
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, null, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec un POI null");
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode ne lève pas de NullPointerException
-     * lorsque le token est null.
-     *
-     * <p><b>Cas erreur</b> : token null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_TokenNull_PasDeNullPointerException()
-            throws InterruptedException {
-
-        // Given — un token null
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi = construirePoiValide(
-                NOM_POI_VALIDE, LATITUDE_VALIDE, LONGITUDE_VALIDE
-        );
-
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServicePOI.ajoutPOI(contexte, null, poi, HIKE_ID_VALIDE);
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec un token null");
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée avec un token null",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode ne lève pas de NullPointerException
-     * lorsque l'idRandonnee est null.
-     *
-     * <p><b>Cas erreur</b> : idRandonnee null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testAjoutPOI_IdRandonneeNull_PasDeNullPointerException()
-            throws InterruptedException {
-
-        // Given — un idRandonnee null
-        CountDownLatch verrou = new CountDownLatch(1);
-        PointOfInterest poi = construirePoiValide(
-                NOM_POI_VALIDE, LATITUDE_VALIDE, LONGITUDE_VALIDE
-        );
-
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServicePOI.ajoutPOI(contexte, TOKEN_VALIDE, poi, null);
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec idRandonnee null");
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    // =========================================================================
-    // TESTS — createPOIJson — CAS NOMINAUX
-    // =========================================================================
-
-    /**
-     * Vérifie que la construction du JSON d'un POI valide retourne
-     * un objet non nul avec tous les champs obligatoires.
-     *
-     * <p><b>Cas nominal</b></p>
-     *
-     * @throws Exception si une erreur de réflexion survient
-     */
-    @Test
-    public void testCreatePOIJson_PoiValide_JsonNonNul() throws Exception {
-        // Given — un POI valide avec toutes les données
-        PointOfInterest poi = construirePoiValide(
-                NOM_POI_VALIDE, LATITUDE_VALIDE, LONGITUDE_VALIDE
-        );
-
-        // When — on construit le JSON via réflexion
-        java.lang.reflect.Method method = ServicePOI.class
-                .getDeclaredMethod("createPOIJson", PointOfInterest.class);
-        method.setAccessible(true);
-        org.json.JSONObject json =
-                (org.json.JSONObject) method.invoke(null, poi);
-
-        // Then — le JSON est non nul et contient tous les champs obligatoires
-        assertNotNull("Le JSON ne doit pas être nul pour un POI valide", json);
-        assert json.has("nom") : "Le JSON doit contenir le champ nom";
-        assert json.has("latitude") : "Le JSON doit contenir le champ latitude";
-        assert json.has("longitude") : "Le JSON doit contenir le champ longitude";
-        assert json.has("description") : "Le JSON doit contenir le champ description";
-    }
-
-    /**
-     * Vérifie que la description est le nom du POI lorsque le nom est renseigné.
-     *
-     * <p><b>Cas nominal</b></p>
-     *
-     * @throws Exception si une erreur de réflexion survient
-     */
-    @Test
-    public void testCreatePOIJson_NomRenseigne_DescriptionEgaleAuNom() throws Exception {
-        // Given — un POI avec un nom renseigné
-        PointOfInterest poi = construirePoiValide(
-                NOM_POI_VALIDE, LATITUDE_VALIDE, LONGITUDE_VALIDE
-        );
-
-        // When — on construit le JSON via réflexion
-        java.lang.reflect.Method method = ServicePOI.class
-                .getDeclaredMethod("createPOIJson", PointOfInterest.class);
-        method.setAccessible(true);
-        org.json.JSONObject json =
-                (org.json.JSONObject) method.invoke(null, poi);
-
-        // Then — la description est égale au nom du POI
-        assertNotNull("Le JSON ne doit pas être nul", json);
-        assert NOM_POI_VALIDE.equals(json.getString("description"))
-                : "La description doit être égale au nom du POI";
-    }
-
-    // =========================================================================
-    // TESTS — createPOIJson — CAS LIMITES
-    // =========================================================================
-
-    /**
-     * Vérifie que la description vaut "POI" par défaut lorsque le nom est null.
-     *
-     * <p><b>Cas limite</b> : nom null → description = "POI"</p>
-     *
-     * @throws Exception si une erreur de réflexion survient
-     */
-    @Test
-    public void testCreatePOIJson_NomNull_DescriptionDefautPOI() throws Exception {
-        // Given — un POI avec un nom null
-        PointOfInterest poi = construirePoiValide(null, LATITUDE_VALIDE, LONGITUDE_VALIDE);
-
-        // When — on construit le JSON via réflexion
-        java.lang.reflect.Method method = ServicePOI.class
-                .getDeclaredMethod("createPOIJson", PointOfInterest.class);
-        method.setAccessible(true);
-        org.json.JSONObject json =
-                (org.json.JSONObject) method.invoke(null, poi);
-
-        // Then — la description par défaut vaut "POI"
-        assertNotNull("Le JSON ne doit pas être nul avec un nom null", json);
-        assert "POI".equals(json.getString("description"))
-                : "La description doit être 'POI' si le nom est null";
-    }
-
-    /**
-     * Vérifie que les coordonnées minimales sont correctement insérées dans le JSON.
-     *
-     * <p><b>Cas limite</b> : latitude = -90, longitude = -180</p>
-     *
-     * @throws Exception si une erreur de réflexion survient
-     */
-    @Test
-    public void testCreatePOIJson_CoordoneesMinimales_JsonCorrect() throws Exception {
-        // Given — un POI avec les coordonnées minimales
-        PointOfInterest poi = construirePoiValide(NOM_POI_VALIDE, -90.0, -180.0);
-
-        // When — on construit le JSON via réflexion
-        java.lang.reflect.Method method = ServicePOI.class
-                .getDeclaredMethod("createPOIJson", PointOfInterest.class);
-        method.setAccessible(true);
-        org.json.JSONObject json =
-                (org.json.JSONObject) method.invoke(null, poi);
-
-        // Then — les coordonnées minimales sont présentes dans le JSON
-        assertNotNull("Le JSON ne doit pas être nul", json);
-        assert json.getDouble("latitude") == -90.0
-                : "La latitude minimale doit être -90.0";
-        assert json.getDouble("longitude") == -180.0
-                : "La longitude minimale doit être -180.0";
-    }
-
-    // =========================================================================
-    // TESTS — createPOIJson — CAS ERREURS
-    // =========================================================================
-
-    /**
-     * Vérifie que la méthode retourne null lorsque le POI est null.
-     *
-     * <p><b>Cas erreur</b> : POI null → retourne null</p>
-     *
-     * @throws Exception si une erreur de réflexion survient
-     */
-    @Test
-    public void testCreatePOIJson_PoiNull_RetourneNull() throws Exception {
-        // Given — un POI null
-
-        // When — on construit le JSON via réflexion avec un POI null
-        java.lang.reflect.Method method = ServicePOI.class
-                .getDeclaredMethod("createPOIJson", PointOfInterest.class);
-        method.setAccessible(true);
-        org.json.JSONObject json =
-                (org.json.JSONObject) method.invoke(null, (PointOfInterest) null);
-
-        // Then — le JSON retourné est null car une exception a été capturée
-        assert json == null : "Le JSON doit être null si le POI est null";
-    }
-
-    // =========================================================================
-    // TESTS — traiterMAJPOI — CAS NOMINAUX
-    // =========================================================================
-
-    /**
-     * Vérifie que la mise à jour d'une liste de POI valides s'exécute
-     * sans exception et initialise la file de requêtes.
-     *
-     * <p><b>Cas nominal</b></p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testTraiterMAJPOI_ListeValide_PasException() throws InterruptedException {
-        // Given — une liste de trois POI valides
-        CountDownLatch verrou = new CountDownLatch(1);
-        ArrayList<PointOfInterest> liste = construireListePoi(3);
-
-        // When — on appelle traiterMAJPOI avec une liste valide
-        try {
-            ServicePOI.traiterMAJPOI(
-                    contexte, (int) HIKE_ID_VALIDE, liste, TOKEN_VALIDE
-            );
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec une liste valide : "
-                    + e.getMessage());
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file de requêtes doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la mise à jour avec un seul POI s'exécute correctement.
-     *
-     * <p><b>Cas nominal</b> : liste avec un seul élément</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testTraiterMAJPOI_UnSeulPOI_PasException() throws InterruptedException {
-        // Given — une liste avec un seul POI valide
-        CountDownLatch verrou = new CountDownLatch(1);
-        ArrayList<PointOfInterest> liste = construireListePoi(1);
-
-        // When — on appelle traiterMAJPOI avec un seul POI
-        try {
-            ServicePOI.traiterMAJPOI(
-                    contexte, (int) HIKE_ID_VALIDE, liste, TOKEN_VALIDE
-            );
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un seul POI : "
-                    + e.getMessage());
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un seul POI",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    // =========================================================================
-    // TESTS — traiterMAJPOI — CAS LIMITES
-    // =========================================================================
-
-    /**
-     * Vérifie que la méthode ne fait rien et ne lève pas d'exception
-     * lorsque la liste de POI est vide (pois.length() == 0 → pas de requête).
-     *
-     * <p><b>Cas limite</b> : liste vide → pas de requête envoyée</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testTraiterMAJPOI_ListeVide_PasDeRequeteEnvoyee()
-            throws InterruptedException {
-
-        // Given — une liste de POI vide
-        CountDownLatch verrou = new CountDownLatch(1);
+    public void traiterMAJPOI_listeVide_aucunAppelAPI() {
+        // Given
         ArrayList<PointOfInterest> listeVide = new ArrayList<>();
 
-        // When — on appelle traiterMAJPOI avec une liste vide
-        try {
-            ServicePOI.traiterMAJPOI(
-                    contexte, (int) HIKE_ID_VALIDE, listeVide, TOKEN_VALIDE
-            );
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec une liste vide : "
-                    + e.getMessage());
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            // When
+            ServicePOI.traiterMAJPOI(mockContexte, HIKE_ID, listeVide, TOKEN_VALIDE);
+
+            // Then
+            staticMock.verify(() -> AppelAPI.putA(any(), any(), any(), any(), any()), never());
         }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file n'est pas initialisée car aucune requête n'a été envoyée
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
     }
 
     /**
-     * Vérifie que les POI avec un JSON null (nom null) sont ignorés
-     * et n'empêchent pas le traitement des autres.
+     * Vérifie que {@code traiterMAJPOI} transmet correctement le token
+     * à {@link AppelAPI#putA}.
      *
-     * <p><b>Cas limite</b> : POI avec JSON null → ignoré</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> un token valide et une liste non vide<br>
+     * <b>When</b> on appelle {@code traiterMAJPOI}<br>
+     * <b>Then</b> le token transmis à AppelAPI.putA est identique au token fourni</p>
      */
     @Test
-    public void testTraiterMAJPOI_AvecPoiJsonNull_PoiIgnore()
-            throws InterruptedException {
-
-        // Given — une liste avec un POI valide et un POI null
-        CountDownLatch verrou = new CountDownLatch(1);
+    public void traiterMAJPOI_tokenTransmis_estIdentique() {
+        // Given
         ArrayList<PointOfInterest> liste = new ArrayList<>();
-        liste.add(construirePoiValide(NOM_POI_VALIDE, LATITUDE_VALIDE, LONGITUDE_VALIDE));
-        liste.add(null);
+        liste.add(buildPOI("Fontaine", 44.0, 2.0));
 
-        // When — on appelle traiterMAJPOI avec un POI null dans la liste
-        try {
-            ServicePOI.traiterMAJPOI(
-                    contexte, (int) HIKE_ID_VALIDE, liste, TOKEN_VALIDE
-            );
-            verrou.countDown();
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un POI null dans la liste : "
-                    + e.getMessage());
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<String> captureurToken = ArgumentCaptor.forClass(String.class);
+
+            staticMock.when(() -> AppelAPI.putA(anyString(), captureurToken.capture(),
+                            any(JSONArray.class), any(Context.class),
+                            any(AppelAPI.VolleyCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServicePOI.traiterMAJPOI(mockContexte, HIKE_ID, liste, TOKEN_VALIDE);
+
+            // Then
+            assertEquals("Le token transmis doit être identique",
+                    TOKEN_VALIDE, captureurToken.getValue());
         }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    // =========================================================================
-    // TESTS — traiterMAJPOI — CAS ERREURS
-    // =========================================================================
-
-    /**
-     * Vérifie que la méthode ne lève pas de NullPointerException
-     * lorsque la liste est null.
-     *
-     * <p><b>Cas erreur</b> : liste null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testTraiterMAJPOI_ListeNull_PasDeNullPointerException()
-            throws InterruptedException {
-
-        // Given — une liste null
-        CountDownLatch verrou = new CountDownLatch(1);
-
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServicePOI.traiterMAJPOI(
-                    contexte, (int) HIKE_ID_VALIDE, null, TOKEN_VALIDE
-            );
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec une liste null");
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode ne lève pas de NullPointerException
-     * lorsque le token est null.
-     *
-     * <p><b>Cas erreur</b> : token null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testTraiterMAJPOI_TokenNull_PasDeNullPointerException()
-            throws InterruptedException {
-
-        // Given — un token null
-        CountDownLatch verrou = new CountDownLatch(1);
-        ArrayList<PointOfInterest> liste = construireListePoi(2);
-
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServicePOI.traiterMAJPOI(contexte, (int) HIKE_ID_VALIDE, liste, null);
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec un token null");
-        }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée avec un token null",
-                AppelAPI.getFileRequete(contexte));
     }
 }

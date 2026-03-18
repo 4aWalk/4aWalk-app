@@ -7,6 +7,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,6 +45,7 @@ public class ServiceParcours {
      */
     public interface ParcoursCallback {
         void onSuccess(ArrayList<Course> parcours);
+
         void onError(VolleyError error);
     }
 
@@ -52,6 +54,7 @@ public class ServiceParcours {
      */
     public interface CourseCreationCallback {
         void onSuccess(Course course); // CHANGEMENT : On renvoie l'objet Course complet
+
         void onError(VolleyError error);
     }
 

@@ -1,19 +1,29 @@
 package fr.iutrodez.a4awalk.servicesTest.gestionAPITest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import android.content.Context;
 
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+import com.android.volley.NetworkResponse;
+import com.android.volley.VolleyError;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import fr.iutrodez.a4awalk.modeles.entites.User;
 import fr.iutrodez.a4awalk.modeles.enums.Level;
@@ -22,73 +32,102 @@ import fr.iutrodez.a4awalk.services.AppelAPI;
 import fr.iutrodez.a4awalk.services.gestionAPI.ServiceInscription;
 
 /**
- * Classe de test instrumentée pour {@link ServiceInscription}.
+ * Classe de tests unitaires pour {@link ServiceInscription}.
  *
- * <p>Cette classe vérifie le comportement du service d'inscription utilisateur,
- * notamment :</p>
+ * <p>Teste la méthode {@code registerUser} en simulant les différents scénarios
+ * possibles lors d'une tentative d'inscription :</p>
  * <ul>
- *     <li>La construction et l'envoi de la requête d'inscription</li>
- *     <li>La gestion des callbacks de succès et d'erreur</li>
- *     <li>Les cas limites (champs vides, valeurs minimales/maximales)</li>
- *     <li>Les cas d'erreur (utilisateur null, champs null, callbacks null)</li>
+ *     <li>Cas nominaux : inscription réussie, callbacks correctement appelés</li>
+ *     <li>Cas limites : corps JSON bien formé, token null transmis, URL correcte</li>
+ *     <li>Cas d'erreur : email déjà utilisé (400 avec "mail"), données invalides (400 générique),
+ *         body d'erreur non JSON (400), autres codes HTTP, absence de réponse réseau</li>
  * </ul>
  *
- * <p>Les tests couvrent trois catégories :</p>
- * <ul>
- *     <li><b>Nominaux</b> : comportement attendu dans des conditions normales</li>
- *     <li><b>Limites</b> : valeurs aux bornes (age min/max, champs vides)</li>
- *     <li><b>Erreurs</b> : utilisateur null, champs null, callbacks null</li>
- * </ul>
+ * <p>Utilise Mockito pour simuler {@link AppelAPI} et {@link Context}
+ * sans dépendance au framework Android.</p>
  *
- * @author Votre nom
+ * <p><b>Dépendances requises dans build.gradle :</b></p>
+ * <pre>
+ *     testImplementation 'junit:junit:4.13.2'
+ *     testImplementation 'org.mockito:mockito-core:5.x.x'
+ *     testImplementation 'org.mockito:mockito-inline:5.x.x'
+ * </pre>
+ *
+ * @author A4AWalk
  * @version 1.0
  */
-@RunWith(AndroidJUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ServiceInscriptionTest {
 
     // =========================================================================
     // CONSTANTES DE TEST
     // =========================================================================
 
-    /** Nom valide pour les tests nominaux */
-    private static final String NOM_VALIDE = "Dupont";
-
-    /** Prénom valide pour les tests nominaux */
-    private static final String PRENOM_VALIDE = "Jean";
+    /** URL de l'endpoint d'inscription */
+    private static final String REGISTER_URL = "http://98.94.8.220:8080/users/register";
 
     /** Email valide pour les tests nominaux */
-    private static final String EMAIL_VALIDE = "jean.dupont@test.fr";
+    private static final String EMAIL_VALIDE = "jean.dupont@example.com";
 
-    /** Mot de passe valide pour les tests nominaux */
+    /** Mot de passe valide */
     private static final String PASSWORD_VALIDE = "MotDePasse123!";
 
-    /** Adresse valide pour les tests nominaux */
-    private static final String ADRESSE_VALIDE = "12 rue de la Paix, Paris";
-
-    /** Age valide pour les tests nominaux */
-    private static final int AGE_VALIDE = 30;
-
-    /** Timeout maximum pour les opérations asynchrones en secondes */
-    private static final int TIMEOUT_SECONDES = 5;
-
     // =========================================================================
-    // ATTRIBUTS
+    // MOCKS
     // =========================================================================
 
-    /** Contexte Android fourni par le runner de test */
-    private Context contexte;
+    /** Mock du contexte Android */
+    @Mock
+    private Context mockContexte;
+
+    /** Mock du callback de succès */
+    @Mock
+    private ServiceInscription.ApiSuccessCallback mockOnSuccess;
+
+    /** Mock du callback d'erreur */
+    @Mock
+    private ServiceInscription.ApiErrorCallback mockOnError;
 
     // =========================================================================
-    // INITIALISATION
+    // CLASSE INTERNE — VolleyError avec code HTTP et body
     // =========================================================================
 
     /**
-     * Initialise le contexte et réinitialise la file Volley avant chaque test
-     * afin d'isoler les tests entre eux.
+     * Sous-classe de {@link VolleyError} permettant de définir un code HTTP
+     * et un corps de réponse précis.
+     *
+     * <p>Nécessaire car le champ {@code networkResponse} de {@link VolleyError}
+     * est {@code final} et ne peut pas être réassigné directement après construction.</p>
+     */
+    private static class VolleyErrorAvecCode extends VolleyError {
+        /**
+         * Construit une erreur Volley avec le code HTTP et le body spécifiés.
+         *
+         * @param statusCode Code HTTP à simuler (ex : 400, 500)
+         * @param body       Corps de la réponse d'erreur en bytes
+         */
+        VolleyErrorAvecCode(int statusCode, byte[] body) {
+            super(new NetworkResponse(statusCode, body, false, 0, null));
+        }
+    }
+
+    // =========================================================================
+    // CONFIGURATION
+    // =========================================================================
+
+    /**
+     * Réinitialise le singleton Volley avant chaque test pour isoler les cas.
      */
     @Before
     public void setUp() {
-        contexte = ApplicationProvider.getApplicationContext();
+        AppelAPI.resetFileRequete();
+    }
+
+    /**
+     * Réinitialise le singleton Volley après chaque test.
+     */
+    @After
+    public void tearDown() {
         AppelAPI.resetFileRequete();
     }
 
@@ -97,501 +136,618 @@ public class ServiceInscriptionTest {
     // =========================================================================
 
     /**
-     * Construit un utilisateur valide avec toutes les données obligatoires renseignées.
+     * Construit un {@link User} de test complet avec toutes les propriétés requises
+     * pour l'inscription.
      *
-     * @return {@link User} valide pour les tests nominaux
+     * @return Un {@link User} valide prêt à être inscrit
      */
-    private User construireUtilisateurValide() {
-        User user = new User(
-                NOM_VALIDE, PRENOM_VALIDE, AGE_VALIDE,
-                EMAIL_VALIDE, PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.DEBUTANT, Morphology.MOYENNE
-        );
+    private User buildUserValide() {
+        User user = new User();
+        user.setMail(EMAIL_VALIDE);
+        user.setPassword(PASSWORD_VALIDE);
+        user.setNom("Dupont");
+        user.setPrenom("Jean");
+        user.setAdresse("12 rue des Tests, Rodez");
+        user.setAge(30);
+        user.setNiveau(Level.DEBUTANT);
+        user.setMorphologie(Morphology.MOYENNE);
         return user;
     }
 
     /**
-     * Exécute un appel à {@link ServiceInscription#registerUser} avec les callbacks
-     * fournis et attend la réponse pendant {@link #TIMEOUT_SECONDES} secondes.
+     * Construit un {@link VolleyError} simulant une erreur 400 avec un corps JSON
+     * contenant un message donné.
      *
-     * @param user    Utilisateur à inscrire
-     * @param verrou  Verrou pour synchroniser l'appel asynchrone
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * @param messageJson Message à inclure dans le JSON {@code {"message": "..."}}
+     * @return Un {@link VolleyErrorAvecCode} avec le body JSON encodé en UTF-8
      */
-    private void appellerRegisterUser(
-            User user,
-            CountDownLatch verrou,
-            ServiceInscription.ApiSuccessCallback onSuccess,
-            ServiceInscription.ApiErrorCallback onError
-    ) throws InterruptedException {
-        ServiceInscription.registerUser(contexte, user, onSuccess, onError);
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
+    private VolleyError buildErreur400AvecMessage(String messageJson) {
+        String body = "{\"message\": \"" + messageJson + "\"}";
+        return new VolleyErrorAvecCode(400, body.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Construit un {@link VolleyError} simulant une erreur réseau sans réponse HTTP
+     * (networkResponse est null, ex : timeout ou pas de connexion).
+     *
+     * @return Un {@link VolleyError} sans networkResponse
+     */
+    private VolleyError buildErreurSansReseau() {
+        return new VolleyError("Timeout");
     }
 
     // =========================================================================
-    // TESTS — CAS NOMINAUX
+    // TESTS : CAS NOMINAUX — Inscription réussie
     // =========================================================================
 
     /**
-     * Vérifie que la méthode registerUser s'exécute sans exception
-     * avec un utilisateur valide et initialise la file de requêtes.
+     * Vérifie que {@link ServiceInscription.ApiSuccessCallback#onSuccess()} est appelé
+     * lorsque le serveur retourne une réponse valide.
      *
-     * <p><b>Cas nominal</b></p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> un utilisateur valide et une réponse serveur de succès<br>
+     * <b>When</b> Volley déclenche le callback onSuccess<br>
+     * <b>Then</b> {@code onSuccess.onSuccess()} est invoqué une seule fois</p>
      */
     @Test
-    public void testRegisterUser_UtilisateurValide_PasException()
-            throws InterruptedException {
+    public void registerUser_reponseSucces_appelleOnSuccess() throws JSONException {
+        // Given
+        AtomicBoolean onSuccessAppele = new AtomicBoolean(false);
+        ServiceInscription.ApiSuccessCallback callbackSucces = () -> onSuccessAppele.set(true);
 
-        // Given — un utilisateur valide avec toutes les données renseignées
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = construireUtilisateurValide();
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
 
-        // When — on appelle registerUser avec un utilisateur valide
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un utilisateur valide : "
-                    + e.getMessage());
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    callbackSucces, mockOnError);
+            captureurCallback.getValue().onSuccess(new JSONObject());
+
+            // Then
+            assertTrue("onSuccess doit être appelé lors d'une inscription réussie",
+                    onSuccessAppele.get());
         }
-
-        // Then — la file est initialisée, aucune exception levée
-        assertNotNull("La file de requêtes doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
     }
 
     /**
-     * Vérifie que le callback onError est déclenché lorsqu'un utilisateur
-     * avec un email déjà existant tente de s'inscrire.
+     * Vérifie que {@link ServiceInscription.ApiErrorCallback} n'est pas appelé
+     * lors d'une inscription réussie.
      *
-     * <p><b>Cas nominal du flux erreur</b> : email déjà utilisé → réponse 409</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> un utilisateur valide et une réponse serveur de succès<br>
+     * <b>When</b> Volley déclenche le callback onSuccess<br>
+     * <b>Then</b> {@code onError} n'est jamais invoqué</p>
      */
     @Test
-    public void testRegisterUser_EmailDejaUtilise_CallbackOnErrorAppele()
-            throws InterruptedException {
+    public void registerUser_reponseSucces_onErrorNonAppele() throws JSONException {
+        // Given
+        AtomicBoolean onErrorAppele = new AtomicBoolean(false);
+        ServiceInscription.ApiErrorCallback callbackErreur = msg -> onErrorAppele.set(true);
 
-        // Given — un utilisateur avec un email déjà enregistré
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = construireUtilisateurValide();
-        final String[] messageErreur = {null};
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
 
-        // When — on appelle registerUser avec un email existant
-        appellerRegisterUser(
-                user, verrou,
-                () -> verrou.countDown(),
-                message -> {
-                    messageErreur[0] = message;
-                    verrou.countDown();
-                }
-        );
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
 
-        // Then — la file est initialisée
-        assertNotNull("La file de requêtes doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
-    }
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, callbackErreur);
+            captureurCallback.getValue().onSuccess(new JSONObject());
 
-    /**
-     * Vérifie que plusieurs appels successifs réutilisent la même file Singleton.
-     *
-     * <p><b>Cas nominal</b> : appels successifs</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testRegisterUser_AppelsSuccessifs_MemeFileSingleton()
-            throws InterruptedException {
-
-        // Given — deux utilisateurs différents à inscrire
-        CountDownLatch verrou = new CountDownLatch(2);
-        User user1 = construireUtilisateurValide();
-        User user2 = new User(
-                "Martin", "Alice", 25,
-                "alice.martin@test.fr", PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.ENTRAINE, Morphology.LEGERE
-        );
-
-        // When — on effectue deux appels successifs
-        ServiceInscription.registerUser(
-                contexte, user1,
-                () -> verrou.countDown(),
-                message -> verrou.countDown()
-        );
-        ServiceInscription.registerUser(
-                contexte, user2,
-                () -> verrou.countDown(),
-                message -> verrou.countDown()
-        );
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-
-        // Then — la même file Singleton est utilisée pour les deux appels
-        assertNotNull("La file doit rester initialisée après des appels successifs",
-                AppelAPI.getFileRequete(contexte));
+            // Then
+            assertFalse("onError ne doit pas être appelé lors d'une inscription réussie",
+                    onErrorAppele.get());
+        }
     }
 
     // =========================================================================
-    // TESTS — CAS LIMITES
+    // TESTS : CAS LIMITES — Corps de la requête
     // =========================================================================
 
     /**
-     * Vérifie que la méthode gère correctement un âge minimal.
+     * Vérifie que le corps JSON de la requête POST contient tous les champs
+     * de l'utilisateur avec les bonnes valeurs.
      *
-     * <p><b>Cas limite</b> : âge minimal (1 an)</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> un utilisateur valide avec toutes ses propriétés<br>
+     * <b>When</b> {@code registerUser} est appelé<br>
+     * <b>Then</b> le body JSON contient mail, password, nom, prénom, adresse, age, niveau, morphologie</p>
      */
     @Test
-    public void testRegisterUser_AgeMinimal_PasException() throws InterruptedException {
-        // Given — un utilisateur avec l'âge minimal
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = new User(
-                NOM_VALIDE, PRENOM_VALIDE, 1,
-                EMAIL_VALIDE, PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.DEBUTANT, Morphology.MOYENNE
-        );
+    public void registerUser_corpsRequete_contientTousLesChampsUtilisateur() throws JSONException {
+        // Given
+        User user = buildUserValide();
 
-        // When — on appelle registerUser avec un âge minimal
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un âge minimal : "
-                    + e.getMessage());
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<JSONObject> captureurBody = ArgumentCaptor.forClass(JSONObject.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), captureurBody.capture(),
+                            any(Context.class), any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, user, mockOnSuccess, mockOnError);
+
+            // Then
+            JSONObject body = captureurBody.getValue();
+            assertNotNull("Le corps de la requête ne doit pas être null", body);
+            assertEquals("Le mail doit correspondre", EMAIL_VALIDE, body.getString("mail"));
+            assertEquals("Le password doit correspondre", PASSWORD_VALIDE, body.getString("password"));
+            assertEquals("Le nom doit correspondre", "Dupont", body.getString("nom"));
+            assertEquals("Le prénom doit correspondre", "Jean", body.getString("prenom"));
+            assertEquals("L'adresse doit correspondre", "12 rue des Tests, Rodez", body.getString("adresse"));
+            assertEquals("L'age doit correspondre", 30, body.getInt("age"));
+            assertEquals("Le niveau doit être la valeur toString() de l'enum",
+                    Level.DEBUTANT.toString(), body.getString("niveau"));
+            assertEquals("La morphologie doit être la valeur toString() de l'enum",
+                    Morphology.MOYENNE.toString(), body.getString("morphologie"));
         }
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un âge minimal",
-                AppelAPI.getFileRequete(contexte));
     }
 
     /**
-     * Vérifie que la méthode gère correctement un âge maximal.
+     * Vérifie que le token passé à {@link AppelAPI#post} est null
+     * (aucune authentification préalable requise pour s'inscrire).
      *
-     * <p><b>Cas limite</b> : âge maximal (120 ans)</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> un appel à {@code registerUser}<br>
+     * <b>When</b> AppelAPI.post est invoqué en interne<br>
+     * <b>Then</b> le paramètre token est null</p>
      */
     @Test
-    public void testRegisterUser_AgeMaximal_PasException() throws InterruptedException {
-        // Given — un utilisateur avec l'âge maximal
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = new User(
-                NOM_VALIDE, PRENOM_VALIDE, 120,
-                EMAIL_VALIDE, PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.DEBUTANT, Morphology.MOYENNE
-        );
+    public void registerUser_tokenPasseAAppelAPI_estNull() {
+        // Given
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<String> captureurToken = ArgumentCaptor.forClass(String.class);
 
-        // When — on appelle registerUser avec un âge maximal
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un âge maximal : "
-                    + e.getMessage());
+            staticMock.when(() -> AppelAPI.post(anyString(), captureurToken.capture(),
+                            any(JSONObject.class), any(Context.class),
+                            any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, mockOnError);
+
+            // Then
+            assertNull("Le token passé à AppelAPI doit être null pour l'inscription",
+                    captureurToken.getValue());
         }
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un âge maximal",
-                AppelAPI.getFileRequete(contexte));
     }
 
     /**
-     * Vérifie que la méthode gère un email très long sans lever d'exception.
+     * Vérifie que l'URL utilisée par {@code registerUser} est bien l'URL
+     * de l'endpoint d'inscription.
      *
-     * <p><b>Cas limite</b> : email de 255 caractères</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> un appel à {@code registerUser}<br>
+     * <b>When</b> AppelAPI.post est invoqué<br>
+     * <b>Then</b> l'URL correspond à {@code /users/register}</p>
      */
     @Test
-    public void testRegisterUser_EmailTresLong_PasException() throws InterruptedException {
-        // Given — un email très long de 255 caractères
-        CountDownLatch verrou = new CountDownLatch(1);
-        String emailLong = "a".repeat(243) + "@test.fr";
-        User user = new User(
-                NOM_VALIDE, PRENOM_VALIDE, AGE_VALIDE,
-                emailLong, PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.DEBUTANT, Morphology.MOYENNE
-        );
+    public void registerUser_urlUtilisee_estRegisterUrl() {
+        // Given
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<String> captureurUrl = ArgumentCaptor.forClass(String.class);
 
-        // When — on appelle registerUser avec un email très long
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un email très long : "
-                    + e.getMessage());
+            staticMock.when(() -> AppelAPI.post(captureurUrl.capture(), isNull(),
+                            any(JSONObject.class), any(Context.class),
+                            any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, mockOnError);
+
+            // Then
+            assertEquals("L'URL doit pointer vers l'endpoint d'inscription",
+                    REGISTER_URL, captureurUrl.getValue());
         }
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un email très long",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode gère un nom très long sans lever d'exception.
-     *
-     * <p><b>Cas limite</b> : nom de 255 caractères</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testRegisterUser_NomTresLong_PasException() throws InterruptedException {
-        // Given — un nom très long de 255 caractères
-        CountDownLatch verrou = new CountDownLatch(1);
-        String nomLong = "A".repeat(255);
-        User user = new User(
-                nomLong, PRENOM_VALIDE, AGE_VALIDE,
-                EMAIL_VALIDE, PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.DEBUTANT, Morphology.MOYENNE
-        );
-
-        // When — on appelle registerUser avec un nom très long
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec un nom très long : "
-                    + e.getMessage());
-        }
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec un nom très long",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode gère tous les niveaux disponibles sans exception.
-     *
-     * <p><b>Cas limite</b> : niveau SPORTIF (valeur maximale de l'enum)</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testRegisterUser_NiveauSportif_PasException() throws InterruptedException {
-        // Given — un utilisateur avec le niveau maximal SPORTIF
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = new User(
-                NOM_VALIDE, PRENOM_VALIDE, AGE_VALIDE,
-                EMAIL_VALIDE, PASSWORD_VALIDE, ADRESSE_VALIDE,
-                Level.SPORTIF, Morphology.FORTE
-        );
-
-        // When — on appelle registerUser avec le niveau SPORTIF
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec le niveau SPORTIF : "
-                    + e.getMessage());
-        }
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec le niveau SPORTIF",
-                AppelAPI.getFileRequete(contexte));
-    }
-
-    /**
-     * Vérifie que la méthode gère un adresse vide sans lever d'exception.
-     *
-     * <p><b>Cas limite</b> : adresse vide</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
-     */
-    @Test
-    public void testRegisterUser_AdresseVide_PasException() throws InterruptedException {
-        // Given — un utilisateur avec une adresse vide
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = new User(
-                NOM_VALIDE, PRENOM_VALIDE, AGE_VALIDE,
-                EMAIL_VALIDE, PASSWORD_VALIDE, "",
-                Level.DEBUTANT, Morphology.MOYENNE
-        );
-
-        // When — on appelle registerUser avec une adresse vide
-        try {
-            appellerRegisterUser(
-                    user, verrou,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-        } catch (Exception e) {
-            fail("Aucune exception ne doit être levée avec une adresse vide : "
-                    + e.getMessage());
-        }
-
-        // Then — la file est initialisée
-        assertNotNull("La file doit être initialisée avec une adresse vide",
-                AppelAPI.getFileRequete(contexte));
     }
 
     // =========================================================================
-    // TESTS — CAS ERREURS
+    // TESTS : CAS D'ERREUR — Erreur 400 avec message contenant "mail"
     // =========================================================================
 
     /**
-     * Vérifie que la méthode ne lève pas de NullPointerException
-     * lorsque l'utilisateur est null.
+     * Vérifie que {@code onError} est appelé avec le message "adresse e-mail déjà utilisée"
+     * lorsque le serveur retourne une erreur 400 dont le message JSON contient "mail".
      *
-     * <p><b>Cas erreur</b> : utilisateur null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> une erreur 400 avec un message JSON contenant "mail"<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit le message indiquant l'email déjà utilisé</p>
      */
     @Test
-    public void testRegisterUser_UtilisateurNull_PasDeNullPointerException()
-            throws InterruptedException {
+    public void registerUser_erreur400AvecMessageMail_messageEmailDejaUtilise() {
+        // Given
+        VolleyError erreur = buildErreur400AvecMessage("This mail is already taken");
+        AtomicReference<String> messageCapture = new AtomicReference<>();
 
-        // Given — un utilisateur null
-        CountDownLatch verrou = new CountDownLatch(1);
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
 
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServiceInscription.registerUser(
-                    contexte,
-                    null,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec un utilisateur null");
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreur);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit mentionner l'adresse e-mail déjà utilisée",
+                    messageCapture.get().toLowerCase().contains("e-mail")
+                            || messageCapture.get().toLowerCase().contains("email"));
         }
-
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
     }
 
     /**
-     * Vérifie que la méthode appelle le callback onError lorsque
-     * le niveau de l'utilisateur est null (JSONException attendue).
+     * Vérifie que {@code onError} est appelé avec le message "adresse e-mail déjà utilisée"
+     * lorsque le serveur retourne une erreur 400 dont le message JSON contient "email".
      *
-     * <p><b>Cas erreur</b> : niveau null → erreur de préparation JSON</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> une erreur 400 avec un message JSON contenant "email"<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit le message indiquant l'email déjà utilisé</p>
      */
     @Test
-    public void testRegisterUser_NiveauNull_CallbackOnErrorAppele()
-            throws InterruptedException {
+    public void registerUser_erreur400AvecMessageEmail_messageEmailDejaUtilise() {
+        // Given
+        VolleyError erreur = buildErreur400AvecMessage("This email already exists");
+        AtomicReference<String> messageCapture = new AtomicReference<>();
 
-        // Given — un utilisateur avec un niveau null
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = new User();
-        user.setNom(NOM_VALIDE);
-        user.setPrenom(PRENOM_VALIDE);
-        user.setAge(AGE_VALIDE);
-        user.setMail(EMAIL_VALIDE);
-        user.setPassword(PASSWORD_VALIDE);
-        user.setAdresse(ADRESSE_VALIDE);
-        user.setNiveau(null);
-        user.setMorphologie(Morphology.MOYENNE);
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
 
-        final String[] messageErreur = {null};
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
 
-        // When — on appelle registerUser avec un niveau null
-        ServiceInscription.registerUser(
-                contexte,
-                user,
-                () -> verrou.countDown(),
-                message -> {
-                    // Then — onError est appelé avec un message d'erreur
-                    messageErreur[0] = message;
-                    verrou.countDown();
-                }
-        );
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreur);
 
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit mentionner l'adresse e-mail déjà utilisée",
+                    messageCapture.get().toLowerCase().contains("e-mail")
+                            || messageCapture.get().toLowerCase().contains("email"));
+        }
+    }
+
+    // =========================================================================
+    // TESTS : CAS D'ERREUR — Erreur 400 générique
+    // =========================================================================
+
+    /**
+     * Vérifie que {@code onError} est appelé avec le message "Données invalides"
+     * lorsque le serveur retourne une erreur 400 dont le message JSON ne mentionne
+     * ni "mail" ni "email".
+     *
+     * <p><b>Given</b> une erreur 400 avec un message JSON sans mention de mail<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit le message de données invalides</p>
+     */
+    @Test
+    public void registerUser_erreur400MessageGenerique_messageDonneesInvalides() {
+        // Given
+        VolleyError erreur = buildErreur400AvecMessage("Invalid input data");
+        AtomicReference<String> messageCapture = new AtomicReference<>();
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreur);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit mentionner les données invalides",
+                    messageCapture.get().toLowerCase().contains("invalides")
+                            || messageCapture.get().toLowerCase().contains("données"));
+        }
     }
 
     /**
-     * Vérifie que les callbacks null ne provoquent pas de NullPointerException.
+     * Vérifie que {@code onError} est appelé avec le message "adresse e-mail déjà utilisée"
+     * lorsque le serveur retourne une erreur 400 dont le body n'est pas du JSON valide.
      *
-     * <p><b>Cas erreur</b> : callbacks null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> une erreur 400 avec un body non JSON (ex : texte brut)<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> le fallback de la {@code JSONException} interne est déclenché :
+     * message "adresse e-mail déjà utilisée"</p>
      */
     @Test
-    public void testRegisterUser_CallbacksNull_PasDeNullPointerException()
-            throws InterruptedException {
+    public void registerUser_erreur400BodyNonJson_messageFallbackEmailDejaUtilise() {
+        // Given — body non JSON
+        byte[] bodyNonJson = "Erreur non JSON brute du serveur".getBytes(StandardCharsets.UTF_8);
+        VolleyError erreur = new VolleyErrorAvecCode(400, bodyNonJson);
+        AtomicReference<String> messageCapture = new AtomicReference<>();
 
-        // Given — des callbacks null
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = construireUtilisateurValide();
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
 
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServiceInscription.registerUser(contexte, user, null, null);
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec des callbacks null");
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreur);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le fallback doit mentionner l'adresse e-mail déjà utilisée",
+                    messageCapture.get().toLowerCase().contains("e-mail")
+                            || messageCapture.get().toLowerCase().contains("email"));
         }
+    }
 
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée avec des callbacks null",
-                AppelAPI.getFileRequete(contexte));
+    // =========================================================================
+    // TESTS : CAS D'ERREUR — Autres codes HTTP
+    // =========================================================================
+
+    /**
+     * Vérifie que {@code onError} est appelé avec un message contenant le code HTTP
+     * lorsque le serveur retourne un code différent de 400 (ex : 500).
+     *
+     * <p><b>Given</b> une erreur Volley avec le code HTTP 500 et un body<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit un message contenant "500"</p>
+     */
+    @Test
+    public void registerUser_erreur500_messageContientCodeHttp() {
+        // Given
+        byte[] bodyErreur = "Internal server error".getBytes(StandardCharsets.UTF_8);
+        VolleyError erreur = new VolleyErrorAvecCode(500, bodyErreur);
+        AtomicReference<String> messageCapture = new AtomicReference<>();
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreur);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit contenir le code HTTP 500",
+                    messageCapture.get().contains("500"));
+        }
     }
 
     /**
-     * Vérifie que la méthode gère un mail null sans lever de NullPointerException.
+     * Vérifie que {@code onError} est appelé avec un message contenant le code HTTP
+     * lorsque le serveur retourne un code 409 (conflit).
      *
-     * <p><b>Cas erreur</b> : mail null</p>
-     *
-     * @throws InterruptedException si le thread est interrompu pendant l'attente
+     * <p><b>Given</b> une erreur Volley avec le code HTTP 409<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit un message contenant "409"</p>
      */
     @Test
-    public void testRegisterUser_MailNull_PasDeNullPointerException()
-            throws InterruptedException {
+    public void registerUser_erreur409_messageContientCodeHttp() {
+        // Given
+        byte[] bodyErreur = "Conflict".getBytes(StandardCharsets.UTF_8);
+        VolleyError erreur = new VolleyErrorAvecCode(409, bodyErreur);
+        AtomicReference<String> messageCapture = new AtomicReference<>();
 
-        // Given — un utilisateur avec un mail null
-        CountDownLatch verrou = new CountDownLatch(1);
-        User user = new User();
-        user.setNom(NOM_VALIDE);
-        user.setPrenom(PRENOM_VALIDE);
-        user.setAge(AGE_VALIDE);
-        user.setMail(null);
-        user.setPassword(PASSWORD_VALIDE);
-        user.setAdresse(ADRESSE_VALIDE);
-        user.setNiveau(Level.DEBUTANT);
-        user.setMorphologie(Morphology.MOYENNE);
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
 
-        // When / Then — aucune NullPointerException ne doit être levée
-        try {
-            ServiceInscription.registerUser(
-                    contexte,
-                    user,
-                    () -> verrou.countDown(),
-                    message -> verrou.countDown()
-            );
-            verrou.countDown();
-        } catch (NullPointerException e) {
-            fail("NullPointerException ne doit pas être levée avec un mail null");
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreur);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit contenir le code HTTP 409",
+                    messageCapture.get().contains("409"));
         }
+    }
 
-        verrou.await(TIMEOUT_SECONDES, TimeUnit.SECONDS);
-        assertNotNull("La file doit être initialisée",
-                AppelAPI.getFileRequete(contexte));
+    // =========================================================================
+    // TESTS : CAS D'ERREUR — Absence de réponse réseau
+    // =========================================================================
+
+    /**
+     * Vérifie que {@code onError} est appelé avec le message "Erreur réseau"
+     * lorsque {@code networkResponse} est null (pas de connexion internet ou timeout).
+     *
+     * <p><b>Given</b> une erreur Volley sans {@code networkResponse} (null)<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit le message indiquant un problème réseau</p>
+     */
+    @Test
+    public void registerUser_erreurSansReseauResponse_messageErreurReseau() {
+        // Given
+        VolleyError erreurSansReseau = buildErreurSansReseau();
+        AtomicReference<String> messageCapture = new AtomicReference<>();
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreurSansReseau);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit mentionner une erreur réseau",
+                    messageCapture.get().toLowerCase().contains("réseau")
+                            || messageCapture.get().toLowerCase().contains("connexion"));
+        }
+    }
+
+    /**
+     * Vérifie que {@code onError} est appelé avec le message "Erreur réseau"
+     * lorsque {@code networkResponse} est non null mais que {@code data} est null.
+     *
+     * <p><b>Given</b> une erreur Volley avec une networkResponse dont le body est null<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onError} reçoit le message d'erreur réseau</p>
+     */
+    @Test
+    public void registerUser_erreurAvecReponseEtDataNull_messageErreurReseau() {
+        // Given — networkResponse non null mais data null
+        NetworkResponse reponseSansData = new NetworkResponse(200, null, false, 0, null);
+        VolleyError erreurSansData = new VolleyError(reponseSansData);
+        AtomicReference<String> messageCapture = new AtomicReference<>();
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    mockOnSuccess, messageCapture::set);
+            captureurCallback.getValue().onError(erreurSansData);
+
+            // Then
+            assertNotNull("Le message d'erreur ne doit pas être null", messageCapture.get());
+            assertTrue("Le message doit mentionner une erreur réseau ou connexion",
+                    messageCapture.get().toLowerCase().contains("réseau")
+                            || messageCapture.get().toLowerCase().contains("connexion"));
+        }
+    }
+
+    // =========================================================================
+    // TESTS : CAS LIMITES — Niveau et Morphologie dans le corps JSON
+    // =========================================================================
+
+    /**
+     * Vérifie que le niveau de l'utilisateur est bien sérialisé via {@code toString()}
+     * et non via {@code name()} dans le corps JSON.
+     *
+     * <p><b>Given</b> un utilisateur avec le niveau {@link Level#SPORTIF}<br>
+     * <b>When</b> {@code registerUser} est appelé<br>
+     * <b>Then</b> le champ "niveau" du body contient la valeur {@code toString()} de l'enum</p>
+     */
+    @Test
+    public void registerUser_niveauSportif_estSerialiseAvecToString() throws JSONException {
+        // Given
+        User user = buildUserValide();
+        user.setNiveau(Level.SPORTIF);
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<JSONObject> captureurBody = ArgumentCaptor.forClass(JSONObject.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), captureurBody.capture(),
+                            any(Context.class), any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, user, mockOnSuccess, mockOnError);
+
+            // Then
+            JSONObject body = captureurBody.getValue();
+            assertEquals("Le niveau doit être sérialisé via toString()",
+                    Level.SPORTIF.toString(), body.getString("niveau"));
+        }
+    }
+
+    /**
+     * Vérifie que la morphologie de l'utilisateur est bien sérialisée via {@code toString()}
+     * dans le corps JSON.
+     *
+     * <p><b>Given</b> un utilisateur avec la morphologie {@link Morphology#FORTE}<br>
+     * <b>When</b> {@code registerUser} est appelé<br>
+     * <b>Then</b> le champ "morphologie" du body contient la valeur {@code toString()} de l'enum</p>
+     */
+    @Test
+    public void registerUser_morphologieForte_estSerialiseeAvecToString() throws JSONException {
+        // Given
+        User user = buildUserValide();
+        user.setMorphologie(Morphology.FORTE);
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<JSONObject> captureurBody = ArgumentCaptor.forClass(JSONObject.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), captureurBody.capture(),
+                            any(Context.class), any(AppelAPI.VolleyObjectCallback.class)))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, user, mockOnSuccess, mockOnError);
+
+            // Then
+            JSONObject body = captureurBody.getValue();
+            assertEquals("La morphologie doit être sérialisée via toString()",
+                    Morphology.FORTE.toString(), body.getString("morphologie"));
+        }
+    }
+
+    // =========================================================================
+    // TESTS : CAS LIMITES — onSuccess non appelé en cas d'erreur
+    // =========================================================================
+
+    /**
+     * Vérifie que {@code onSuccess} n'est jamais appelé lorsque le serveur retourne
+     * une erreur (ici 400).
+     *
+     * <p><b>Given</b> une erreur 400 retournée par le serveur<br>
+     * <b>When</b> Volley déclenche le callback d'erreur<br>
+     * <b>Then</b> {@code onSuccess} n'est jamais invoqué</p>
+     */
+    @Test
+    public void registerUser_erreur400_onSuccessNonAppele() {
+        // Given
+        VolleyError erreur = buildErreur400AvecMessage("mail already used");
+        AtomicBoolean onSuccessAppele = new AtomicBoolean(false);
+        ServiceInscription.ApiSuccessCallback callbackSucces = () -> onSuccessAppele.set(true);
+
+        try (MockedStatic<AppelAPI> staticMock = Mockito.mockStatic(AppelAPI.class)) {
+            ArgumentCaptor<AppelAPI.VolleyObjectCallback> captureurCallback =
+                    ArgumentCaptor.forClass(AppelAPI.VolleyObjectCallback.class);
+
+            staticMock.when(() -> AppelAPI.post(anyString(), isNull(), any(JSONObject.class),
+                            any(Context.class), captureurCallback.capture()))
+                    .thenAnswer(inv -> null);
+
+            // When
+            ServiceInscription.registerUser(mockContexte, buildUserValide(),
+                    callbackSucces, mockOnError);
+            captureurCallback.getValue().onError(erreur);
+
+            // Then
+            assertFalse("onSuccess ne doit pas être appelé en cas d'erreur",
+                    onSuccessAppele.get());
+        }
     }
 }

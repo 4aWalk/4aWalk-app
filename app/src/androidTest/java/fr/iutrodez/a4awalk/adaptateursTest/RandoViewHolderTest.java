@@ -1,9 +1,11 @@
 package fr.iutrodez.a4awalk.adaptateursTest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -13,26 +15,26 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
-
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.adaptateurs.RandoViewHolder;
 import fr.iutrodez.a4awalk.modeles.entites.Hike;
-import fr.iutrodez.a4awalk.modeles.entites.Participant;
 
 /**
  * Classe de tests d'instrumentation pour {@link RandoViewHolder}.
  *
- * <p>Teste la méthode {@link RandoViewHolder#bind(Hike)} qui affiche
- * les données d'une randonnée dans les {@link TextView} de l'item de liste.</p>
+ * <p>Teste la méthode {@link RandoViewHolder#bind(Hike)} qui :</p>
+ * <ul>
+ *   <li>Affiche le libellé de la randonnée dans le {@code TextView} {@code nom_rando}</li>
+ *   <li>Affiche ou masque l'icône {@code icone_non_optimise} selon la valeur
+ *       de {@link Hike#getOptimize()}</li>
+ * </ul>
  *
  * <p>Catégories couvertes :</p>
  * <ul>
- *   <li><b>Cas nominaux</b> : affichage correct du libellé, du nombre de
- *       participants et de la durée en jours.</li>
- *   <li><b>Cas limites</b> : libellé vide, zéro participant, durée minimale
- *       (1 jour) et maximale (3 jours), libellé très long.</li>
- *   <li><b>Cas d'erreur</b> : libellé {@code null}, participants {@code null}.</li>
+ *   <li><b>Cas nominaux</b> : libellé valide, randonnée optimisée, randonnée non optimisée.</li>
+ *   <li><b>Cas limites</b> : libellé vide, libellé très long, deux appels successifs à
+ *       {@code bind()} sur le même {@link RandoViewHolder}.</li>
+ *   <li><b>Cas d'erreur</b> : libellé {@code null}.</li>
  * </ul>
  *
  * <p>La vue est inflatée depuis le layout {@code R.layout.item_rando} via
@@ -40,9 +42,15 @@ import fr.iutrodez.a4awalk.modeles.entites.Participant;
  * contexte Android réel sans démarrer d'activité.</p>
  *
  * <p><b>Emplacement du fichier :</b>
- * {@code app/src/androidTest/java/fr/iutrodez/a4awalk/adaptateurs/RandoViewHolderTest.java}</p>
+ * {@code app/src/androidTest/java/fr/iutrodez/a4awalk/adaptateursTest/RandoViewHolderTest.java}</p>
  *
- * @author Votre équipe
+ * <p>Dépendances requises dans {@code build.gradle (app)} :</p>
+ * <pre>
+ * androidTestImplementation 'androidx.test.ext:junit:1.x.x'
+ * androidTestImplementation 'androidx.test:core:1.x.x'
+ * </pre>
+ *
+ * @author Équipe A4AWalk
  * @version 1.0
  * @see RandoViewHolder
  */
@@ -59,14 +67,14 @@ public class RandoViewHolderTest {
     /** Vue racine de l'item, inflatée depuis {@code R.layout.item_rando}. */
     private View itemView;
 
-    /** TextView affichant le libellé de la randonnée. */
+    /** TextView affichant le libellé de la randonnée ({@code R.id.nom_rando}). */
     private TextView libelleView;
 
-    /** TextView affichant le nombre de participants. */
-    private TextView participantsView;
-
-    /** TextView affichant le nombre de jours. */
-    private TextView joursView;
+    /**
+     * ImageView de l'icône "non optimisé" ({@code R.id.icone_non_optimise}).
+     * Visible quand {@code hike.getOptimize() == false}, masquée sinon.
+     */
+    private ImageView iconeNonOptimise;
 
     // -------------------------------------------------------------------------
     // Setup
@@ -85,10 +93,9 @@ public class RandoViewHolderTest {
 
         viewHolder = new RandoViewHolder(itemView);
 
-        // Récupération des TextViews pour les assertions
+        // Récupération des vues pour les assertions
         libelleView      = itemView.findViewById(R.id.nom_rando);
-        participantsView = itemView.findViewById(R.id.nb_participants_rando);
-        joursView        = itemView.findViewById(R.id.nb_jours_rando);
+        iconeNonOptimise = itemView.findViewById(R.id.icone_non_optimise);
     }
 
     // -------------------------------------------------------------------------
@@ -96,290 +103,316 @@ public class RandoViewHolderTest {
     // -------------------------------------------------------------------------
 
     /**
-     * Crée un {@link Hike} valide pour les tests avec libellé, durée et
-     * un nombre donné de participants.
+     * Crée un {@link Hike} minimal pour les tests avec le libellé et la valeur
+     * d'optimisation fournis.
      *
-     * @param libelle        le libellé de la randonnée
-     * @param dureeJours     la durée en jours (entre 1 et 3)
-     * @param nbParticipants le nombre de participants à ajouter
-     * @return une instance de {@link Hike} prête pour les tests
+     * @param libelle  le libellé de la randonnée.
+     * @param optimize {@code true} si la randonnée est optimisée, {@code false} sinon.
+     * @return une instance de {@link Hike} prête pour les tests.
      */
-    private Hike creerHike(String libelle, int dureeJours, int nbParticipants) {
+    private Hike creerHike(String libelle, boolean optimize) {
         Hike hike = new Hike();
         hike.setLibelle(libelle);
-        hike.setDureeJours(dureeJours);
-
-        ArrayList<Participant> participants = new ArrayList<>();
-        for (int i = 0; i < nbParticipants; i++) {
-            participants.add(new Participant());
-        }
-        hike.setParticipants(participants);
-
+        hike.setOptimize(optimize);
         return hike;
     }
 
     // =========================================================================
-    // CAS NOMINAUX
+    // Tests — Initialisation du ViewHolder
     // =========================================================================
 
     /**
-     * Vérifie que {@link RandoViewHolder#bind(Hike)} affiche correctement
-     * le libellé de la randonnée dans le {@link TextView} correspondant.
+     * Vérifie que le {@link RandoViewHolder} est correctement créé et non nul
+     * après l'inflation du layout.
      *
-     * <p><b>Given</b> : une randonnée avec le libellé "Tour du Mont-Blanc".<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView {@code nom_rando} affiche "Tour du Mont-Blanc".</p>
+     * <p><b>Given</b> : le layout {@code item_rando} est inflatable dans le contexte de test.</p>
+     * <p><b>When</b> : le {@link RandoViewHolder} est instancié dans {@code setUp()}.</p>
+     * <p><b>Then</b> : l'instance est non nulle.</p>
      */
     @Test
-    public void testBind_libelleValide_afficheDansTextView() {
-        // Given
-        Hike hike = creerHike("Tour du Mont-Blanc", 2, 3);
-
-        // When
-        viewHolder.bind(hike);
+    public void viewHolder_apresInflation_estNonNull() {
+        // Given / When — fait dans setUp()
 
         // Then
-        assertEquals(
-                "Le libellé de la randonnée doit être affiché correctement",
-                "Tour du Mont-Blanc",
-                libelleView.getText().toString());
+        assertNotNull("Le ViewHolder ne doit pas être nul après inflation", viewHolder);
     }
 
     /**
-     * Vérifie que {@link RandoViewHolder#bind(Hike)} affiche correctement
-     * le nombre de participants avec le suffixe " participants".
+     * Vérifie que la vue {@code nom_rando} est accessible et non nulle après inflation.
      *
-     * <p><b>Given</b> : une randonnée avec 3 participants.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView {@code nb_participants_rando} affiche "3 participants".</p>
+     * <p><b>Given</b> : le layout {@code item_rando} contient un TextView avec l'id
+     * {@code nom_rando}.</p>
+     * <p><b>When</b> : la vue est récupérée via {@code findViewById}.</p>
+     * <p><b>Then</b> : le TextView est non nul.</p>
      */
     @Test
-    public void testBind_troisParticipants_afficheNombreCorrect() {
-        // Given
-        Hike hike = creerHike("Randonnée des Crêtes", 1, 3);
-
-        // When
-        viewHolder.bind(hike);
+    public void textViewNomRando_apresInflation_estNonNull() {
+        // Given / When — fait dans setUp()
 
         // Then
-        assertEquals(
-                "Le nombre de participants doit être affiché avec le suffixe ' participants'",
-                "3 participants",
-                participantsView.getText().toString());
+        assertNotNull("Le TextView nom_rando doit être présent dans le layout", libelleView);
     }
 
     /**
-     * Vérifie que {@link RandoViewHolder#bind(Hike)} affiche correctement
-     * la durée en jours avec le suffixe " jours".
+     * Vérifie que la vue {@code icone_non_optimise} est accessible et non nulle
+     * après inflation.
      *
-     * <p><b>Given</b> : une randonnée de 2 jours.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView {@code nb_jours_rando} affiche "2 jours".</p>
+     * <p><b>Given</b> : le layout {@code item_rando} contient un ImageView avec l'id
+     * {@code icone_non_optimise}.</p>
+     * <p><b>When</b> : la vue est récupérée via {@code findViewById}.</p>
+     * <p><b>Then</b> : l'ImageView est non nulle.</p>
      */
     @Test
-    public void testBind_deuxJours_afficheNombreCorrect() {
-        // Given
-        Hike hike = creerHike("Sentier des Forêts", 2, 1);
-
-        // When
-        viewHolder.bind(hike);
+    public void imageViewIconeNonOptimise_apresInflation_estNonNull() {
+        // Given / When — fait dans setUp()
 
         // Then
-        assertEquals(
-                "La durée doit être affichée avec le suffixe ' jours'",
-                "2 jours",
-                joursView.getText().toString());
-    }
-
-    /**
-     * Vérifie que les trois TextViews sont tous correctement remplis
-     * en un seul appel à {@link RandoViewHolder#bind(Hike)}.
-     *
-     * <p><b>Given</b> : une randonnée complète avec libellé, durée et participants.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : les trois TextViews affichent les bonnes valeurs simultanément.</p>
-     */
-    @Test
-    public void testBind_donneesCompletes_tousLesTextViewsCorrects() {
-        // Given
-        Hike hike = creerHike("GR20 Corse", 3, 5);
-
-        // When
-        viewHolder.bind(hike);
-
-        // Then
-        assertEquals("Libellé incorrect", "GR20 Corse",        libelleView.getText().toString());
-        assertEquals("Participants incorrect", "5 participants", participantsView.getText().toString());
-        assertEquals("Jours incorrect", "3 jours",             joursView.getText().toString());
+        assertNotNull("L'ImageView icone_non_optimise doit être présente dans le layout",
+                iconeNonOptimise);
     }
 
     // =========================================================================
-    // CAS LIMITES
+    // Tests — bind() — Libellé — Cas nominaux
     // =========================================================================
 
     /**
-     * Vérifie que {@code bind()} affiche correctement "0 participants"
-     * lorsque la randonnée n'a aucun participant.
+     * Vérifie que {@code bind()} affiche correctement le libellé dans le TextView.
      *
-     * <p><b>Given</b> : une randonnée sans participants.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView affiche "0 participants".</p>
+     * <p><b>Given</b> : une randonnée avec le libellé "Tour du Mont-Blanc".</p>
+     * <p><b>When</b> : {@code bind(hike)} est appelé.</p>
+     * <p><b>Then</b> : le TextView {@code nom_rando} affiche "Tour du Mont-Blanc".</p>
      */
     @Test
-    public void testBind_zeroParticipant_afficheZeroParticipants() {
+    public void bind_libelleValide_afficheLibelleDansTextView() {
         // Given
-        Hike hike = creerHike("Randonnée Solo", 1, 0);
+        Hike hike = creerHike("Tour du Mont-Blanc", true);
 
         // When
         viewHolder.bind(hike);
 
         // Then
-        assertEquals(
-                "Zéro participant doit afficher '0 participants'",
-                "0 participants",
-                participantsView.getText().toString());
+        assertEquals("Le libellé doit être affiché dans le TextView nom_rando",
+                "Tour du Mont-Blanc", libelleView.getText().toString());
     }
 
     /**
-     * Vérifie que la durée minimale autorisée (1 jour) est affichée correctement.
+     * Vérifie que deux libellés distincts sont bien affichés en fonction du {@link Hike}
+     * passé à {@code bind()}.
      *
-     * <p><b>Given</b> : une randonnée de 1 jour (durée minimale).<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView affiche "1 jours".</p>
+     * <p><b>Given</b> : deux randonnées avec des libellés différents.</p>
+     * <p><b>When</b> : {@code bind()} est appelé sur chacune séparément.</p>
+     * <p><b>Then</b> : le TextView affiche à chaque fois le bon libellé.</p>
      */
     @Test
-    public void testBind_dureeUnJour_afficheUnJour() {
+    public void bind_deuxLibellesDistincts_chacunAfficheCorrectement() {
         // Given
-        Hike hike = creerHike("Balade Express", 1, 2);
+        Hike hike1 = creerHike("GR20 Corse",        true);
+        Hike hike2 = creerHike("Chemin de Compostelle", false);
+
+        // When / Then — premier bind
+        viewHolder.bind(hike1);
+        assertEquals("Le premier libellé doit être affiché",
+                "GR20 Corse", libelleView.getText().toString());
+
+        // When / Then — second bind
+        viewHolder.bind(hike2);
+        assertEquals("Le second libellé doit remplacer le premier",
+                "Chemin de Compostelle", libelleView.getText().toString());
+    }
+
+    // =========================================================================
+    // Tests — bind() — Icône non optimisé — Cas nominaux
+    // =========================================================================
+
+    /**
+     * Vérifie que l'icône {@code icone_non_optimise} est visible quand la randonnée
+     * n'est PAS optimisée ({@code optimize = false}).
+     *
+     * <p><b>Given</b> : une randonnée avec {@code optimize = false}.</p>
+     * <p><b>When</b> : {@code bind(hike)} est appelé.</p>
+     * <p><b>Then</b> : {@code icone_non_optimise.getVisibility()} vaut {@link View#VISIBLE}.</p>
+     */
+    @Test
+    public void bind_randonneNonOptimisee_iconeEstVisible() {
+        // Given
+        Hike hike = creerHike("Randonnée sans optimisation", false);
 
         // When
         viewHolder.bind(hike);
 
         // Then
-        assertEquals(
-                "La durée minimale de 1 jour doit être affichée '1 jours'",
-                "1 jours",
-                joursView.getText().toString());
+        assertEquals("L'icône doit être VISIBLE quand optimize == false",
+                View.VISIBLE, iconeNonOptimise.getVisibility());
     }
 
     /**
-     * Vérifie que la durée maximale autorisée (3 jours) est affichée correctement.
+     * Vérifie que l'icône {@code icone_non_optimise} est masquée quand la randonnée
+     * EST optimisée ({@code optimize = true}).
      *
-     * <p><b>Given</b> : une randonnée de 3 jours (durée maximale).<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView affiche "3 jours".</p>
+     * <p><b>Given</b> : une randonnée avec {@code optimize = true}.</p>
+     * <p><b>When</b> : {@code bind(hike)} est appelé.</p>
+     * <p><b>Then</b> : {@code icone_non_optimise.getVisibility()} vaut {@link View#GONE}.</p>
      */
     @Test
-    public void testBind_dureeMaximale_afficheTroisJours() {
+    public void bind_randonneOptimisee_iconeEstMasquee() {
         // Given
-        Hike hike = creerHike("Grande Traversée", 3, 2);
+        Hike hike = creerHike("Randonnée optimisée", true);
 
         // When
         viewHolder.bind(hike);
 
         // Then
-        assertEquals(
-                "La durée maximale de 3 jours doit être affichée '3 jours'",
-                "3 jours",
-                joursView.getText().toString());
+        assertEquals("L'icône doit être GONE quand optimize == true",
+                View.GONE, iconeNonOptimise.getVisibility());
     }
 
     /**
-     * Vérifie qu'un libellé vide est affiché tel quel sans crash.
+     * Vérifie que l'icône est bien masquée après avoir d'abord été affichée.
+     * Ce test valide la transition {@code VISIBLE → GONE} lors d'un second {@code bind()}.
      *
-     * <p><b>Given</b> : une randonnée avec un libellé vide {@code ""}.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView affiche une chaîne vide sans exception.</p>
+     * <p><b>Given</b> : un premier bind avec {@code optimize = false} (icône visible),
+     * suivi d'un second bind avec {@code optimize = true}.</p>
+     * <p><b>When</b> : les deux {@code bind()} sont appelés successivement.</p>
+     * <p><b>Then</b> : l'icône passe de {@code VISIBLE} à {@code GONE}.</p>
      */
     @Test
-    public void testBind_libelleVide_afficheChainVide() {
+    public void bind_transitionNonOptimiseVersOptimise_iconePasse_visible_vers_gone() {
+        // Given — premier état : non optimisée
+        Hike hikeNonOpt = creerHike("Rando A", false);
+        viewHolder.bind(hikeNonOpt);
+        assertEquals("Pré-condition : l'icône doit être VISIBLE",
+                View.VISIBLE, iconeNonOptimise.getVisibility());
+
+        // When — second état : optimisée
+        Hike hikeOpt = creerHike("Rando B", true);
+        viewHolder.bind(hikeOpt);
+
+        // Then
+        assertEquals("L'icône doit passer à GONE après un bind avec optimize=true",
+                View.GONE, iconeNonOptimise.getVisibility());
+    }
+
+    /**
+     * Vérifie que l'icône est bien affichée après avoir d'abord été masquée.
+     * Ce test valide la transition {@code GONE → VISIBLE} lors d'un second {@code bind()}.
+     *
+     * <p><b>Given</b> : un premier bind avec {@code optimize = true} (icône masquée),
+     * suivi d'un second bind avec {@code optimize = false}.</p>
+     * <p><b>When</b> : les deux {@code bind()} sont appelés successivement.</p>
+     * <p><b>Then</b> : l'icône passe de {@code GONE} à {@code VISIBLE}.</p>
+     */
+    @Test
+    public void bind_transitionOptimiseVersNonOptimise_iconePasse_gone_vers_visible() {
+        // Given — premier état : optimisée
+        Hike hikeOpt = creerHike("Rando A", true);
+        viewHolder.bind(hikeOpt);
+        assertEquals("Pré-condition : l'icône doit être GONE",
+                View.GONE, iconeNonOptimise.getVisibility());
+
+        // When — second état : non optimisée
+        Hike hikeNonOpt = creerHike("Rando B", false);
+        viewHolder.bind(hikeNonOpt);
+
+        // Then
+        assertEquals("L'icône doit passer à VISIBLE après un bind avec optimize=false",
+                View.VISIBLE, iconeNonOptimise.getVisibility());
+    }
+
+    // =========================================================================
+    // Tests — bind() — Cas limites
+    // =========================================================================
+
+    /**
+     * Vérifie qu'un libellé vide {@code ""} est affiché tel quel sans crash.
+     *
+     * <p><b>Given</b> : une randonnée avec un libellé vide.</p>
+     * <p><b>When</b> : {@code bind(hike)} est appelé.</p>
+     * <p><b>Then</b> : le TextView affiche une chaîne vide.</p>
+     */
+    @Test
+    public void bind_libelleVide_afficheChainVide() {
         // Given
-        Hike hike = creerHike("", 1, 0);
+        Hike hike = creerHike("", true);
 
         // When
         viewHolder.bind(hike);
 
         // Then
-        assertEquals(
-                "Un libellé vide doit être affiché tel quel",
-                "",
-                libelleView.getText().toString());
+        assertEquals("Un libellé vide doit être affiché tel quel",
+                "", libelleView.getText().toString());
     }
 
     /**
      * Vérifie qu'un libellé très long (200 caractères) est affiché sans crash.
      *
-     * <p><b>Given</b> : un libellé de 200 caractères identiques.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : le TextView contient bien les 200 caractères.</p>
+     * <p><b>Given</b> : un libellé de 200 caractères identiques.</p>
+     * <p><b>When</b> : {@code bind(hike)} est appelé.</p>
+     * <p><b>Then</b> : le TextView contient les 200 caractères.</p>
      */
     @Test
-    public void testBind_libelleTresLong_afficheCorrectement() {
+    public void bind_libelleTresLong_afficheCorrectement() {
         // Given
         String libelleLong = "A".repeat(200);
-        Hike hike = creerHike(libelleLong, 1, 0);
+        Hike hike = creerHike(libelleLong, true);
 
         // When
         viewHolder.bind(hike);
 
         // Then
-        assertEquals(
-                "Un libellé de 200 caractères doit être affiché sans troncature",
-                libelleLong,
-                libelleView.getText().toString());
-    }
-
-    // =========================================================================
-    // CAS D'ERREUR
-    // =========================================================================
-
-    /**
-     * Vérifie que {@code bind()} avec un libellé {@code null} ne provoque pas
-     * de crash ({@code TextView.setText(null)} est toléré par Android).
-     *
-     * <p><b>Given</b> : une randonnée avec un libellé {@code null}.<br>
-     * <b>When</b>  : {@code bind(hike)} est appelé.<br>
-     * <b>Then</b>  : aucune {@link NullPointerException} n'est levée.</p>
-     */
-    @Test
-    public void testBind_libelleNull_pasDeCrash() {
-        // Given
-        Hike hike = creerHike(null, 1, 0);
-
-        // When / Then : setText(null) est accepté par TextView → affiche ""
-        viewHolder.bind(hike);
-
-        // Aucune exception = test réussi
-        assertEquals(
-                "Un libellé null doit être toléré par TextView (affiche chaîne vide)",
-                "",
-                libelleView.getText().toString());
+        assertEquals("Un libellé de 200 caractères doit être affiché intégralement",
+                libelleLong, libelleView.getText().toString());
     }
 
     /**
-     * Vérifie que deux appels successifs à {@code bind()} avec des {@link Hike}
-     * différents écrasent bien les données précédentes.
+     * Vérifie que deux appels successifs à {@code bind()} écrasent correctement
+     * toutes les données précédentes (libellé et visibilité de l'icône).
      *
-     * <p><b>Given</b> : deux randonnées aux libellés distincts.<br>
-     * <b>When</b>  : {@code bind()} est appelé deux fois de suite.<br>
-     * <b>Then</b>  : le TextView affiche les données du second {@link Hike}.</p>
+     * <p><b>Given</b> : deux randonnées aux données complètement opposées.</p>
+     * <p><b>When</b> : {@code bind()} est appelé deux fois de suite sur le même
+     * {@link RandoViewHolder}.</p>
+     * <p><b>Then</b> : après le second appel, le libellé et la visibilité de l'icône
+     * correspondent exclusivement à la seconde randonnée.</p>
      */
     @Test
-    public void testBind_deuxAppelsSuccessifs_afficheDernieresDonnees() {
+    public void bind_deuxAppelsSuccessifs_afficheDernieresDonnees() {
         // Given
-        Hike premierHike = creerHike("Première Randonnée", 1, 2);
-        Hike deuxiemeHike = creerHike("Deuxième Randonnée", 3, 5);
+        Hike premierHike  = creerHike("Première Randonnée", true);   // icône GONE
+        Hike deuxiemeHike = creerHike("Deuxième Randonnée", false);  // icône VISIBLE
 
         // When
         viewHolder.bind(premierHike);
-        viewHolder.bind(deuxiemeHike); // Le second appel doit écraser le premier
+        viewHolder.bind(deuxiemeHike);
 
         // Then
-        assertEquals(
-                "Le second bind() doit écraser les données du premier",
-                "Deuxième Randonnée",
-                libelleView.getText().toString());
-        assertEquals("5 participants", participantsView.getText().toString());
-        assertEquals("3 jours",        joursView.getText().toString());
+        assertEquals("Le libellé doit être celui du second bind()",
+                "Deuxième Randonnée", libelleView.getText().toString());
+        assertEquals("L'icône doit être VISIBLE après le second bind()",
+                View.VISIBLE, iconeNonOptimise.getVisibility());
+    }
+
+    // =========================================================================
+    // Tests — bind() — Cas d'erreur
+    // =========================================================================
+
+    /**
+     * Vérifie que {@code bind()} avec un libellé {@code null} ne provoque pas de crash.
+     * {@code TextView.setText(null)} est toléré par Android et affiche une chaîne vide.
+     *
+     * <p><b>Given</b> : une randonnée avec {@code libelle = null}.</p>
+     * <p><b>When</b> : {@code bind(hike)} est appelé.</p>
+     * <p><b>Then</b> : aucune {@link NullPointerException} n'est levée et le TextView
+     * affiche une chaîne vide.</p>
+     */
+    @Test
+    public void bind_libelleNull_pasDeCrashEtAfficheChainVide() {
+        // Given
+        Hike hike = creerHike(null, true);
+
+        // When — TextView.setText(null) est accepté par Android
+        viewHolder.bind(hike);
+
+        // Then
+        assertEquals("Un libellé null doit être toléré et afficher une chaîne vide",
+                "", libelleView.getText().toString());
     }
 }
