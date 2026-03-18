@@ -68,6 +68,7 @@ import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceCreationRandonnee;
 import fr.iutrodez.a4awalk.services.gestionAPI.randonnee.ServiceModificationRandonnee;
 import fr.iutrodez.a4awalk.utils.MapPickerDialog;
+import fr.iutrodez.a4awalk.utils.PopupUtil;
 import fr.iutrodez.a4awalk.utils.validators.PoiValidator;
 import fr.iutrodez.a4awalk.utils.validators.ValidateurRandonnee;
 
@@ -766,7 +767,7 @@ public class ActiviteGestionRandonnee extends HeaderActivity {
                     @Override
                     public void onError(String message) {
                         // En cas d'erreur, on affiche simplement le message sans fermer l'activité
-                        Toast.makeText(ActiviteGestionRandonnee.this, "Erreur d'optimisation : " + message, Toast.LENGTH_LONG).show();
+                        PopupUtil.showLongToast(ActiviteGestionRandonnee.this, "Erreur d'optimisation : " + message);
                     }
                 }
         );

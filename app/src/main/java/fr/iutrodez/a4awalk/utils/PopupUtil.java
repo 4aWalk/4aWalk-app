@@ -2,10 +2,14 @@ package fr.iutrodez.a4awalk.utils;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import fr.iutrodez.a4awalk.R;
 
@@ -38,5 +42,26 @@ public class PopupUtil {
         });
 
         dialog.show();
+    }
+
+    public static void showLongToast(Context context, String message) {
+        TextView tv = new TextView(context);
+        tv.setText(message);
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(14f);
+        tv.setPadding(40, 24, 40, 24);
+        tv.setMaxLines(10);
+        tv.setEllipsize(null);
+
+        // Fond arrondi via GradientDrawable
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#CC000000"));
+        background.setCornerRadius(24f);
+        tv.setBackground(background);
+
+        Toast toast = new Toast(context);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(tv);
+        toast.show();
     }
 }
