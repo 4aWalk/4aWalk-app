@@ -17,12 +17,26 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.android.volley.VolleyError;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.iutrodez.a4awalk.modeles.ParticipantCallback;
+import fr.iutrodez.a4awalk.modeles.entites.EquipmentItem;
+import fr.iutrodez.a4awalk.modeles.entites.FoodProduct;
 import fr.iutrodez.a4awalk.modeles.enums.ModeRandonnee;
+import fr.iutrodez.a4awalk.services.AppelAPI;
+import fr.iutrodez.a4awalk.services.gestionAPI.ServiceParticipant;
 import fr.iutrodez.a4awalk.utils.validators.ParticipantValidator;
 import fr.iutrodez.a4awalk.R;
 import fr.iutrodez.a4awalk.modeles.entites.Participant;
