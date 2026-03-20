@@ -7,14 +7,14 @@
 
     <EditText
         android:id="@+id/edit_poi_nom"
-        android:hint="Nom du point (ex: Source d'eau)"
+        android:hint="@string/hint_nom_du_point"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Appuyez sur la carte pour placer le point"
+        android:text="@string/hint_appui_carte"
         android:textStyle="italic"
         android:layout_marginTop="8dp"
         android:textColor="#666666"/>
@@ -32,7 +32,7 @@
 
     <EditText
         android:id="@+id/edit_poi_lat"
-        android:hint="Latitude"
+        android:hint="@string/latitude"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -40,7 +40,7 @@
 
     <EditText
         android:id="@+id/edit_poi_lon"
-        android:hint="Longitude"
+        android:hint="@string/longitude"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="numberDecimal|numberSigned"/>

@@ -84,5 +84,46 @@
     <string name="nourritures">Nourritures</string>
     <string name="equipements">Équipements</string>
     <string name="demarrer_parcours">Démarrer un parcours</string>
+    <string name="email">Email</string>
+    <string name="mot_de_passe">Mot de passe</string>
+    <string name="choisir_le_point_d_arriv_e">Choisir le point d\'arrivée</string>
+    <string name="choisir_le_point_de_d_part">Choisir le point de départ</string>
+    <string name="ajouter_un_quipement">Ajouter un équipement</string>
+    <string name="produits_alimentaires">Produits Alimentaires</string>
+    <string name="ajouter_un_produit">Ajouter un produit</string>
+    <string name="enregistrer">Enregistrer</string>
+    <string name="ajouter_un_nouveau_produit">Ajouter un nouveau produit</string>
+    <string name="adresse_personnelle">Adresse personnelle</string>
+    <string name="confirmer_le_mot_de_passe">Confirmer le mot de passe</string>
+    <string name="date_de_r_alisation">Date de réalisation :</string>
+    <string name="randonn_e">Randonnée :</string>
+    <string name="reprendre">Reprendre</string>
+    <string name="terminer">Terminer</string>
+    <string name="hint_nom_du_point">Nom du point (ex: Source d\'eau)</string>
+    <string name="hint_appui_carte">Appuyez sur la carte pour placer le point</string>
+    <string name="modifier_votre_compte">Modifier votre compte</string>
+    <string name="valider">Valider</string>
+    <string name="masse_vide_en_g_optionnel">Masse à vide en g (Optionnel)</string>
+    <string name="propri_taire">Propriétaire :</string>
+    <string name="type_d_quipement">Type d\'équipement :</string>
+    <string name="pour_combien_de_personne_s_1_3">Pour combien de personne(s) (1 à 3) :</string>
+    <string name="masse_en_g_50_5000">Masse en g (50 à 5000)</string>
+    <string name="nouvel_quipement">Nouvel Équipement</string>
+    <string name="nom_obligatoire">Nom (Obligatoire)</string>
+    <string name="description_obligatoire">Description (Obligatoire)</string>
+    <string name="nouveau_produit_alimentaire">Nouveau Produit Alimentaire</string>
+    <string name="appellation_courante_obligatoire">Appellation courante (Obligatoire)</string>
+    <string name="conditionnement_obligatoire">Conditionnement (Obligatoire)</string>
+    <string name="apport_kcal_50_3000">Apport Kcal (50 à 3000)</string>
+    <string name="prix_en_0"><![CDATA[Prix en € (>= 0)]]></string>
+    <string name="annuler">Annuler</string>
+    <string name="ajouter">Ajouter</string>
+    <string name="remplir_depuis_un_participant_existant">Remplir depuis un participant existant :</string>
+    <string name="contenu_du_sac">Contenu du sac</string>
+    <string name="d_tails_des_quipements_et_de_la_nourriture">Détails des équipements et de la nourriture</string>
+    <string name="inventaire">Inventaire</string>
+    <string name="qt">Qté</string>
+    <string name="nom_de_l_item">Nom de l\'item</string>
+    <string name="poids">Poids</string>
 
 </resources>

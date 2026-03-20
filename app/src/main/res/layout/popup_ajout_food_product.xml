@@ -22,7 +22,7 @@
                 android:id="@+id/tv_titre_popup_fp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nouveau Produit Alimentaire"
+                android:text="@string/nouveau_produit_alimentaire"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"
@@ -32,14 +32,14 @@
                 android:id="@+id/et_fp_nom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Nom (Obligatoire)"
+                android:hint="@string/nom_obligatoire"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_fp_masse"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Masse en g (50 à 5000)"
+                android:hint="@string/masse_en_g_50_5000"
                 android:inputType="numberDecimal"
                 android:layout_marginBottom="8dp" />
 
@@ -47,21 +47,21 @@
                 android:id="@+id/et_fp_appellation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Appellation courante (Obligatoire)"
+                android:hint="@string/appellation_courante_obligatoire"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_fp_conditionnement"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Conditionnement (Obligatoire)"
+                android:hint="@string/conditionnement_obligatoire"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_fp_kcal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Apport Kcal (50 à 3000)"
+                android:hint="@string/apport_kcal_50_3000"
                 android:inputType="numberDecimal"
                 android:layout_marginBottom="8dp" />
 
@@ -69,14 +69,14 @@
                 android:id="@+id/et_fp_prix"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Prix en € (>= 0)"
+                android:hint="@string/prix_en_0"
                 android:inputType="numberDecimal"
                 android:layout_marginBottom="8dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pour combien de personne(s) (1 à 3) :"
+                android:text="@string/pour_combien_de_personne_s_1_3"
                 android:layout_marginTop="4dp" />
 
             <Spinner
@@ -88,7 +88,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Boutons HORS du ScrollView : toujours visibles en bas -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -101,7 +100,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Annuler"
+            android:text="@string/annuler"
             android:backgroundTint="#808080" />
 
         <Button
@@ -111,7 +110,7 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:backgroundTint="@color/vert"
-            android:text="Ajouter" />
+            android:text="@string/ajouter" />
     </LinearLayout>
 
 </LinearLayout>

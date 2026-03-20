@@ -22,7 +22,7 @@
                 android:id="@+id/tv_titre_popup_eq"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nouvel Équipement"
+                android:text="@string/nouvel_quipement"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"
@@ -32,14 +32,14 @@
                 android:id="@+id/et_eq_nom_create"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Nom (Obligatoire)"
+                android:hint="@string/nom_obligatoire"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_eq_desc_create"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Description (Obligatoire)"
+                android:hint="@string/description_obligatoire"
                 android:layout_marginBottom="8dp" />
 
             <EditText
@@ -47,13 +47,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:hint="Masse en g (50 à 5000)"
+                android:hint="@string/masse_en_g_50_5000"
                 android:layout_marginBottom="8dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pour combien de personne(s) (1 à 3) :"
+                android:text="@string/pour_combien_de_personne_s_1_3"
                 android:layout_marginTop="4dp" />
 
             <Spinner
@@ -65,7 +65,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Type d'équipement :" />
+                android:text="@string/type_d_quipement" />
 
             <Spinner
                 android:id="@+id/spinner_eq_type_create"
@@ -84,7 +84,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Propriétaire :" />
+                    android:text="@string/propri_taire" />
 
                 <Spinner
                     android:id="@+id/spinner_eq_owner_create"
@@ -97,7 +97,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:hint="Masse à vide en g (Optionnel)"
+                android:hint="@string/masse_vide_en_g_optionnel"
                 android:layout_marginBottom="8dp" />
 
         </LinearLayout>

@@ -55,7 +55,7 @@
             android:id="@+id/til_prenom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Prénom"
+            android:hint="@string/prenom"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -71,7 +71,7 @@
             android:id="@+id/til_age"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Age"
+            android:hint="@string/age"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -87,7 +87,7 @@
             android:id="@+id/til_adresse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Adresse personnelle"
+            android:hint="@string/adresse_personnelle"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -103,7 +103,7 @@
             android:id="@+id/til_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
+            android:hint="@string/email"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -119,7 +119,7 @@
             android:id="@+id/til_mot_de_passe"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Mot de passe"
+            android:hint="@string/mot_de_passe"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -135,7 +135,7 @@
             android:id="@+id/til_confirmer_mot_de_passe"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Confirmer le mot de passe"
+            android:hint="@string/confirmer_le_mot_de_passe"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
